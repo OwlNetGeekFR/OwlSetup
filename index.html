@@ -51,7 +51,7 @@
           <div class="kicker"><i></i> CENTRE DE MAINTENANCE WINDOWS</div>
           <h1>Un PC propre,<br><em>à jour et prêt.</em></h1>
           <p>Installez vos logiciels, mettez votre système à jour et récupérez de l'espace depuis une seule application.</p>
-          <div class="home-actions"><button class="home-primary" data-view="catalog">Commencer la configuration <span>→</span></button><button class="home-secondary" data-view="updates">Tout mettre à jour</button></div>
+          <div class="home-actions"><button class="home-primary" data-view="catalog">Commencer la configuration <span>→</span></button><button class="home-secondary" data-view="updates">Tout mettre à jour</button><button class="home-secondary app-update-button" id="appUpdateBtn"><span>↻</span> Mettre PC Setup à jour</button></div>
         </div>
         <div class="health-widget">
           <div class="health-ring" id="healthRing"><div><strong id="healthScore">—</strong><small>/ 100</small></div></div>
@@ -295,6 +295,19 @@
         </div>
         <div class="progress-summary" id="updateSummary">Ne fermez pas PC Setup pendant la mise à jour.</div>
         <button class="primary-dialog-button hidden" id="finishUpdate">Terminer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="install-modal hidden" id="appUpdateModal" role="dialog" aria-modal="true" aria-labelledby="appUpdateTitle">
+    <div class="install-dialog self-update-dialog">
+      <div class="dialog-glow self-update-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo self-update-logo">↻</span><div><span class="label">MISE À JOUR DE L'APPLICATION</span><h2 id="appUpdateTitle">PC Setup</h2></div><button class="dialog-close" id="closeAppUpdate" aria-label="Fermer">×</button></div>
+      <div class="dialog-confirm">
+        <div class="self-update-state"><span id="appUpdateStateIcon">↻</span><div><strong id="appUpdateStateTitle">Recherche d'une nouvelle version</strong><small id="appUpdateStateDetail">Connexion aux Releases GitHub officielles...</small></div></div>
+        <div class="self-update-versions"><span>Version installée <b id="appCurrentVersion">—</b></span><i>→</i><span>Dernière version <b id="appLatestVersion">—</b></span></div>
+        <div class="dialog-warning"><span>✓</span> Le fichier téléchargé sera contrôlé avec son empreinte SHA-256 avant remplacement.</div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelAppUpdate">Fermer</button><button class="primary-dialog-button hidden" id="installAppUpdate"><span>↓</span> Installer la mise à jour</button></div>
       </div>
     </div>
   </div>

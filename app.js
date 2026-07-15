@@ -558,8 +558,84 @@ function beginUninstall() {
   window.chrome.webview.postMessage({action:"uninstall", payload:{id:pendingUninstallId}});
 }
 
+function openAppUpdateModal() {
+  const modal = $("#appUpdateModal");
+  modal.dataset.running = "false";
+  modal.classList.remove("hidden");
+  $("#installAppUpdate").classList.add("hidden");
+  $("#appUpdateStateIcon").textContent = "↻";
+  $("#appUpdateStateIcon").classList.add("spinning");
+  $("#appUpdateStateTitle").textContent = "Recherche d'une nouvelle version";
+  $("#appUpdateStateDetail").textContent = "Connexion aux Releases GitHub officielles...";
+  $("#appCurrentVersion").textContent = "—";
+  $("#appLatestVersion").textContent = "—";
+  if (window.chrome?.webview) window.chrome.webview.postMessage({action:"check-app-update", payload:{}});
+  else {
+    $("#appUpdateStateIcon").classList.remove("spinning");
+    $("#appUpdateStateTitle").textContent = "Disponible dans l'application Windows";
+    $("#appUpdateStateDetail").textContent = "La démonstration web ne peut pas mettre à jour l'exécutable.";
+  }
+}
+
+function closeAppUpdateModal() {
+  if ($("#appUpdateModal").dataset.running === "true") return;
+  $("#appUpdateModal").classList.add("hidden");
+}
+
+function beginAppUpdate() {
+  if (!window.chrome?.webview) return;
+  $("#appUpdateModal").dataset.running = "true";
+  $("#closeAppUpdate").disabled = true;
+  $("#cancelAppUpdate").disabled = true;
+  $("#installAppUpdate").disabled = true;
+  window.chrome.webview.postMessage({action:"install-app-update", payload:{}});
+}
+
+function renderAppUpdateState(message) {
+  const icon = $("#appUpdateStateIcon");
+  const install = $("#installAppUpdate");
+  $("#appCurrentVersion").textContent = message.current || "—";
+  if (message.latest) $("#appLatestVersion").textContent = message.latest;
+  icon.classList.toggle("spinning", ["checking", "downloading"].includes(message.status));
+  install.classList.add("hidden");
+  if (message.status === "checking") {
+    $("#appUpdateStateTitle").textContent = "Recherche d'une nouvelle version";
+    $("#appUpdateStateDetail").textContent = "Lecture de la dernière Release GitHub...";
+  } else if (message.status === "available") {
+    icon.textContent = "↓";
+    $("#appUpdateStateTitle").textContent = `PC Setup ${message.latest} est disponible`;
+    $("#appUpdateStateDetail").textContent = "La mise à jour peut être téléchargée et installée automatiquement.";
+    install.classList.remove("hidden"); install.disabled = false;
+  } else if (message.status === "current") {
+    icon.textContent = "✓";
+    $("#appLatestVersion").textContent = message.latest || message.current;
+    $("#appUpdateStateTitle").textContent = "PC Setup est à jour";
+    $("#appUpdateStateDetail").textContent = "Vous utilisez déjà la dernière version disponible.";
+  } else if (message.status === "downloading") {
+    icon.textContent = "↻";
+    $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
+    $("#appUpdateStateDetail").textContent = "Téléchargement puis vérification de l'empreinte SHA-256...";
+  } else if (message.status === "restarting") {
+    icon.classList.remove("spinning"); icon.textContent = "✓";
+    $("#appLatestVersion").textContent = message.latest || "—";
+    $("#appUpdateStateTitle").textContent = "Mise à jour vérifiée";
+    $("#appUpdateStateDetail").textContent = "PC Setup va redémarrer avec la nouvelle version.";
+  } else if (message.status === "error") {
+    $("#appUpdateModal").dataset.running = "false";
+    $("#closeAppUpdate").disabled = false;
+    $("#cancelAppUpdate").disabled = false;
+    icon.classList.remove("spinning"); icon.textContent = "!";
+    $("#appUpdateStateTitle").textContent = "Mise à jour impossible";
+    $("#appUpdateStateDetail").textContent = message.message || "Vérifiez votre connexion Internet.";
+  }
+}
+
 function handleInstallMessage(message) {
   if (!message) return;
+  if (message.type === "app-update-state") {
+    renderAppUpdateState(message);
+    return;
+  }
   if (message.type === "health-scanning") {
     $("#refreshHealth").classList.add("scanning");
     return;
@@ -754,6 +830,10 @@ $("#confirmUninstall").addEventListener("click", beginUninstall);
 $("#cancelUninstall").addEventListener("click", closeUninstallModal);
 $("#closeUninstallModal").addEventListener("click", closeUninstallModal);
 $("#finishUninstall").addEventListener("click", closeUninstallModal);
+$("#appUpdateBtn").addEventListener("click", openAppUpdateModal);
+$("#installAppUpdate").addEventListener("click", beginAppUpdate);
+$("#cancelAppUpdate").addEventListener("click", closeAppUpdateModal);
+$("#closeAppUpdate").addEventListener("click", closeAppUpdateModal);
 $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
 $("#refreshHealth").addEventListener("click", requestHealth);

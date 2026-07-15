@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,8 +22,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyProduct("PC Setup")]
 [assembly: AssemblyDescription("Installation, mise a jour et entretien de Windows")]
 [assembly: AssemblyCompany("PC Setup")]
-[assembly: AssemblyVersion("3.0.1.0")]
-[assembly: AssemblyFileVersion("3.0.1.0")]
+[assembly: AssemblyVersion("3.1.0.0")]
+[assembly: AssemblyFileVersion("3.1.0.0")]
 
 internal sealed class WebAppForm : Form
 {
@@ -35,6 +37,7 @@ internal sealed class WebAppForm : Form
     bool cleanupRunning;
     bool healthScanning;
     bool updatesScanning;
+    bool selfUpdateRunning;
 
     public WebAppForm()
     {
@@ -101,6 +104,8 @@ internal sealed class WebAppForm : Form
             string action = Convert.ToString(message["action"]);
             var payload = message.ContainsKey("payload") ? message["payload"] as Dictionary<string, object> : null;
             if (action == "update") RunUpdate(payload);
+            else if (action == "check-app-update") CheckAppUpdate();
+            else if (action == "install-app-update") InstallAppUpdate();
             else if (action == "scan-health") ScanHealth();
             else if (action == "scan-updates") ScanUpdates();
             else if (action == "install") RunInstall(payload);
@@ -492,6 +497,129 @@ internal sealed class WebAppForm : Form
             }
             catch(Exception ex){SendToWeb(new { type="quarantine-action", success=false, action="delete", message=ex.Message });}
             SendQuarantineState();
+        });
+    }
+
+    Dictionary<string,object> GetLatestRelease()
+    {
+        ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+        using(var client=new WebClient())
+        {
+            client.Headers[HttpRequestHeader.UserAgent]="PC-Setup/"+Assembly.GetExecutingAssembly().GetName().Version;
+            client.Headers[HttpRequestHeader.Accept]="application/vnd.github+json";
+            string content=client.DownloadString("https://api.github.com/repos/OwlNetGeekFR/pc-setup/releases/latest");
+            var release=json.DeserializeObject(content) as Dictionary<string,object>;
+            if(release==null)throw new InvalidDataException("Réponse GitHub invalide.");
+            return release;
+        }
+    }
+
+    Dictionary<string,object> FindReleaseAsset(Dictionary<string,object> release,string name)
+    {
+        if(!release.ContainsKey("assets"))return null;
+        IEnumerable<object> assets=Enumerable.Empty<object>();
+        var array=release["assets"] as object[];
+        if(array!=null)assets=array;
+        var list=release["assets"] as ArrayList;
+        if(list!=null)assets=list.Cast<object>();
+        return assets.Select(x=>x as Dictionary<string,object>).FirstOrDefault(x=>x!=null && x.ContainsKey("name") && String.Equals(Convert.ToString(x["name"]),name,StringComparison.OrdinalIgnoreCase));
+    }
+
+    Version ReadReleaseVersion(Dictionary<string,object> release)
+    {
+        string tag=release.ContainsKey("tag_name")?Convert.ToString(release["tag_name"]):"";
+        Version version;
+        if(!Version.TryParse(tag.TrimStart('v','V'),out version))throw new InvalidDataException("Version GitHub invalide.");
+        return version;
+    }
+
+    string CurrentVersionText()
+    {
+        Version version=Assembly.GetExecutingAssembly().GetName().Version;
+        return version.Major+"."+version.Minor+"."+version.Build;
+    }
+
+    void CheckAppUpdate()
+    {
+        if(selfUpdateRunning)return;
+        SendToWeb(new { type="app-update-state", status="checking", current=CurrentVersionText() });
+        Task.Run(delegate {
+            try
+            {
+                var release=GetLatestRelease();
+                Version latest=ReadReleaseVersion(release);
+                Version current=Assembly.GetExecutingAssembly().GetName().Version;
+                bool available=latest.CompareTo(current)>0;
+                SendToWeb(new { type="app-update-state", status=available?"available":"current", current=CurrentVersionText(), latest=latest.ToString(3), page=release.ContainsKey("html_url")?Convert.ToString(release["html_url"]):"" });
+            }
+            catch(Exception ex){SendToWeb(new { type="app-update-state", status="error", current=CurrentVersionText(), message=ex.Message });}
+        });
+    }
+
+    void InstallAppUpdate()
+    {
+        if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de PC Setup est déjà en cours.");
+        if(installationRunning || uninstallRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
+        selfUpdateRunning=true;
+        SendToWeb(new { type="app-update-state", status="downloading", current=CurrentVersionText() });
+        Task.Run(delegate {
+            string downloaded=null;
+            try
+            {
+                var release=GetLatestRelease();
+                Version latest=ReadReleaseVersion(release);
+                Version current=Assembly.GetExecutingAssembly().GetName().Version;
+                if(latest.CompareTo(current)<=0)throw new InvalidOperationException("PC Setup est déjà à jour.");
+                var exeAsset=FindReleaseAsset(release,"PC-Setup.exe");
+                var hashAsset=FindReleaseAsset(release,"SHA256.txt");
+                if(exeAsset==null || hashAsset==null)throw new FileNotFoundException("La Release ne contient pas les fichiers de mise à jour requis.");
+                string exeUrl=Convert.ToString(exeAsset["browser_download_url"]);
+                string hashUrl=Convert.ToString(hashAsset["browser_download_url"]);
+                string trustedPrefix="https://github.com/OwlNetGeekFR/pc-setup/releases/download/";
+                if(!exeUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase) || !hashUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Source de mise à jour non approuvée.");
+                string folder=Path.Combine(Path.GetTempPath(),"PCSetup","Update-"+latest.ToString(3));
+                Directory.CreateDirectory(folder);
+                downloaded=Path.Combine(folder,"PC-Setup.exe");
+                string expected;
+                using(var client=new WebClient())
+                {
+                    client.Headers[HttpRequestHeader.UserAgent]="PC-Setup/"+CurrentVersionText();
+                    string hashText=client.DownloadString(hashUrl);
+                    Match match=Regex.Match(hashText,"(?i)\\b[0-9a-f]{64}\\b");
+                    if(!match.Success)throw new InvalidDataException("Empreinte SHA-256 absente.");
+                    expected=match.Value.ToUpperInvariant();
+                    client.DownloadFile(exeUrl,downloaded);
+                }
+                using(var stream=File.OpenRead(downloaded))
+                {
+                    if(stream.Length<2 || stream.ReadByte()!=0x4D || stream.ReadByte()!=0x5A)throw new InvalidDataException("Le fichier téléchargé n'est pas un exécutable Windows valide.");
+                }
+                string actual;
+                using(var sha=SHA256.Create())using(var stream=File.OpenRead(downloaded))actual=BitConverter.ToString(sha.ComputeHash(stream)).Replace("-","");
+                if(!String.Equals(actual,expected,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("La vérification SHA-256 a échoué. La mise à jour est annulée.");
+                string destination=Application.ExecutablePath;
+                string script=Path.Combine(folder,"installer-mise-a-jour.ps1");
+                string ps="$ErrorActionPreference='Stop'\r\n"+
+                    "$source='"+downloaded.Replace("'","''")+"'\r\n"+
+                    "$destination='"+destination.Replace("'","''")+"'\r\n"+
+                    "$pidToWait="+Process.GetCurrentProcess().Id+"\r\n"+
+                    "Wait-Process -Id $pidToWait -ErrorAction SilentlyContinue\r\n"+
+                    "$copied=$false\r\n"+
+                    "1..20 | ForEach-Object { if(-not $copied){ try { Copy-Item -LiteralPath $source -Destination $destination -Force; $copied=$true } catch { Start-Sleep -Milliseconds 500 } } }\r\n"+
+                    "if(-not $copied){ exit 1 }\r\n"+
+                    "Start-Process -FilePath $destination\r\n"+
+                    "Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue\r\n";
+                File.WriteAllText(script,ps,new UTF8Encoding(false));
+                SendToWeb(new { type="app-update-state", status="restarting", current=CurrentVersionText(), latest=latest.ToString(3) });
+                Process.Start(new ProcessStartInfo { FileName="powershell.exe", Arguments="-NoLogo -NoProfile -ExecutionPolicy Bypass -File \""+script+"\"", UseShellExecute=true, WindowStyle=ProcessWindowStyle.Hidden });
+                BeginInvoke(new Action(Close));
+            }
+            catch(Exception ex)
+            {
+                try{if(downloaded!=null && File.Exists(downloaded))File.Delete(downloaded);}catch{}
+                selfUpdateRunning=false;
+                SendToWeb(new { type="app-update-state", status="error", current=CurrentVersionText(), message=ex.Message });
+            }
         });
     }
 
