@@ -14,7 +14,6 @@ const apps = [
   { id:"EpicGames.EpicGamesLauncher", name:"Epic Games", category:"Gaming", desc:"Launcher et boutique Epic Games", icon:"EP", color:"#3a3a3a", site:"https://store.epicgames.com/download", tags:["gaming"] },
   { id:"GOG.Galaxy", name:"GOG Galaxy", category:"Gaming", desc:"Bibliothèque de jeux sans DRM", icon:"GG", color:"#883edb", site:"https://www.gog.com/galaxy", tags:["gaming"] },
   { id:"Ubisoft.Connect", name:"Ubisoft Connect", category:"Gaming", desc:"Launcher des jeux Ubisoft", icon:"UC", color:"#149dda", site:"https://www.ubisoft.com/en-gb/ubisoft-connect/download", tags:["gaming"] },
-  { id:"Nvidia.GeForceExperience", name:"NVIDIA App", category:"Gaming", desc:"Pilotes et optimisation NVIDIA", icon:"NV", color:"#76b900", site:"https://www.nvidia.com/en-us/software/nvidia-app/", tags:["gaming"] },
   { id:"OBSProject.OBSStudio", name:"OBS Studio", category:"Multimédia", desc:"Enregistrement et streaming vidéo", icon:"OB", color:"#7e6bf2", site:"https://obsproject.com/download", tags:["gaming"] },
   { id:"Microsoft.VisualStudioCode", name:"Visual Studio Code", category:"Développement", desc:"Éditeur de code extensible", icon:"VS", color:"#168bd2", site:"https://code.visualstudio.com/download", tags:["dev"] },
   { id:"Git.Git", name:"Git", category:"Développement", desc:"Gestion de versions distribuée", icon:"G", color:"#f05032", site:"https://git-scm.com/download/win", tags:["dev"] },
@@ -29,7 +28,7 @@ const apps = [
   { id:"Zoom.Zoom", name:"Zoom", category:"Communication", desc:"Réunions et visioconférences", icon:"ZM", color:"#2d8cff", site:"https://zoom.us/download" },
   { id:"Bitwarden.Bitwarden", name:"Bitwarden", category:"Sécurité", desc:"Gestionnaire de mots de passe", icon:"BW", color:"#175ddc", site:"https://bitwarden.com/download/" },
   { id:"Malwarebytes.Malwarebytes", name:"Malwarebytes", category:"Sécurité", desc:"Analyse et suppression de menaces", icon:"MW", color:"#1675e0", site:"https://www.malwarebytes.com/mwb-download" },
-  { id:"AnyDeskSoftwareGmbH.AnyDesk", name:"AnyDesk", category:"Utilitaires", desc:"Accès à distance simple et sécurisé", icon:"AD", color:"#ef443b", site:"https://anydesk.com/en/downloads/windows" },
+  { id:"AnyDesk.AnyDesk", name:"AnyDesk", category:"Utilitaires", desc:"Accès à distance simple et sécurisé", icon:"AD", color:"#ef443b", site:"https://anydesk.com/en/downloads/windows" },
   { id:"RARLab.WinRAR", name:"WinRAR", category:"Utilitaires", desc:"Gestion d'archives compressées", icon:"WR", color:"#8a5db1", site:"https://www.win-rar.com/download.html" }
 ];
 
@@ -39,13 +38,13 @@ const appLogos = {
   "SumatraPDF.SumatraPDF":"sumatrapdf.ico", "TheDocumentFoundation.LibreOffice":"libreoffice.svg",
   "voidtools.Everything":"everything.ico", "Microsoft.PowerToys":"powertoys.png", "Discord.Discord":"discord.svg",
   "Valve.Steam":"steam.svg", "EpicGames.EpicGamesLauncher":"epicgames.svg", "GOG.Galaxy":"gog.svg",
-  "Ubisoft.Connect":"ubisoft.svg", "Nvidia.GeForceExperience":"nvidia.svg", "OBSProject.OBSStudio":"obs.svg",
+  "Ubisoft.Connect":"ubisoft.svg", "OBSProject.OBSStudio":"obs.svg",
   "Microsoft.VisualStudioCode":"vscode.svg", "Git.Git":"git.svg", "OpenJS.NodeJS.LTS":"nodejs.svg",
   "Python.Python.3.13":"python.svg", "Microsoft.DotNet.DesktopRuntime.8":"dotnet.svg",
   "Microsoft.VCRedist.2015+.x64":"cplusplus.svg", "Docker.DockerDesktop":"docker.svg",
   "Postman.Postman":"postman.svg", "Microsoft.WindowsTerminal":"terminal.svg", "Spotify.Spotify":"spotify.svg",
   "Zoom.Zoom":"zoom.svg", "Bitwarden.Bitwarden":"bitwarden.svg", "Malwarebytes.Malwarebytes":"malwarebytes.svg",
-  "AnyDeskSoftwareGmbH.AnyDesk":"anydesk.svg", "RARLab.WinRAR":"winrar.ico"
+  "AnyDesk.AnyDesk":"anydesk.svg", "RARLab.WinRAR":"winrar.ico"
 };
 apps.forEach(app => app.logo = `assets/logos/${appLogos[app.id]}`);
 

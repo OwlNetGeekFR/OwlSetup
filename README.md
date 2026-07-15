@@ -6,7 +6,7 @@ PC Setup est une application Windows 10/11 qui centralise l’installation de lo
 
 ## Fonctionnalités
 
-- Catalogue de 32 logiciels avec liens vers les sites officiels.
+- Catalogue de 31 logiciels validés avec WinGet et liens vers les sites officiels.
 - Installation et désinstallation silencieuses avec WinGet.
 - Détection des logiciels déjà installés.
 - Aperçu des mises à jour avec comparaison des versions.
