@@ -599,6 +599,7 @@ function beginAppUpdate() {
 function renderAppUpdateState(message) {
   const icon = $("#appUpdateStateIcon");
   const install = $("#installAppUpdate");
+  const notification = $("#appUpdateNotification");
   $("#appCurrentVersion").textContent = message.current || "—";
   if (message.latest) $("#appLatestVersion").textContent = message.latest;
   icon.classList.toggle("spinning", ["checking", "downloading"].includes(message.status));
@@ -607,11 +608,21 @@ function renderAppUpdateState(message) {
     $("#appUpdateStateTitle").textContent = "Recherche d'une nouvelle version";
     $("#appUpdateStateDetail").textContent = "Lecture de la dernière Release GitHub...";
   } else if (message.status === "available") {
+    notification.classList.add("available");
+    notification.title = `PC Setup ${message.latest} est disponible`;
+    notification.setAttribute("aria-label", `Mise à jour PC Setup ${message.latest} disponible`);
+    if (notification.dataset.notified !== message.latest) {
+      notification.dataset.notified = message.latest;
+      notifyAction("Mise à jour disponible", `PC Setup ${message.latest} peut être installé.`);
+    }
     icon.textContent = "↓";
     $("#appUpdateStateTitle").textContent = `PC Setup ${message.latest} est disponible`;
     $("#appUpdateStateDetail").textContent = "La mise à jour peut être téléchargée et installée automatiquement.";
     install.classList.remove("hidden"); install.disabled = false;
   } else if (message.status === "current") {
+    notification.classList.remove("available");
+    notification.title = "PC Setup est à jour";
+    notification.setAttribute("aria-label", "PC Setup est à jour");
     icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || message.current;
     $("#appUpdateStateTitle").textContent = "PC Setup est à jour";
@@ -621,6 +632,7 @@ function renderAppUpdateState(message) {
     $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
     $("#appUpdateStateDetail").textContent = "Téléchargement puis vérification de l'empreinte SHA-256...";
   } else if (message.status === "restarting") {
+    notification.classList.remove("available");
     icon.classList.remove("spinning"); icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || "—";
     $("#appUpdateStateTitle").textContent = "Mise à jour vérifiée";
@@ -789,6 +801,7 @@ function handleInstallMessage(message) {
 if (window.chrome && window.chrome.webview) {
   window.chrome.webview.addEventListener("message", event => handleInstallMessage(event.data));
   window.chrome.webview.postMessage({action:"scan-installed", payload:{ids:apps.map(app => app.id)}});
+  window.chrome.webview.postMessage({action:"check-app-update", payload:{}});
   requestHealth();
   requestQuarantine();
 }
@@ -836,6 +849,7 @@ $("#cancelUninstall").addEventListener("click", closeUninstallModal);
 $("#closeUninstallModal").addEventListener("click", closeUninstallModal);
 $("#finishUninstall").addEventListener("click", closeUninstallModal);
 $("#appUpdateBtn").addEventListener("click", openAppUpdateModal);
+$("#appUpdateNotification").addEventListener("click", openAppUpdateModal);
 $("#installAppUpdate").addEventListener("click", beginAppUpdate);
 $("#cancelAppUpdate").addEventListener("click", closeAppUpdateModal);
 $("#closeAppUpdate").addEventListener("click", closeAppUpdateModal);

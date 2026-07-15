@@ -22,8 +22,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyProduct("PC Setup")]
 [assembly: AssemblyDescription("Installation, mise a jour et entretien de Windows")]
 [assembly: AssemblyCompany("PC Setup")]
-[assembly: AssemblyVersion("3.1.1.0")]
-[assembly: AssemblyFileVersion("3.1.1.0")]
+[assembly: AssemblyVersion("3.1.2.0")]
+[assembly: AssemblyFileVersion("3.1.2.0")]
 
 internal sealed class WebAppForm : Form
 {

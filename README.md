@@ -16,6 +16,7 @@ PC Setup est une application Windows 10/11 qui centralise l’installation de lo
 - Quarantaine restaurable pour les anciens dossiers AppData.
 - Tableau de santé local : mises à jour, espace disque et redémarrage en attente.
 - Mise à jour automatique de PC Setup depuis les Releases GitHub avec contrôle SHA-256.
+- Notification visuelle au démarrage lorsqu’une nouvelle version de PC Setup est disponible.
 - Rapports rangés dans `%LOCALAPPDATA%\PCSetup\Logs` sans encombrer le Bureau.
 
 ## Télécharger
