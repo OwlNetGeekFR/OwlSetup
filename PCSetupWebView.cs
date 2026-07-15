@@ -22,8 +22,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyProduct("PC Setup")]
 [assembly: AssemblyDescription("Installation, mise a jour et entretien de Windows")]
 [assembly: AssemblyCompany("PC Setup")]
-[assembly: AssemblyVersion("3.1.2.0")]
-[assembly: AssemblyFileVersion("3.1.2.0")]
+[assembly: AssemblyVersion("3.1.3.0")]
+[assembly: AssemblyFileVersion("3.1.3.0")]
 
 internal sealed class WebAppForm : Form
 {
@@ -169,7 +169,56 @@ internal sealed class WebAppForm : Form
 
     int RunWinget(string packageId, StringBuilder report)
     {
-        return RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+        string scope=String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase)?" --scope machine":String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)?" --scope user":"";
+        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+scope+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+        if(code!=0 && (String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase) || String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)))
+        {
+            report.AppendLine();
+            report.AppendLine("WinGet n'a pas terminé l'installation. Activation du secours signé de l'éditeur...");
+            code=InstallSignedPublisherFallback(packageId,report);
+        }
+        return code;
+    }
+
+    int InstallSignedPublisherFallback(string packageId,StringBuilder report)
+    {
+        bool chrome=String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase);
+        string url=chrome?"https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi":"https://download.scdn.co/SpotifyFullSetupX64.exe";
+        string publisher=chrome?"Google LLC":"Spotify AB";
+        string extension=chrome?".msi":".exe";
+        string folder=Path.Combine(Path.GetTempPath(),"PCSetup","Installers");
+        Directory.CreateDirectory(folder);
+        string installer=Path.Combine(folder,packageId+"-"+Guid.NewGuid().ToString("N")+extension);
+        try
+        {
+            ServicePointManager.SecurityProtocol=(SecurityProtocolType)3072;
+            report.AppendLine("Téléchargement officiel : "+url);
+            using(var client=new WebClient())
+            {
+                client.Headers[HttpRequestHeader.UserAgent]="PC-Setup/"+CurrentVersionText();
+                client.DownloadFile(url,installer);
+            }
+            string escaped=installer.Replace("'","''");
+            string expected=publisher.Replace("'","''");
+            string launch=chrome?
+                "$p=Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i',$file,'/qn','/norestart') -Wait -PassThru; exit $p.ExitCode":
+                "$p=Start-Process -FilePath $file -ArgumentList @('/silent') -Wait -PassThru; exit $p.ExitCode";
+            string script="$ErrorActionPreference='Stop'; $file='"+escaped+"'; $sig=Get-AuthenticodeSignature -LiteralPath $file; "+
+                "if($sig.Status -ne 'Valid' -or -not $sig.SignerCertificate -or $sig.SignerCertificate.Subject -notmatch 'O="+expected+"'){Write-Error 'Signature numérique de l éditeur invalide.'; exit 87}; "+launch;
+            string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+            int code=RunHiddenProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
+            report.AppendLine("Code du secours éditeur : "+code);
+            return code;
+        }
+        catch(Exception ex)
+        {
+            report.AppendLine("Échec du secours éditeur : "+ex.Message);
+            return -1;
+        }
+        finally
+        {
+            try{if(File.Exists(installer))File.Delete(installer);}catch{}
+        }
     }
 
     int RunHiddenProcess(string fileName, string arguments, StringBuilder report)
