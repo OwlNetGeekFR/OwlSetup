@@ -19,7 +19,7 @@ PC Setup est une application Windows 10/11 qui centralise l’installation de lo
 
 ## Télécharger
 
-La dernière version publique est disponible dans les [Releases GitHub](../../releases/latest) ou directement depuis le [site PC Setup](site/).
+La dernière version publique est disponible dans les [Releases GitHub](../../releases/latest).
 
 L’empreinte SHA-256 est publiée avec chaque version dans `SHA256.txt`.
 
@@ -51,10 +51,6 @@ Le script télécharge le package Microsoft WebView2 nécessaire, compile l’ap
 - Les documents et le dossier Téléchargements sont exclus du nettoyage.
 - Les chemins de quarantaine sont validés avant restauration ou suppression.
 - Une confirmation est exigée avant les opérations sensibles.
-
-## Site web
-
-Le dossier `site/` contient une démonstration statique sans action sur l’ordinateur du visiteur. GitHub Actions publie automatiquement ce dossier avec GitHub Pages.
 
 ## Avertissement
 

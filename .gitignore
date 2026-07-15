@@ -28,3 +28,6 @@ Thumbs.db
 .agents/
 .codex/
 assets/branding/pc-setup-logo-chroma.png
+
+# Site de démonstration conservé uniquement en local
+site/
