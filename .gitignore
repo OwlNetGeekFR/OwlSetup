@@ -39,3 +39,6 @@ PC-Setup-Site/
 PC-Setup-Site.zip
 OwlSetup-Site/
 OwlSetup-Site.zip
+OwlSetup-Dashboard/
+.dotnet-home/
+.nuget-packages/
