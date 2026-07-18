@@ -41,8 +41,8 @@ internal sealed class WebAppForm : Form
 
     public WebAppForm()
     {
-        Text = BuildInfo.IsBeta ? "PC Setup BETA - " + BuildInfo.DisplayVersion : "PC Setup";
-        string iconPath=Path.Combine(Bootstrap.AppRoot,"PC-Setup.ico");
+        Text = BuildInfo.IsBeta ? "OwlSetup BETA - " + BuildInfo.DisplayVersion : "OwlSetup";
+        string iconPath=Path.Combine(Bootstrap.AppRoot,"OwlSetup.ico");
         Icon = File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
         Size = new Size(1500, 920);
         MinimumSize = new Size(1050, 700);
@@ -61,7 +61,7 @@ internal sealed class WebAppForm : Form
             string userData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCSetup", "WebView2Data");
             var environment = await CoreWebView2Environment.CreateAsync(null, userData);
             await webView.EnsureCoreWebView2Async(environment);
-            if(!VerifyInterfaceIntegrity())throw new InvalidDataException("L'interface locale de PC Setup a ete modifiee ou endommagee.");
+            if(!VerifyInterfaceIntegrity())throw new InvalidDataException("L'interface locale de OwlSetup a ete modifiee ou endommagee.");
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.CoreWebView2.Settings.AreHostObjectsAllowed = false;
@@ -86,7 +86,7 @@ internal sealed class WebAppForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Impossible de charger l'interface PC Setup.\r\n\r\n" + ex.Message, "PC Setup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Impossible de charger l'interface OwlSetup.\r\n\r\n" + ex.Message, "OwlSetup", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Close();
         }
     }
@@ -197,7 +197,7 @@ internal sealed class WebAppForm : Form
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             try
             {
-                report.AppendLine("PC SETUP - RAPPORT D'INSTALLATION");
+                report.AppendLine("OWLSETUP - RAPPORT D'INSTALLATION");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 for(int i=0;i<packages.Length;i++)
                 {
@@ -359,7 +359,7 @@ internal sealed class WebAppForm : Form
                 Directory.CreateDirectory(Path.GetDirectoryName(shortcut));
                 if(!File.Exists(shortcut))
                 {
-                    if(!CreateShortcut(shortcut,target,appName+" - application portable geree par PC Setup",report))
+                    if(!CreateShortcut(shortcut,target,appName+" - application portable geree par OwlSetup",report))
                         report.AppendLine("Le raccourci n'a pas pu etre cree : "+shortcut);
                 }
                 if(File.Exists(shortcut))report.AppendLine("Raccourci portable : "+shortcut);
@@ -792,7 +792,7 @@ internal sealed class WebAppForm : Form
         if(code==1223 || text.Contains("operation was canceled") || text.Contains("operation cancelled") || text.Contains("annulee par l'utilisateur") || text.Contains("annulÃ©e par l'utilisateur"))
             return "L'autorisation Windows a ete annulee. Relancez l'operation puis acceptez la demande de securite.";
         if(code==unchecked((int)0x8A15007D) || text.Contains("installed for user scope cannot be uninstalled") || text.Contains("installe pour l'utilisateur") || text.Contains("installÃ© pour l'utilisateur"))
-            return "Cette application appartient a votre compte Windows. PC Setup doit effectuer l'operation sans elevation administrateur.";
+            return "Cette application appartient a votre compte Windows. OwlSetup doit effectuer l'operation sans elevation administrateur.";
         if(code==1618 || text.Contains("another installation is already in progress") || text.Contains("une autre installation est en cours"))
             return "Une autre installation Windows est deja en cours. Attendez sa fin puis recommencez.";
         if(code==1603 || text.Contains("installer failed with exit code: 1603"))
@@ -864,7 +864,7 @@ internal sealed class WebAppForm : Form
             bool success=false;
             try
             {
-                report.AppendLine("PC SETUP - RAPPORT DE DESINSTALLATION");
+                report.AppendLine("OWLSETUP - RAPPORT DE DESINSTALLATION");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine("Logiciel : "+packageId);
                 report.AppendLine();
@@ -937,7 +937,7 @@ internal sealed class WebAppForm : Form
             string mode="native";
             try
             {
-                report.AppendLine("PC SETUP - RAPPORT DE REPARATION");
+                report.AppendLine("OWLSETUP - RAPPORT DE REPARATION");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine("Logiciel : "+packageId);
                 report.AppendLine();
@@ -992,7 +992,7 @@ internal sealed class WebAppForm : Form
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             try
             {
-                report.AppendLine("PC SETUP - DESINSTALLATION GROUPEE");
+                report.AppendLine("OWLSETUP - DESINSTALLATION GROUPEE");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 for(int i=0;i<packages.Length;i++)
                 {
@@ -1093,7 +1093,7 @@ internal sealed class WebAppForm : Form
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             try
             {
-                string label="PC Setup "+BuildInfo.DisplayVersion+" - "+DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                string label="OwlSetup "+BuildInfo.DisplayVersion+" - "+DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                 string script="$ErrorActionPreference='Stop'; Checkpoint-Computer -Description '"+label.Replace("'","''")+"' -RestorePointType 'MODIFY_SETTINGS'";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
                 SendToWeb(new { type="tool-progress", tool="restore", percent=40, status="Creation par Windows..." });
@@ -1230,7 +1230,7 @@ internal sealed class WebAppForm : Form
             bool windowsStarted=false;
             try
             {
-                report.AppendLine("PC SETUP - RAPPORT DE MISE A JOUR");
+                report.AppendLine("OWLSETUP - RAPPORT DE MISE A JOUR");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine();
                 SendToWeb(new { type="update-stage", stage="sources", percent=10, title="Actualisation des sources", detail="Connexion au catalogue WinGet" });
@@ -1462,9 +1462,9 @@ internal sealed class WebAppForm : Form
         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
         using(var client=new WebClient())
         {
-            client.Headers[HttpRequestHeader.UserAgent]="PC-Setup/"+Assembly.GetExecutingAssembly().GetName().Version;
+            client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+Assembly.GetExecutingAssembly().GetName().Version;
             client.Headers[HttpRequestHeader.Accept]="application/vnd.github+json";
-            string content=client.DownloadString("https://api.github.com/repos/OwlNetGeekFR/pc-setup/releases/latest");
+            string content=client.DownloadString("https://api.github.com/repos/OwlNetGeekFR/OwlSetup/releases/latest");
             var release=json.DeserializeObject(content) as Dictionary<string,object>;
             if(release==null)throw new InvalidDataException("Réponse GitHub invalide.");
             return release;
@@ -1557,7 +1557,7 @@ internal sealed class WebAppForm : Form
     void InstallAppUpdate()
     {
         if(BuildInfo.IsBeta)throw new InvalidOperationException("La mise à jour automatique est désactivée dans la version bêta locale.");
-        if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de PC Setup est déjà en cours.");
+        if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de OwlSetup est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         selfUpdateRunning=true;
         SendToWeb(new { type="app-update-state", status="downloading", current=CurrentVersionText() });
@@ -1568,21 +1568,21 @@ internal sealed class WebAppForm : Form
                 var release=GetLatestRelease();
                 Version latest=ReadReleaseVersion(release);
                 Version current=Assembly.GetExecutingAssembly().GetName().Version;
-                if(latest.CompareTo(current)<=0)throw new InvalidOperationException("PC Setup est déjà à jour.");
-                var exeAsset=FindReleaseAsset(release,"PC-Setup.exe");
+                if(latest.CompareTo(current)<=0)throw new InvalidOperationException("OwlSetup est déjà à jour.");
+                var exeAsset=FindReleaseAsset(release,"OwlSetup.exe")??FindReleaseAsset(release,"PC-Setup.exe");
                 var hashAsset=FindReleaseAsset(release,"SHA256.txt");
                 if(exeAsset==null || hashAsset==null)throw new FileNotFoundException("La Release ne contient pas les fichiers de mise à jour requis.");
                 string exeUrl=Convert.ToString(exeAsset["browser_download_url"]);
                 string hashUrl=Convert.ToString(hashAsset["browser_download_url"]);
-                string trustedPrefix="https://github.com/OwlNetGeekFR/pc-setup/releases/download/";
+                string trustedPrefix="https://github.com/OwlNetGeekFR/OwlSetup/releases/download/";
                 if(!exeUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase) || !hashUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Source de mise à jour non approuvée.");
                 string folder=Path.Combine(Path.GetTempPath(),"PCSetup","Update-"+latest.ToString(3));
                 Directory.CreateDirectory(folder);
-                downloaded=Path.Combine(folder,"PC-Setup.exe");
+                downloaded=Path.Combine(folder,"OwlSetup.exe");
                 string expected;
                 using(var client=new WebClient())
                 {
-                    client.Headers[HttpRequestHeader.UserAgent]="PC-Setup/"+CurrentVersionText();
+                    client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+CurrentVersionText();
                     string hashText=client.DownloadString(hashUrl);
                     Match match=Regex.Match(hashText,"(?i)\\b[0-9a-f]{64}\\b");
                     if(!match.Success)throw new InvalidDataException("Empreinte SHA-256 absente.");
@@ -1629,9 +1629,9 @@ internal sealed class WebAppForm : Form
         string destination;
         using(var dialog=new SaveFileDialog())
         {
-            dialog.Title="Sauvegarder la configuration PC Setup";
-            dialog.Filter="Configuration PC Setup (*.pcsetup.json)|*.pcsetup.json|Fichier JSON (*.json)|*.json";
-            dialog.FileName="PC-Setup-Configuration-"+DateTime.Now.ToString("yyyy-MM-dd")+".pcsetup.json";
+            dialog.Title="Sauvegarder la configuration OwlSetup";
+            dialog.Filter="Configuration OwlSetup (*.pcsetup.json)|*.pcsetup.json|Fichier JSON (*.json)|*.json";
+            dialog.FileName="OwlSetup-Configuration-"+DateTime.Now.ToString("yyyy-MM-dd")+".pcsetup.json";
             if(dialog.ShowDialog(this)!=DialogResult.OK)return;
             destination=dialog.FileName;
         }
@@ -1671,8 +1671,8 @@ internal sealed class WebAppForm : Form
         string source;
         using(var dialog=new OpenFileDialog())
         {
-            dialog.Title="Restaurer une configuration PC Setup";
-            dialog.Filter="Configuration PC Setup (*.pcsetup.json;*.json)|*.pcsetup.json;*.json";
+            dialog.Title="Restaurer une configuration OwlSetup";
+            dialog.Filter="Configuration OwlSetup (*.pcsetup.json;*.json)|*.pcsetup.json;*.json";
             dialog.CheckFileExists=true;
             if(dialog.ShowDialog(this)!=DialogResult.OK)return;
             source=dialog.FileName;
@@ -1680,7 +1680,7 @@ internal sealed class WebAppForm : Form
         try
         {
             var root=json.DeserializeObject(File.ReadAllText(source,Encoding.UTF8)) as Dictionary<string,object>;
-            if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")throw new InvalidDataException("Ce fichier n'est pas une configuration PC Setup valide.");
+            if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")throw new InvalidDataException("Ce fichier n'est pas une configuration OwlSetup valide.");
             var packages=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(string key in new[]{"installedPackages","selectedPackages"})
                 foreach(string id in ReadArray(root,key))if(Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$"))packages.Add(id);
@@ -1961,8 +1961,8 @@ internal static class Bootstrap
             Extract("index.html", Path.Combine(AppRoot, "index.html"));
             Extract("app.js", Path.Combine(AppRoot, "app.js"));
             Extract("styles.css", Path.Combine(AppRoot, "styles.css"));
-            Extract("app-logo.png", Path.Combine(AppRoot, "assets", "branding", "pc-setup-logo.png"));
-            Extract("app-icon.ico", Path.Combine(AppRoot, "PC-Setup.ico"));
+            Extract("app-logo.png", Path.Combine(AppRoot, "assets", "branding", "owlsetup-logo.png"));
+            Extract("app-icon.ico", Path.Combine(AppRoot, "OwlSetup.ico"));
             ExtractLogos();
             Extract("Mettre-a-jour-mon-PC.ps1", Path.Combine(AppRoot, "Mettre-a-jour-mon-PC.ps1"));
             Extract("Liberer-espace-disque.ps1", Path.Combine(AppRoot, "Liberer-espace-disque.ps1"));
@@ -1980,7 +1980,7 @@ internal static class Bootstrap
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "PC Setup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(ex.Message, "OwlSetup", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 

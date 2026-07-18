@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
-  <title>PC Setup — Installateur Windows</title>
-  <link rel="icon" href="assets/branding/pc-setup-logo.png" />
+  <title>OwlSetup — Installateur Windows</title>
+  <link rel="icon" href="assets/branding/owlsetup-logo.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,9 +13,9 @@
   <div class="ambient ambient-two"></div>
 
   <aside class="sidebar">
-    <a class="brand" href="#" aria-label="PC Setup, accueil">
-      <img class="brand-app-logo" src="assets/branding/pc-setup-logo.png" alt="" aria-hidden="true" />
-      <span><strong>PC Setup <b class="build-badge hidden" id="buildBadge">BÊTA</b></strong><small id="buildSubtitle">Windows installer</small></span>
+    <a class="brand" href="#" aria-label="OwlSetup, accueil">
+      <img class="brand-app-logo" src="assets/branding/owlsetup-logo.png" alt="" aria-hidden="true" />
+      <span><strong>OwlSetup <b class="build-badge hidden" id="buildBadge">BÊTA</b></strong><small id="buildSubtitle">Windows installer</small></span>
     </a>
 
     <nav aria-label="Navigation">
@@ -43,9 +43,9 @@
   <main>
     <header class="topbar">
       <button class="mobile-menu" id="mobileMenu" aria-label="Ouvrir le menu">☰</button>
-      <div class="breadcrumb">PC Setup <span>/</span> <b id="currentView">Installer des logiciels</b></div>
+      <div class="breadcrumb">OwlSetup <span>/</span> <b id="currentView">Installer des logiciels</b></div>
       <div class="topbar-actions">
-        <button class="update-notification" id="appUpdateNotification" aria-label="Vérifier les mises à jour de PC Setup" title="PC Setup est à jour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+        <button class="update-notification" id="appUpdateNotification" aria-label="Vérifier les mises à jour de OwlSetup" title="OwlSetup est à jour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
         <div class="secure"><span>✓</span> Sources vérifiées</div>
       </div>
     </header>
@@ -56,7 +56,7 @@
           <div class="kicker"><i></i> CENTRE DE MAINTENANCE WINDOWS</div>
           <h1>Un PC propre,<br><em>à jour et prêt.</em></h1>
           <p>Installez vos logiciels, mettez votre système à jour et récupérez de l'espace depuis une seule application.</p>
-          <div class="home-actions"><button class="home-primary" data-view="catalog">Commencer la configuration <span>→</span></button><button class="home-secondary" data-view="updates">Tout mettre à jour</button><button class="home-secondary app-update-button" id="appUpdateBtn"><span>↻</span> Mettre PC Setup à jour</button></div>
+          <div class="home-actions"><button class="home-primary" data-view="catalog">Commencer la configuration <span>→</span></button><button class="home-secondary" data-view="updates">Tout mettre à jour</button><button class="home-secondary app-update-button" id="appUpdateBtn"><span>↻</span> Mettre OwlSetup à jour</button></div>
         </div>
         <div class="health-widget">
           <div class="health-ring" id="healthRing"><div><strong id="healthScore">—</strong><small>/ 100</small></div></div>
@@ -96,7 +96,7 @@
         <div><span>✓</span><p><strong>Sources officielles</strong><small>Installation via winget</small></p></div>
         <div><span>✓</span><p><strong>Actions contrôlées</strong><small>Confirmation avant suppression</small></p></div>
         <div><span>✓</span><p><strong>Aucune donnée envoyée</strong><small>Tout reste sur votre ordinateur</small></p></div>
-        <div><span>✓</span><p><strong>Rapports détaillés</strong><small>Journaux rangés dans PC Setup</small></p></div>
+        <div><span>✓</span><p><strong>Rapports détaillés</strong><small>Journaux rangés dans OwlSetup</small></p></div>
       </div>
     </section>
 
@@ -105,7 +105,7 @@
         <div>
           <div class="kicker"><i></i> NOUVELLE CONFIGURATION</div>
           <h1>Votre PC, prêt<br><em>en quelques clics.</em></h1>
-          <p>Sélectionnez vos logiciels et composants. PC Setup prépare une installation groupée, propre et sans publicités.</p>
+          <p>Sélectionnez vos logiciels et composants. OwlSetup prépare une installation groupée, propre et sans publicités.</p>
         </div>
         <div class="hero-orbit" aria-hidden="true"><span>⊞</span><i class="orbit-dot dot-a"></i><i class="orbit-dot dot-b"></i></div>
       </div>
@@ -151,7 +151,7 @@
       </div>
       <div class="update-preview-panel">
         <div class="section-heading"><div><span class="label">APERÇU DES VERSIONS</span><h2>Mises à jour disponibles</h2></div><button class="text-button" id="scanUpdatesBtn">↻ Rechercher</button></div>
-        <div class="update-scan-state" id="updateScanState"><span class="scan-spinner">↻</span><div><strong>Recherche des mises à jour</strong><small>PC Setup interroge le catalogue WinGet...</small></div></div>
+        <div class="update-scan-state" id="updateScanState"><span class="scan-spinner">↻</span><div><strong>Recherche des mises à jour</strong><small>OwlSetup interroge le catalogue WinGet...</small></div></div>
         <div class="available-updates hidden" id="availableUpdates"></div>
         <div class="no-updates hidden" id="noUpdates"><span>✓</span><div><strong>Vos applications sont à jour</strong><small>Aucune nouvelle version détectée dans le catalogue.</small></div></div>
       </div>
@@ -166,7 +166,7 @@
           <li><b>1</b><span><strong>Contrôle administrateur</strong><small>Relance automatique avec les droits nécessaires.</small></span></li>
           <li><b>2</b><span><strong>Mise à jour des applications</strong><small>Installation silencieuse des nouvelles versions disponibles.</small></span></li>
           <li><b>3</b><span><strong>Windows Update</strong><small>Recherche des composants et pilotes applicables.</small></span></li>
-          <li><b>4</b><span><strong>Rapport final</strong><small>Journal conservé dans le dossier local de PC Setup.</small></span></li>
+          <li><b>4</b><span><strong>Rapport final</strong><small>Journal conservé dans le dossier local de OwlSetup.</small></span></li>
         </ol>
       </div>
     </section>
@@ -228,10 +228,10 @@
 
     <section class="view" id="quarantine">
       <div class="page-intro quarantine-intro">
-        <div><span class="label">RÉCUPÉRATION SÉCURISÉE</span><h1>Quarantaine</h1><p>Restaurez les anciens dossiers déplacés par PC Setup ou supprimez-les définitivement après vérification.</p></div>
+        <div><span class="label">RÉCUPÉRATION SÉCURISÉE</span><h1>Quarantaine</h1><p>Restaurez les anciens dossiers déplacés par OwlSetup ou supprimez-les définitivement après vérification.</p></div>
         <div class="quarantine-shield" aria-hidden="true">♲</div>
       </div>
-      <div class="quarantine-toolbar"><div><strong id="quarantineCount">0 élément</strong><small>Les éléments sont conservés dans le dossier local sécurisé de PC Setup.</small></div><button class="text-button" id="refreshQuarantine">↻ Actualiser</button></div>
+      <div class="quarantine-toolbar"><div><strong id="quarantineCount">0 élément</strong><small>Les éléments sont conservés dans le dossier local sécurisé de OwlSetup.</small></div><button class="text-button" id="refreshQuarantine">↻ Actualiser</button></div>
       <div class="quarantine-list" id="quarantineList"><div class="quarantine-loading"><span>↻</span> Analyse de la quarantaine...</div></div>
       <div class="quarantine-empty hidden" id="quarantineEmpty"><span>✓</span><h3>La quarantaine est vide</h3><p>Aucun ancien dossier n'attend votre décision.</p></div>
       <div class="danger-note"><span>!</span><div><strong>Vérifiez le fonctionnement de vos applications avant une suppression définitive</strong><p>La restauration remet le dossier à son emplacement d'origine. La suppression définitive ne pourra pas être annulée.</p></div></div>
@@ -241,7 +241,7 @@
       <div class="page-intro"><span class="label">CENTRE D'OUTILS</span><h1>Diagnostic et maintenance</h1><p>Contrôlez WinGet, créez un point de restauration et examinez le système avant toute modification.</p></div>
       <div class="tools-grid">
         <article class="tool-panel"><span class="tool-icon blue">W</span><div><h3>Diagnostic WinGet</h3><p id="wingetDiagnosticText">Vérifiez le gestionnaire et ses sources.</p><div class="tool-progress hidden" id="wingetToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="diagnoseWinget">Diagnostiquer</button><button class="primary-dialog-button" id="repairWinget">Réparer WinGet</button></div></div></article>
-        <article class="tool-panel"><span class="tool-icon green">↶</span><div><h3>Point de restauration</h3><p id="restorePointText">Créez un point avant une opération importante.</p><p class="tool-help">Pour revenir à un point existant, ouvrez l’assistant Windows, choisissez le point « PC Setup », puis vérifiez les programmes concernés avant de confirmer.</p><div class="tool-progress hidden" id="restoreToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="createRestorePoint">Créer maintenant</button><button class="secondary-dialog-button" id="openSystemRestore">Restaurer mon PC</button></div></div></article>
+        <article class="tool-panel"><span class="tool-icon green">↶</span><div><h3>Point de restauration</h3><p id="restorePointText">Créez un point avant une opération importante.</p><p class="tool-help">Pour revenir à un point existant, ouvrez l’assistant Windows, choisissez le point « OwlSetup », puis vérifiez les programmes concernés avant de confirmer.</p><div class="tool-progress hidden" id="restoreToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="createRestorePoint">Créer maintenant</button><button class="secondary-dialog-button" id="openSystemRestore">Restaurer mon PC</button></div></div></article>
         <article class="tool-panel"><span class="tool-icon violet">↥</span><div><h3>Applications au démarrage</h3><p>Consultez les programmes détectés puis gérez-les dans la page officielle de Windows.</p><div class="tool-progress hidden" id="startupToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="scanStartup">Analyser</button><button class="primary-dialog-button" id="openStartupSettings">Gérer dans Windows</button></div></div></article>
         <article class="tool-panel"><span class="tool-icon orange">◇</span><div><h3>Occupation du disque</h3><p>Analyse en lecture seule des principaux dossiers de votre profil.</p><div class="tool-progress hidden" id="diskToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="scanDisk">Analyser le disque</button></div></div></article>
       </div>
@@ -256,8 +256,8 @@
     </section>
 
     <section class="view" id="security">
-      <div class="page-intro security-intro"><div><span class="label">PROTECTION LOCALE</span><h1>Centre de sécurité</h1><p>Contrôlez l’intégrité de PC Setup, ses droits et ses composants avant une opération sensible.</p></div><button class="primary-dialog-button" id="refreshSecurity">↻ Actualiser</button></div>
-      <div class="security-overview"><div class="security-score"><span>♢</span><div><strong id="securityHeadline">Analyse en cours...</strong><small id="securityVersion">PC Setup</small></div></div><div class="security-mode"><span>ÉLÉVATION</span><strong id="securityElevation">À la demande</strong><small>L’interface reste en droits standards.</small></div></div>
+      <div class="page-intro security-intro"><div><span class="label">PROTECTION LOCALE</span><h1>Centre de sécurité</h1><p>Contrôlez l’intégrité de OwlSetup, ses droits et ses composants avant une opération sensible.</p></div><button class="primary-dialog-button" id="refreshSecurity">↻ Actualiser</button></div>
+      <div class="security-overview"><div class="security-score"><span>♢</span><div><strong id="securityHeadline">Analyse en cours...</strong><small id="securityVersion">OwlSetup</small></div></div><div class="security-mode"><span>ÉLÉVATION</span><strong id="securityElevation">À la demande</strong><small>L’interface reste en droits standards.</small></div></div>
       <div class="security-grid">
         <article><span class="security-icon green">✓</span><div><small>INTERFACE</small><strong id="securityIntegrity">Vérification...</strong><em>Empreinte des ressources intégrées</em></div></article>
         <article><span class="security-icon blue">◎</span><div><small>ORIGINE WEBVIEW2</small><strong id="securityOrigin">Vérification...</strong><em>Commandes limitées à pcsetup.local</em></div></article>
@@ -279,7 +279,7 @@
           <div class="summary-row"><span>Téléchargement</span><b>Automatique</b></div>
           <div class="summary-row"><span>Interaction</span><b>Silencieuse</b></div>
           <button class="install-button" id="installBtn"><span>▶</span> Installer maintenant</button>
-          <p>PC Setup lancera l'installation dans une fenêtre PowerShell avec votre confirmation.</p>
+          <p>OwlSetup lancera l'installation dans une fenêtre PowerShell avec votre confirmation.</p>
         </aside>
       </div>
     </section>
@@ -288,7 +288,7 @@
       <div class="page-intro"><span class="label">MODE D'EMPLOI</span><h1>Installer en toute sécurité</h1><p>Le script utilise uniquement winget et les fonctions Windows intégrées.</p></div>
       <div class="steps">
         <article><b>01</b><div><h3>Composez votre sélection</h3><p>Choisissez un profil ou ajoutez les applications une à une depuis le catalogue.</p></div></article>
-        <article><b>02</b><div><h3>Vérifiez la simulation</h3><p>PC Setup présente les éléments concernés avant toute suppression ou opération de nettoyage.</p></div></article>
+        <article><b>02</b><div><h3>Vérifiez la simulation</h3><p>OwlSetup présente les éléments concernés avant toute suppression ou opération de nettoyage.</p></div></article>
         <article><b>03</b><div><h3>Confirmez l’opération</h3><p>L’autorisation administrateur Windows apparaît uniquement lorsqu’une fonction système en a réellement besoin.</p></div></article>
         <article><b>04</b><div><h3>Consultez le résultat</h3><p>La progression reste visible dans l’application et un rapport local est enregistré pour chaque opération.</p></div></article>
       </div>
@@ -308,7 +308,7 @@
       <div class="dialog-header"><span class="dialog-logo">↓</span><div><span class="label">INSTALLATION GROUPÉE</span><h2 id="installModalTitle">Prêt à installer</h2></div><button class="dialog-close" id="closeInstallModal" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm" id="installConfirmView">
         <p><strong id="modalAppCount">0 logiciel</strong> seront installés depuis les sources officielles winget.</p>
-        <div class="dialog-checks"><span>✓ Téléchargement automatique</span><span>✓ Installation silencieuse</span><span>✓ Rapport rangé dans PC Setup</span></div>
+        <div class="dialog-checks"><span>✓ Téléchargement automatique</span><span>✓ Installation silencieuse</span><span>✓ Rapport rangé dans OwlSetup</span></div>
         <div class="install-preferences"><label for="installShortcutLocation"><span>Emplacement du raccourci</span><select id="installShortcutLocation"><option value="start">Menu Démarrer — recommandé</option><option value="desktop">Bureau</option><option value="both">Menu Démarrer et Bureau</option><option value="none">Aucun raccourci supplémentaire</option></select></label><label class="launch-after hidden" id="launchAfterOption"><input type="checkbox" id="launchAfterInstall"><span>Lancer l’application après l’installation</span></label><small id="portableInstallNotice">Les fichiers restent dans le dossier sécurisé choisi par WinGet ou l’éditeur.</small></div>
         <div class="dialog-warning"><span>i</span> Fermez les applications concernées avant de continuer.</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelInstall">Annuler</button><button class="primary-dialog-button" id="confirmInstall"><span>▶</span> Commencer l'installation</button></div>
@@ -317,7 +317,7 @@
         <div class="progress-status"><span class="pulse-dot"></span><div><strong id="progressTitle">Préparation...</strong><small id="progressDetail">Initialisation de winget</small></div><b id="progressPercent">0%</b></div>
         <div class="progress-track"><i id="progressBar"></i></div>
         <div class="current-package"><span class="package-icon">↓</span><div><small>LOGICIEL EN COURS</small><strong id="currentPackage">En attente...</strong></div><span id="packageResult">—</span></div>
-        <div class="progress-summary" id="progressSummary">Ne fermez pas PC Setup pendant l'installation.</div>
+        <div class="progress-summary" id="progressSummary">Ne fermez pas OwlSetup pendant l'installation.</div>
         <button class="primary-dialog-button hidden" id="finishInstall">Terminer</button>
       </div>
     </div>
@@ -328,7 +328,7 @@
       <div class="dialog-glow update-dialog-glow"></div>
       <div class="dialog-header"><span class="dialog-logo update-dialog-logo">↥</span><div><span class="label">MAINTENANCE WINDOWS</span><h2 id="updateModalTitle">Tout mettre à jour</h2></div><button class="dialog-close" id="closeUpdateModal" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm" id="updateConfirmView">
-        <p>PC Setup va installer <strong id="updateModalCount">0 application</strong> sélectionnée(s), puis lancer la recherche des composants Windows et pilotes.</p>
+        <p>OwlSetup va installer <strong id="updateModalCount">0 application</strong> sélectionnée(s), puis lancer la recherche des composants Windows et pilotes.</p>
         <div class="update-confirm-list"><span><b>1</b> Applications WinGet</span><span><b>2</b> Composants Windows</span><span><b>3</b> Pilotes certifiés</span></div>
         <div class="dialog-warning"><span>i</span> Fermez les logiciels ouverts et branchez votre PC au secteur.</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelUpdate">Annuler</button><button class="primary-dialog-button update-confirm-button" id="confirmUpdate"><span>▶</span> Lancer la mise à jour</button></div>
@@ -341,7 +341,7 @@
           <div data-update-step="applications"><span>2</span><div><strong>Applications</strong><small>Nouvelles versions</small></div></div>
           <div data-update-step="windows"><span>3</span><div><strong>Windows Update</strong><small>Composants et pilotes</small></div></div>
         </div>
-        <div class="progress-summary" id="updateSummary">Ne fermez pas PC Setup pendant la mise à jour.</div>
+        <div class="progress-summary" id="updateSummary">Ne fermez pas OwlSetup pendant la mise à jour.</div>
         <button class="primary-dialog-button hidden" id="finishUpdate">Terminer</button>
       </div>
     </div>
@@ -350,7 +350,7 @@
   <div class="install-modal hidden" id="appUpdateModal" role="dialog" aria-modal="true" aria-labelledby="appUpdateTitle">
     <div class="install-dialog self-update-dialog">
       <div class="dialog-glow self-update-glow"></div>
-      <div class="dialog-header"><span class="dialog-logo self-update-logo">↻</span><div><span class="label">MISE À JOUR DE L'APPLICATION</span><h2 id="appUpdateTitle">PC Setup</h2></div><button class="dialog-close" id="closeAppUpdate" aria-label="Fermer">×</button></div>
+      <div class="dialog-header"><span class="dialog-logo self-update-logo">↻</span><div><span class="label">MISE À JOUR DE L'APPLICATION</span><h2 id="appUpdateTitle">OwlSetup</h2></div><button class="dialog-close" id="closeAppUpdate" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm">
         <div class="self-update-state"><span id="appUpdateStateIcon">↻</span><div><strong id="appUpdateStateTitle">Recherche d'une nouvelle version</strong><small id="appUpdateStateDetail">Connexion aux Releases GitHub officielles...</small></div></div>
         <div class="self-update-versions"><span>Version installée <b id="appCurrentVersion">—</b></span><i>→</i><span>Dernière version <b id="appLatestVersion">—</b></span></div>
@@ -378,7 +378,7 @@
         <div class="progress-track cleanup-progress-track"><i id="cleanupProgressBar"></i></div>
         <div class="cleanup-current-zone"><span id="cleanupZoneIcon">◇</span><div><small>ZONE EN COURS</small><strong id="cleanupCurrentZone">Initialisation...</strong></div><b id="cleanupZonePosition">—</b></div>
         <div class="cleanup-result-card hidden" id="cleanupResultCard"><span>✓</span><div><small>ESPACE RÉCUPÉRÉ</small><strong id="cleanupRecovered">0 Go</strong></div></div>
-        <div class="progress-summary" id="cleanupSummaryText">Ne fermez pas PC Setup pendant le nettoyage.</div>
+        <div class="progress-summary" id="cleanupSummaryText">Ne fermez pas OwlSetup pendant le nettoyage.</div>
         <button class="primary-dialog-button hidden" id="finishCleanup">Terminer</button>
       </div>
     </div>
@@ -388,14 +388,14 @@
     <div class="install-dialog repair-dialog">
       <div class="dialog-header"><span class="dialog-logo repair-logo">⚙</span><div><span class="label">MAINTENANCE DU LOGICIEL</span><h2 id="repairTitle">Réparer</h2></div><button class="dialog-close" id="closeRepairModal">×</button></div>
       <div class="dialog-confirm" id="repairConfirmView">
-        <p>PC Setup demandera à WinGet de réparer <strong id="repairAppName"></strong> sans supprimer vos réglages lorsque l'installateur le permet.</p>
-        <div class="dialog-warning"><span>i</span> Si la réparation native n'existe pas, PC Setup tentera une réinstallation par-dessus la version actuelle, sans désinstallation préalable.</div>
+        <p>OwlSetup demandera à WinGet de réparer <strong id="repairAppName"></strong> sans supprimer vos réglages lorsque l'installateur le permet.</p>
+        <div class="dialog-warning"><span>i</span> Si la réparation native n'existe pas, OwlSetup tentera une réinstallation par-dessus la version actuelle, sans désinstallation préalable.</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelRepair">Annuler</button><button class="primary-dialog-button" id="confirmRepair"><span>⚙</span> Réparer</button></div>
       </div>
       <div class="dialog-progress hidden" id="repairProgressView">
         <div class="progress-status"><span class="pulse-dot"></span><div><strong id="repairProgressTitle">Réparation en cours</strong><small id="repairProgressDetail">Veuillez patienter...</small></div></div>
         <div class="progress-track"><i id="repairProgressBar"></i></div>
-        <div class="progress-summary" id="repairSummary">Ne fermez pas PC Setup pendant l'opération.</div>
+        <div class="progress-summary" id="repairSummary">Ne fermez pas OwlSetup pendant l'opération.</div>
         <button class="primary-dialog-button hidden" id="finishRepair">Terminer</button>
       </div>
     </div>
@@ -414,7 +414,7 @@
       <div class="dialog-progress hidden" id="uninstallProgressView">
         <div class="progress-status"><span class="pulse-dot danger-pulse"></span><div><strong id="uninstallProgressTitle">Désinstallation en cours</strong><small id="uninstallProgressDetail">Veuillez patienter...</small></div></div>
         <div class="progress-track danger-track"><i id="uninstallProgressBar"></i></div>
-        <div class="progress-summary" id="uninstallSummary">Ne fermez pas PC Setup pendant l'opération.</div>
+        <div class="progress-summary" id="uninstallSummary">Ne fermez pas OwlSetup pendant l'opération.</div>
         <button class="primary-dialog-button hidden" id="finishUninstall">Terminer</button>
       </div>
     </div>

@@ -1,8 +1,8 @@
-# PC Setup
+# OwlSetup
 
-![PC Setup](assets/branding/pc-setup-logo-512.png)
+![OwlSetup](assets/branding/owlsetup-logo-512.png)
 
-PC Setup est une application Windows 10/11 qui centralise l’installation de logiciels, les mises à jour, le nettoyage du disque et la récupération des résidus d’applications.
+OwlSetup est une application Windows 10/11 qui centralise l’installation de logiciels, les mises à jour, le nettoyage du disque et la récupération des résidus d’applications.
 
 ## Fonctionnalités
 
@@ -21,8 +21,8 @@ PC Setup est une application Windows 10/11 qui centralise l’installation de lo
 - Analyse sans suppression avec estimation de l'espace récupérable et affichage des dossiers protégés.
 - Quarantaine restaurable pour les anciens dossiers AppData.
 - Tableau de santé local : mises à jour, espace disque et redémarrage en attente.
-- Mise à jour automatique de PC Setup depuis les Releases GitHub avec contrôle SHA-256.
-- Notification visuelle au démarrage lorsqu’une nouvelle version de PC Setup est disponible.
+- Mise à jour automatique de OwlSetup depuis les Releases GitHub avec contrôle SHA-256.
+- Notification visuelle au démarrage lorsqu’une nouvelle version de OwlSetup est disponible.
 - Centre d'outils avec diagnostic et réparation de WinGet, point de restauration, historique local, programmes au démarrage et analyse en lecture seule du disque.
 - Rapports rangés dans `%LOCALAPPDATA%\PCSetup\Logs` sans encombrer le Bureau.
 
@@ -30,7 +30,7 @@ PC Setup est une application Windows 10/11 qui centralise l’installation de lo
 
 La dernière version publique est disponible dans les [Releases GitHub](../../releases/latest).
 
-Le dépôt contient uniquement les sources nécessaires à la compilation. Les utilisateurs n’ont besoin que de `PC-Setup.exe` disponible dans les Releases.
+Le dépôt contient uniquement les sources nécessaires à la compilation. Les utilisateurs n’ont besoin que de `OwlSetup.exe` disponible dans les Releases.
 
 La signature de code des futures versions signées sera fournie gratuitement par [SignPath.io](https://signpath.io/), avec un certificat délivré par la [SignPath Foundation](https://signpath.org/).
 
@@ -54,7 +54,7 @@ Depuis Windows PowerShell :
 ./build.ps1
 ```
 
-Le script télécharge le package Microsoft WebView2 nécessaire, compile l’application avec le compilateur .NET Framework de Windows et produit `PC-Setup.exe`.
+Le script télécharge le package Microsoft WebView2 nécessaire, compile l’application avec le compilateur .NET Framework de Windows et produit `OwlSetup.exe`.
 
 ### Tester une bêta avant publication
 
@@ -77,11 +77,11 @@ L’exécutable de test est créé dans `artifacts\beta` avec son numéro de ver
 
 ## Avertissement
 
-PC Setup modifie des logiciels et certaines zones système. Vérifiez les sélections proposées, sauvegardez les documents importants et conservez la quarantaine quelques jours avant toute suppression définitive.
+OwlSetup modifie des logiciels et certaines zones système. Vérifiez les sélections proposées, sauvegardez les documents importants et conservez la quarantaine quelques jours avant toute suppression définitive.
 
 ## Licence
 
-Le code source de PC Setup est distribué gratuitement sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
+Le code source de OwlSetup est distribué gratuitement sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
 
 Les noms, marques et logos des applications proposées dans le catalogue restent la propriété de leurs éditeurs respectifs.
 
