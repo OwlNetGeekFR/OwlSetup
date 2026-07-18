@@ -40,9 +40,9 @@ jobs:
           Copy-Item OwlSetup.exe PC-Setup.exe
           Copy-Item artifacts/installer/OwlSetup-Setup.exe OwlSetup-Setup.exe
           @(
-            "$(Get-FileHash OwlSetup-Setup.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash)  OwlSetup-Setup.exe"
             "$(Get-FileHash OwlSetup.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash)  OwlSetup.exe"
             "$(Get-FileHash PC-Setup.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash)  PC-Setup.exe"
+            "$(Get-FileHash OwlSetup-Setup.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash)  OwlSetup-Setup.exe"
           ) | Set-Content SHA256.txt -Encoding ascii
       - name: Créer la Release GitHub
         shell: powershell
