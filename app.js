@@ -123,6 +123,9 @@ let pendingCleanupChoices = [];
 let availableUpdates = [];
 let selectedUpdates = new Set();
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
+let currentBuildVersion = "inconnue";
+let currentBuildChannel = "stable";
+let feedbackDiagnostics = "Non généré";
 let updatesLoaded = false;
 let activeCategory = "Tout";
 let searchTerm = "";
@@ -184,7 +187,7 @@ function toggleApp(id) {
 function showView(id) {
   document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === id));
   document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.view === id));
-  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", updates:"Tout mettre à jour", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", queue:"Ma sélection", history:"Guide d'installation"}[id];
+  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", updates:"Tout mettre à jour", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Dépannage", queue:"Ma sélection", history:"Guide d'installation"}[id];
   document.body.classList.remove("menu-open");
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
   if (id === "quarantine") requestQuarantine();
@@ -207,6 +210,47 @@ function addCustomPackage() {
   }
   selected.add(id); $("#customPackageId").value=""; renderApps(); renderSelection();
   notify("Paquet ajouté", id);
+}
+
+function composeFeedbackReport() {
+  const category = $("#feedbackCategory").value;
+  const title = $("#feedbackTitle").value.trim();
+  const description = $("#feedbackDescription").value.trim();
+  const steps = $("#feedbackSteps").value.trim() || "Non renseignées";
+  return {category, title, description, body:`## Problème rencontré\n\n${description}\n\n## Étapes pour reproduire\n\n${steps}\n\n## Informations\n\n- OwlSetup : ${currentBuildVersion}\n- Canal : ${currentBuildChannel}\n- Catégorie : ${category}\n\n## Diagnostic technique\n\n${feedbackDiagnostics}\n\n> Rapport préparé localement par OwlSetup. Aucun journal n'est joint automatiquement.`};
+}
+
+function validFeedback(report) {
+  if (report.title && report.description) return true;
+  notify("Commentaire incomplet", "Ajoutez un titre et une description du problème.");
+  (report.title ? $("#feedbackDescription") : $("#feedbackTitle")).focus();
+  return false;
+}
+
+async function copyFeedbackReport() {
+  const report = composeFeedbackReport();
+  if (!validFeedback(report)) return;
+  const text = `${report.title}\n\n${report.body}`;
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const area=document.createElement("textarea"); area.value=text; document.body.appendChild(area); area.select(); document.execCommand("copy"); area.remove();
+  }
+  notify("Rapport copié", "Relisez-le avant de le partager.");
+}
+
+function openGitHubFeedback() {
+  const report = composeFeedbackReport();
+  if (!validFeedback(report)) return;
+  const prefix=currentBuildChannel === "beta" ? "[Bêta]" : "[OwlSetup]";
+  const url=`https://github.com/OwlNetGeekFR/OwlSetup/issues/new?title=${encodeURIComponent(`${prefix} ${report.title}`)}&body=${encodeURIComponent(report.body)}&labels=bug`;
+  window.open(url,"_blank","noopener");
+}
+
+function collectFeedbackDiagnostics() {
+  if (!window.chrome?.webview) return notify("Diagnostic indisponible", "Cette fonction nécessite l'application Windows.");
+  $("#collectFeedbackDiagnostics").disabled=true;
+  $("#collectFeedbackDiagnostics").textContent="Analyse en cours...";
+  window.chrome.webview.postMessage({action:"feedback-diagnostics",payload:{}});
 }
 
 function refreshProfiles() {
@@ -948,13 +992,25 @@ function handleInstallMessage(message) {
     notify("Désinstallation terminée", `${message.success} réussi(s), ${message.failed} à vérifier. Rapport : ${message.logName}`); requestHistory(); return;
   }
   if (message.type === "app-info") {
+    currentBuildVersion = message.version || "inconnue";
+    currentBuildChannel = message.channel || (message.beta ? "beta" : "stable");
     if (message.beta) {
       $("#buildBadge").classList.remove("hidden");
       $("#buildBadge").textContent = "BÊTA";
       $("#buildSubtitle").textContent = message.version;
       document.title = `OwlSetup BÊTA ${message.version}`;
       document.body.classList.add("beta-build");
+      document.querySelectorAll(".beta-only").forEach(element=>element.classList.remove("hidden"));
     }
+    return;
+  }
+  if (message.type === "feedback-diagnostics") {
+    feedbackDiagnostics=`- Windows : ${message.windows || "Indisponible"}\n- Architecture : ${message.architecture || "Indisponible"}\n- WinGet : ${message.winget || "Indisponible"}\n- WebView2 : ${message.webview || "Indisponible"}\n- OwlSetup : ${message.version || currentBuildVersion}`;
+    $("#feedbackDiagnostics").textContent=feedbackDiagnostics;
+    $("#feedbackDiagnostics").classList.remove("hidden");
+    $("#collectFeedbackDiagnostics").disabled=false;
+    $("#collectFeedbackDiagnostics").textContent="Actualiser le diagnostic →";
+    notify("Diagnostic terminé", "Vérifiez son aperçu avant de le joindre.");
     return;
   }
   if (message.type === "config-export-start") {
@@ -1266,6 +1322,10 @@ $("#appUpdateNotification").addEventListener("click", openAppUpdateModal);
 $("#installAppUpdate").addEventListener("click", beginAppUpdate);
 $("#cancelAppUpdate").addEventListener("click", closeAppUpdateModal);
 $("#closeAppUpdate").addEventListener("click", closeAppUpdateModal);
+$("#copyFeedback").addEventListener("click", copyFeedbackReport);
+$("#openGitHubFeedback").addEventListener("click", openGitHubFeedback);
+$("#collectFeedbackDiagnostics").addEventListener("click", collectFeedbackDiagnostics);
+$("#openFeedbackLogs").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"open-log-folder",payload:{}}));
 $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
 $("#refreshHealth").addEventListener("click", requestHealth);

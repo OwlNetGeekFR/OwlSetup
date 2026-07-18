@@ -160,6 +160,8 @@ internal sealed class WebAppForm : Form
             else if (action == "open-system-restore") OpenSystemRestore();
             else if (action == "load-history") LoadHistory();
             else if (action == "open-log") OpenLog(payload);
+            else if (action == "open-log-folder") OpenLogFolder();
+            else if (action == "feedback-diagnostics") SendFeedbackDiagnostics();
             else if (action == "scan-startup") ScanStartup();
             else if (action == "open-startup-settings") OpenStartupSettings();
             else if (action == "scan-disk") ScanDiskUsage();
@@ -1149,6 +1151,41 @@ internal sealed class WebAppForm : Form
         string path=Path.Combine(GetDataFolder("Logs"),name);
         if(!File.Exists(path))throw new FileNotFoundException("Journal introuvable.");
         Process.Start(new ProcessStartInfo{FileName=path,UseShellExecute=true});
+    }
+
+    void OpenLogFolder()
+    {
+        string folder=GetDataFolder("Logs");
+        Directory.CreateDirectory(folder);
+        Process.Start(new ProcessStartInfo{FileName=folder,UseShellExecute=true});
+    }
+
+    void SendFeedbackDiagnostics()
+    {
+        string webViewVersion="Indisponible";
+        try{if(webView.CoreWebView2!=null)webViewVersion=webView.CoreWebView2.Environment.BrowserVersionString;}catch{}
+        Task.Run(delegate {
+            string windows=Environment.OSVersion.VersionString;
+            try
+            {
+                using(var key=Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                {
+                    string product=Convert.ToString(key==null?null:key.GetValue("ProductName"));
+                    string display=Convert.ToString(key==null?null:key.GetValue("DisplayVersion"));
+                    string build=Convert.ToString(key==null?null:key.GetValue("CurrentBuildNumber"));
+                    if(!String.IsNullOrWhiteSpace(product))windows=product+(String.IsNullOrWhiteSpace(display)?"":" "+display)+(String.IsNullOrWhiteSpace(build)?"":" (build "+build+")");
+                }
+            }
+            catch{}
+            string wingetVersion="Indisponible";
+            try
+            {
+                var report=new StringBuilder();
+                if(RunHiddenProcess("winget.exe","--version",report)==0)wingetVersion=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Indisponible";
+            }
+            catch{}
+            SendToWeb(new { type="feedback-diagnostics", version=BuildInfo.DisplayVersion, windows=windows, architecture=Environment.Is64BitOperatingSystem?"64 bits":"32 bits", winget=wingetVersion, webview=webViewVersion });
+        });
     }
 
     void ScanStartup()
