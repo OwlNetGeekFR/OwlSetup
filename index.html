@@ -26,6 +26,7 @@
       <button class="nav-item" data-view="quarantine"><span>♲</span> Quarantaine <b id="quarantineNavCount">0</b></button>
       <button class="nav-item" data-view="tools"><span>⚙</span> Outils système <b class="new-badge">NEW</b></button>
       <button class="nav-item" data-view="security"><span>♢</span> Centre de sécurité <b class="new-badge">NEW</b></button>
+      <button class="nav-item" data-view="troubleshooting"><span>?</span> Dépannage <b class="new-badge">NEW</b></button>
       <button class="nav-item" data-view="queue"><span>↓</span> Ma sélection <b id="navCount">0</b></button>
       <button class="nav-item" data-view="history"><span>↻</span> Guide d'installation</button>
     </nav>
@@ -268,6 +269,28 @@
       </div>
       <div class="security-log-panel"><div><span class="label">TRAÇABILITÉ LOCALE</span><h2>Journaux de sécurité et d’activité</h2><p id="securityLogs">Chargement...</p></div><button class="secondary-dialog-button" data-view="tools">Consulter l’historique</button></div>
       <div class="notice"><span>i</span><div><strong>Les opérations restent sous votre contrôle</strong><p>Une simulation est obligatoire avant le nettoyage ou la désinstallation. Une autorisation UAC séparée est demandée uniquement lorsque Windows exige les droits administrateur.</p></div></div>
+    </section>
+
+    <section class="view" id="troubleshooting">
+      <div class="page-intro troubleshooting-intro"><div><span class="label">ASSISTANCE ET RETOUR</span><h1>Dépannage</h1><p>Décrivez le problème rencontré. OwlSetup prépare un commentaire que vous pourrez relire avant de l'envoyer sur GitHub.</p></div><span class="beta-support-badge">ASSISTANCE</span></div>
+      <div class="troubleshooting-layout">
+        <form class="feedback-form" id="feedbackForm">
+          <div class="feedback-heading"><span>?</span><div><strong>Signaler un problème</strong><small>Aucune information n'est envoyée automatiquement.</small></div></div>
+          <div class="feedback-fields">
+            <label><span>Type de problème</span><select id="feedbackCategory"><option>Mise à jour d'une application</option><option>Installation</option><option>Désinstallation</option><option>Nettoyage du disque</option><option>Affichage ou interface</option><option>Autre</option></select></label>
+            <label><span>Titre</span><input id="feedbackTitle" maxlength="120" placeholder="Exemple : Edge reste proposé après la mise à jour" required></label>
+            <label><span>Que s'est-il passé ?</span><textarea id="feedbackDescription" maxlength="1800" rows="6" placeholder="Expliquez le résultat obtenu et le résultat attendu..." required></textarea></label>
+            <label><span>Étapes pour reproduire</span><textarea id="feedbackSteps" maxlength="1000" rows="4" placeholder="1. J'ai ouvert...&#10;2. J'ai cliqué sur...&#10;3. Le message suivant est apparu..."></textarea></label>
+          </div>
+          <div class="feedback-actions"><button class="secondary-dialog-button" type="button" id="copyFeedback">⎘ Copier le rapport</button><button class="primary-dialog-button" type="button" id="openGitHubFeedback">↗ Ouvrir sur GitHub</button></div>
+        </form>
+        <aside class="troubleshooting-help">
+          <article class="diagnostic-card"><span>⚙</span><div><strong>Diagnostic automatique</strong><p>Collectez uniquement les versions de Windows, OwlSetup, WinGet et WebView2. Aucun nom, chemin personnel ou contenu de journal n'est inclus.</p><button class="text-button" id="collectFeedbackDiagnostics">Lancer le diagnostic →</button><pre class="feedback-diagnostics hidden" id="feedbackDiagnostics"></pre></div></article>
+          <article><span>▣</span><div><strong>Rapports locaux</strong><p>Les journaux peuvent aider à comprendre un code de sortie ou une installation incomplète.</p><button class="text-button" id="openFeedbackLogs">Ouvrir le dossier des rapports →</button></div></article>
+          <article><span>♢</span><div><strong>Protégez vos informations</strong><p>Relisez le commentaire et les journaux avant tout partage. Retirez les noms, chemins personnels, adresses et autres données sensibles.</p></div></article>
+          <article><span>i</span><div><strong>Version jointe automatiquement</strong><p>Le commentaire mentionne uniquement la version d'OwlSetup et le type de problème sélectionné.</p></div></article>
+        </aside>
+      </div>
     </section>
 
     <section class="view" id="queue">
