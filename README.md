@@ -4,10 +4,6 @@
 
 PC Setup est une application Windows 10/11 qui centralise l’installation de logiciels, les mises à jour, le nettoyage du disque et la récupération des résidus d’applications.
 
-Une bêta Linux séparée est également disponible dans les sources. Elle conserve la même interface et prend en charge APT, DNF, Pacman et Flatpak. Elle doit être validée dans une machine virtuelle Linux avant publication.
-
-Une bêta macOS séparée utilise Swift, WKWebView et Homebrew. Sa compilation finale doit être effectuée sur un Mac avant sa publication.
-
 ## Fonctionnalités
 
 - Catalogue étendu de logiciels avec validation WinGet avant installation et liens vers les sites officiels.
@@ -65,30 +61,10 @@ Le script télécharge le package Microsoft WebView2 nécessaire, compile l’ap
 Pour produire une version locale clairement identifiée, sans créer de Release GitHub :
 
 ```powershell
-./build-beta.ps1 -Version "3.3.1-beta.1"
+./build-beta.ps1 -Version "3.3.2-beta.1"
 ```
 
 L’exécutable de test est créé dans `artifacts\beta` avec son numéro de version dans le nom. Ce dossier est ignoré par Git et la mise à jour automatique est désactivée dans les constructions bêta. Une fois les essais validés, la version publique est compilée depuis un tag GitHub stable.
-
-### Construire la bêta Linux
-
-Depuis Windows PowerShell :
-
-```powershell
-./build-linux-beta.ps1 -Version "3.3.0-beta-linux.1"
-```
-
-L’archive générée dans `artifacts/linux-beta` contient l’application GTK/WebKit, son installateur utilisateur et les instructions de test pour Linux.
-
-### Construire la bêta macOS
-
-Depuis Windows PowerShell, l’archive de sources macOS se prépare avec :
-
-```powershell
-./build-macos-beta.ps1 -Version "3.3.0-beta-macos.1"
-```
-
-Après extraction sur un Mac, `install.sh` compile l’application Swift, applique une signature locale de test et l’installe dans `~/Applications`.
 
 ## Sécurité
 

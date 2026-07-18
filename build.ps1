@@ -1,6 +1,6 @@
 param(
     [string]$Output = "PC-Setup.exe",
-    [string]$AppVersion = "3.3.0",
+    [string]$AppVersion = "3.3.1",
     [ValidateSet("stable", "beta")]
     [string]$Channel = "stable",
     [string]$PrereleaseLabel = ""
