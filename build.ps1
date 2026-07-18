@@ -1,5 +1,5 @@
 param(
-    [string]$Output = "PC-Setup.exe",
+    [string]$Output = "OwlSetup.exe",
     [string]$AppVersion = "3.3.1",
     [ValidateSet("stable", "beta")]
     [string]$Channel = "stable",
@@ -31,8 +31,8 @@ New-Item -ItemType Directory -Force -Path (Split-Path $buildInfo), (Split-Path $
 $isBetaLiteral = if ($Channel -eq "beta") { "true" } else { "false" }
 @"
 using System.Reflection;
-[assembly: AssemblyTitle("PC Setup")]
-[assembly: AssemblyProduct("PC Setup")]
+[assembly: AssemblyTitle("OwlSetup")]
+[assembly: AssemblyProduct("OwlSetup")]
 [assembly: AssemblyDescription("Installation, mise a jour et entretien de Windows")]
 [assembly: AssemblyCompany("OwlNetGeekFR")]
 [assembly: AssemblyVersion("$assemblyVersion")]
@@ -62,7 +62,7 @@ $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 
 $arguments = @(
     "/nologo", "/target:winexe", "/optimize+", "/platform:x64",
-    "/out:$outputPath", "/win32manifest:PC-Setup.manifest", "/win32icon:PC-Setup.ico",
+    "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
     "/reference:System.Windows.Forms.dll", "/reference:System.Drawing.dll",
     "/reference:System.Core.dll", "/reference:System.Web.Extensions.dll",
     "/reference:$core", "/reference:$forms",
@@ -71,15 +71,15 @@ $arguments = @(
     "/resource:Liberer-espace-disque.ps1,Liberer-espace-disque.ps1",
     "/resource:Nettoyer-residus-applications.ps1,Nettoyer-residus-applications.ps1",
     "/resource:Installer-selection.ps1,Installer-selection.ps1",
-    "/resource:assets\branding\pc-setup-logo-512.png,app-logo.png",
-    "/resource:PC-Setup.ico,app-icon.ico",
+    "/resource:assets\branding\owlsetup-logo-512.png,app-logo.png",
+    "/resource:OwlSetup.ico,app-icon.ico",
     "/resource:$core,wv2core", "/resource:$forms,wv2forms", "/resource:$loader,wv2loader"
 )
 
 Get-ChildItem (Join-Path $root "assets\logos") -File | ForEach-Object {
     $arguments += "/resource:$($_.FullName),logos.$($_.Name)"
 }
-$arguments += "PCSetupWebView.cs"
+$arguments += "OwlSetupWebView.cs"
 $arguments += $buildInfo
 
 Push-Location $root

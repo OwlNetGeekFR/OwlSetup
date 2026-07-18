@@ -326,7 +326,7 @@ function confirmQuarantineAction(action, batch, item) {
 function generateScript() {
   const picked = apps.filter(app => selected.has(app.id));
   const ids = picked.map(app => `  "${app.id}"`).join(",\r\n");
-  const script = `# PC Setup - Installateur Windows\r\n# Généré le ${new Date().toLocaleString("fr-FR")}\r\n# Vérifiez cette liste avant exécution.\r\n\r\n$ErrorActionPreference = "Continue"\r\n$Host.UI.RawUI.WindowTitle = "PC Setup - Installation"\r\n\r\nif (-not (Get-Command winget -ErrorAction SilentlyContinue)) {\r\n  Write-Host "winget est introuvable. Installez 'App Installer' depuis le Microsoft Store." -ForegroundColor Red\r\n  Read-Host "Appuyez sur Entrée pour quitter"\r\n  exit 1\r\n}\r\n\r\n$packages = @(\r\n${ids}\r\n)\r\n\r\nWrite-Host "PC SETUP" -ForegroundColor Cyan\r\nWrite-Host "$($packages.Count) élément(s) à installer."\r\n\r\nforeach ($package in $packages) {\r\n  Write-Host "\\nInstallation de $package..." -ForegroundColor Yellow\r\n  winget install --id $package --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity\r\n  if ($LASTEXITCODE -eq 0) { Write-Host "Terminé : $package" -ForegroundColor Green }\r\n  else { Write-Host "À vérifier : $package (code $LASTEXITCODE)" -ForegroundColor DarkYellow }\r\n}\r\n\r\nWrite-Host "\\nInstallation terminée. Un redémarrage peut être nécessaire." -ForegroundColor Cyan\r\nRead-Host "Appuyez sur Entrée pour fermer"\r\n`;
+  const script = `# OwlSetup - Installateur Windows\r\n# Généré le ${new Date().toLocaleString("fr-FR")}\r\n# Vérifiez cette liste avant exécution.\r\n\r\n$ErrorActionPreference = "Continue"\r\n$Host.UI.RawUI.WindowTitle = "OwlSetup - Installation"\r\n\r\nif (-not (Get-Command winget -ErrorAction SilentlyContinue)) {\r\n  Write-Host "winget est introuvable. Installez 'App Installer' depuis le Microsoft Store." -ForegroundColor Red\r\n  Read-Host "Appuyez sur Entrée pour quitter"\r\n  exit 1\r\n}\r\n\r\n$packages = @(\r\n${ids}\r\n)\r\n\r\nWrite-Host "OWLSETUP" -ForegroundColor Cyan\r\nWrite-Host "$($packages.Count) élément(s) à installer."\r\n\r\nforeach ($package in $packages) {\r\n  Write-Host "\\nInstallation de $package..." -ForegroundColor Yellow\r\n  winget install --id $package --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity\r\n  if ($LASTEXITCODE -eq 0) { Write-Host "Terminé : $package" -ForegroundColor Green }\r\n  else { Write-Host "À vérifier : $package (code $LASTEXITCODE)" -ForegroundColor DarkYellow }\r\n}\r\n\r\nWrite-Host "\\nInstallation terminée. Un redémarrage peut être nécessaire." -ForegroundColor Cyan\r\nRead-Host "Appuyez sur Entrée pour fermer"\r\n`;
   const blob = new Blob(["\ufeff", script], {type:"text/plain;charset=utf-8"});
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -336,7 +336,7 @@ function generateScript() {
 }
 
 function generateUpdateScript() {
-  const script = `# PC Setup - Mise a jour complete du PC
+  const script = `# OwlSetup - Mise a jour complete du PC
 $ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
 
@@ -346,13 +346,13 @@ if (-not $isAdmin) {
   exit
 }
 
-$Host.UI.RawUI.WindowTitle = "PC Setup - Mise a jour complete"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Mise a jour complete"
 $logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $log = Join-Path $logs ("PC-Setup-Update-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log")
 Start-Transcript -Path $log -Force
 
-Write-Host "PC SETUP - MISE A JOUR COMPLETE" -ForegroundColor Cyan
+Write-Host "OWLSETUP - MISE A JOUR COMPLETE" -ForegroundColor Cyan
 Write-Host "Ne fermez pas cette fenetre pendant l'operation."
 
 if (Get-Command winget -ErrorAction SilentlyContinue) {
@@ -404,7 +404,7 @@ function generateCleanupScript() {
   if (choices.has("components")) actions.push(`Run-Step "Anciens composants Windows" { Start-Process dism.exe -ArgumentList "/Online","/Cleanup-Image","/StartComponentCleanup","/NoRestart" -Wait -NoNewWindow }`);
   if (choices.has("app-leftovers")) actions.push(`Find-AppLeftovers`);
 
-  const script = `# PC Setup - Liberation d'espace disque
+  const script = `# OwlSetup - Liberation d'espace disque
 $ErrorActionPreference = "Continue"
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -413,7 +413,7 @@ if (-not $isAdmin) {
   exit
 }
 
-$Host.UI.RawUI.WindowTitle = "PC Setup - Nettoyage du disque"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Nettoyage du disque"
 $dataRoot = Join-Path $env:LOCALAPPDATA "PCSetup"
 $logs = Join-Path $dataRoot "Logs"
 $quarantineRoot = Join-Path $dataRoot "Quarantine"
@@ -480,7 +480,7 @@ function Find-AppLeftovers {
 
 $drive = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
 $before = [math]::Round($drive.FreeSpace / 1GB, 2)
-Write-Host "PC SETUP - LIBERATION D'ESPACE" -ForegroundColor Cyan
+Write-Host "OWLSETUP - LIBERATION D'ESPACE" -ForegroundColor Cyan
 Write-Host "Espace libre actuel : $before Go"
 Write-Host "Vos documents personnels et le dossier Telechargements ne seront pas touches." -ForegroundColor Cyan
 $confirm = Read-Host "Tapez OUI pour commencer"
@@ -521,7 +521,7 @@ async function runLocalAction(action, payload = {}) {
   }
   const token = new URLSearchParams(location.search).get("token");
   if (!token || !/^https?:$/.test(location.protocol)) {
-    alert("Pour exécuter cette action directement, ouvrez PC Setup avec le fichier Ouvrir-PC-Setup.cmd. Le mode fichier ne peut pas lancer PowerShell pour des raisons de sécurité.");
+    alert("Pour exécuter cette action directement, ouvrez OwlSetup avec le fichier Ouvrir-PC-Setup.cmd. Le mode fichier ne peut pas lancer PowerShell pour des raisons de sécurité.");
     return false;
   }
   const response = await fetch(`/api/run/${action}`, {
@@ -578,7 +578,7 @@ function beginInstall() {
   $("#progressBar").style.width = "0%";
   $("#currentPackage").textContent = "Initialisation...";
   $("#packageResult").textContent = "EN ATTENTE";
-  $("#progressSummary").textContent = "Ne fermez pas PC Setup pendant l'installation.";
+  $("#progressSummary").textContent = "Ne fermez pas OwlSetup pendant l'installation.";
   const selectedApps=apps.filter(app=>selected.has(app.id)).map(app=>({id:app.id,name:app.name,portable:!!app.portable}));
   executeWithButton($("#confirmInstall"), "install", {packages:[...selected],apps:selectedApps,shortcut:$("#installShortcutLocation").value,launchAfter:$("#launchAfterInstall").checked});
 }
@@ -610,7 +610,7 @@ function beginUpdate() {
   $("#updateProgressDetail").textContent = "Connexion aux services Windows";
   $("#updateProgressPercent").textContent = "0%";
   $("#updateProgressBar").style.width = "0%";
-  $("#updateSummary").textContent = "Ne fermez pas PC Setup pendant la mise à jour.";
+  $("#updateSummary").textContent = "Ne fermez pas OwlSetup pendant la mise à jour.";
   document.querySelectorAll("[data-update-step]").forEach(step => step.classList.remove("active", "done"));
   window.chrome.webview.postMessage({action:"update", payload:{packages:[...selectedUpdates]}});
 }
@@ -704,7 +704,7 @@ function beginCleanup() {
   $("#cleanupProgressBar").style.width = "0%";
   $("#cleanupCurrentZone").textContent = "Initialisation...";
   $("#cleanupZonePosition").textContent = "—";
-  $("#cleanupSummaryText").textContent = "Ne fermez pas PC Setup pendant le nettoyage.";
+  $("#cleanupSummaryText").textContent = "Ne fermez pas OwlSetup pendant le nettoyage.";
   window.chrome.webview.postMessage({action:"cleanup", payload:{choices:pendingCleanupChoices}});
 }
 
@@ -789,23 +789,23 @@ function renderAppUpdateState(message) {
     $("#appUpdateStateDetail").textContent = "Lecture de la dernière Release GitHub...";
   } else if (message.status === "available") {
     notification.classList.add("available");
-    notification.title = `PC Setup ${message.latest} est disponible`;
-    notification.setAttribute("aria-label", `Mise à jour PC Setup ${message.latest} disponible`);
+    notification.title = `OwlSetup ${message.latest} est disponible`;
+    notification.setAttribute("aria-label", `Mise à jour OwlSetup ${message.latest} disponible`);
     if (notification.dataset.notified !== message.latest) {
       notification.dataset.notified = message.latest;
-      notifyAction("Mise à jour disponible", `PC Setup ${message.latest} peut être installé.`);
+      notifyAction("Mise à jour disponible", `OwlSetup ${message.latest} peut être installé.`);
     }
     icon.textContent = "↓";
-    $("#appUpdateStateTitle").textContent = `PC Setup ${message.latest} est disponible`;
+    $("#appUpdateStateTitle").textContent = `OwlSetup ${message.latest} est disponible`;
     $("#appUpdateStateDetail").textContent = "La mise à jour peut être téléchargée et installée automatiquement.";
     install.classList.remove("hidden"); install.disabled = false;
   } else if (message.status === "current") {
     notification.classList.remove("available");
-    notification.title = "PC Setup est à jour";
-    notification.setAttribute("aria-label", "PC Setup est à jour");
+    notification.title = "OwlSetup est à jour";
+    notification.setAttribute("aria-label", "OwlSetup est à jour");
     icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || message.current;
-    $("#appUpdateStateTitle").textContent = "PC Setup est à jour";
+    $("#appUpdateStateTitle").textContent = "OwlSetup est à jour";
     $("#appUpdateStateDetail").textContent = "Vous utilisez déjà la dernière version disponible.";
   } else if (message.status === "beta") {
     $("#appUpdateModal").dataset.running = "false";
@@ -829,7 +829,7 @@ function renderAppUpdateState(message) {
     icon.classList.remove("spinning"); icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || "—";
     $("#appUpdateStateTitle").textContent = "Mise à jour vérifiée";
-    $("#appUpdateStateDetail").textContent = "PC Setup va redémarrer avec la nouvelle version.";
+    $("#appUpdateStateDetail").textContent = "OwlSetup va redémarrer avec la nouvelle version.";
   } else if (message.status === "error") {
     $("#appUpdateModal").dataset.running = "false";
     $("#closeAppUpdate").disabled = false;
@@ -854,7 +854,7 @@ function handleInstallMessage(message) {
     const mark=(selector,ok,good,bad)=>{const element=$(selector);element.textContent=ok?good:bad;element.classList.toggle("security-good",!!ok);element.classList.toggle("security-warning",!ok);};
     const protectedCore=message.integrity&&message.originLocked&&message.standardUser;
     $("#securityHeadline").textContent=protectedCore?"Protections principales actives":"Une protection demande votre attention";
-    $("#securityVersion").textContent=`PC Setup ${message.version}`;
+    $("#securityVersion").textContent=`OwlSetup ${message.version}`;
     $("#securityElevation").textContent=message.standardUser?message.elevation:"Interface actuellement administrateur";
     mark("#securityIntegrity",message.integrity,"Intégrité vérifiée","Interface modifiée");
     mark("#securityOrigin",message.originLocked,"Origine verrouillée","Origine non verrouillée");
@@ -954,7 +954,7 @@ function handleInstallMessage(message) {
       $("#buildBadge").classList.remove("hidden");
       $("#buildBadge").textContent = "BÊTA";
       $("#buildSubtitle").textContent = message.version;
-      document.title = `PC Setup BÊTA ${message.version}`;
+      document.title = `OwlSetup BÊTA ${message.version}`;
       document.body.classList.add("beta-build");
     }
     return;
@@ -1062,7 +1062,7 @@ function handleInstallMessage(message) {
     $("#cleanupCurrentZone").closest(".cleanup-current-zone").classList.add("hidden");
     $("#cleanupResultCard").classList.remove("hidden");
     $("#cleanupRecovered").textContent = `${message.recovered || "0"} Go`;
-    $("#cleanupSummaryText").textContent = `Rapport rangé dans PC Setup : ${message.logName}`;
+    $("#cleanupSummaryText").textContent = `Rapport rangé dans OwlSetup : ${message.logName}`;
     $("#finishCleanup").classList.remove("hidden");
     requestHealth(); requestQuarantine();
     return;
@@ -1115,7 +1115,7 @@ function handleInstallMessage(message) {
   if (message.type === "repair-fallback") {
     $("#repairProgressBar").style.width = "72%";
     $("#repairProgressTitle").textContent = "Réinstallation réparatrice";
-    $("#repairProgressDetail").textContent = "La réparation native n'est pas disponible. PC Setup réinstalle l'application sans la désinstaller.";
+    $("#repairProgressDetail").textContent = "La réparation native n'est pas disponible. OwlSetup réinstalle l'application sans la désinstaller.";
     return;
   }
   if (message.type === "repair-complete") {
@@ -1136,7 +1136,7 @@ function handleInstallMessage(message) {
     $("#uninstallProgressBar").style.width = "100%";
     $("#uninstallProgressTitle").textContent = message.success ? "Logiciel désinstallé" : "Désinstallation à vérifier";
     $("#uninstallProgressDetail").textContent = message.success ? "L'application a été supprimée." : (message.errorMessage || `Code de sortie : ${message.code}`);
-    $("#uninstallSummary").textContent = message.success ? "La carte a été actualisée automatiquement." : "Consultez le rapport rangé dans PC Setup.";
+    $("#uninstallSummary").textContent = message.success ? "La carte a été actualisée automatiquement." : "Consultez le rapport rangé dans OwlSetup.";
     $("#finishUninstall").classList.remove("hidden");
     if (message.success) { installedApps.delete(message.id); renderApps(); }
     requestHealth();
@@ -1182,7 +1182,7 @@ function handleInstallMessage(message) {
     $("#progressDetail").textContent = `${message.success} réussi(s), ${message.failed} à vérifier`;
     $("#progressPercent").textContent = "100%";
     $("#progressBar").style.width = "100%";
-    $("#progressSummary").textContent = `Rapport rangé dans PC Setup : ${message.logName}`;
+    $("#progressSummary").textContent = `Rapport rangé dans OwlSetup : ${message.logName}`;
     $("#finishInstall").classList.remove("hidden");
     requestHealth();
   }

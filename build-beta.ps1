@@ -11,7 +11,7 @@ if ($Version -notmatch '^(\d+\.\d+\.\d+)-([A-Za-z0-9.-]+)$') {
 $appVersion = $Matches[1]
 $label = $Matches[2]
 $artifactFolder = Join-Path $PSScriptRoot "artifacts\beta"
-$output = Join-Path $artifactFolder ("PC-Setup-Beta-"+$Version+".exe")
+$output = Join-Path $artifactFolder ("OwlSetup-Beta-"+$Version+".exe")
 
 & (Join-Path $PSScriptRoot "build.ps1") `
     -Output $output `
@@ -26,7 +26,7 @@ if (-not (Test-Path -LiteralPath $output)) {
 $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
 $commit = try { (& git -C $PSScriptRoot rev-parse --short HEAD 2>$null) } catch { "inconnu" }
 $info = @(
-    "PC Setup $Version"
+    "OwlSetup $Version"
     "Canal : bêta locale, non publiée"
     "Commit : $commit"
     "Compilation : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')"

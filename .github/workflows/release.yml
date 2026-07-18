@@ -13,7 +13,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compiler PC Setup
+      - name: Compiler OwlSetup
         shell: powershell
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
@@ -21,10 +21,11 @@ jobs:
       - name: Créer l'empreinte SHA-256
         shell: powershell
         run: |
-          $hash = (Get-FileHash PC-Setup.exe -Algorithm SHA256).Hash
-          "$hash  PC-Setup.exe" | Set-Content SHA256.txt -Encoding ascii
+          Copy-Item OwlSetup.exe PC-Setup.exe
+          $hash = (Get-FileHash OwlSetup.exe -Algorithm SHA256).Hash
+          "$hash  OwlSetup.exe" | Set-Content SHA256.txt -Encoding ascii
       - name: Créer la Release GitHub
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" PC-Setup.exe SHA256.txt --title "PC Setup ${{ github.ref_name }}" --generate-notes
+        run: gh release create "${{ github.ref_name }}" OwlSetup.exe PC-Setup.exe SHA256.txt --title "OwlSetup ${{ github.ref_name }}" --generate-notes
