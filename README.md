@@ -64,6 +64,12 @@ Pour créer le véritable installateur utilisateur avec Inno Setup 6 :
 
 L'installateur place OwlSetup dans `%LOCALAPPDATA%\Programs\OwlSetup`, crée le raccourci du Menu Démarrer et enregistre la désinstallation dans Windows.
 
+### Publier une version stable
+
+Le workflow `Publier une version` accepte un tag `vMAJEUR.MINEUR.CORRECTIF` ou un lancement manuel depuis `main`. Il vérifie le format de version, compile l’application et l’installateur, contrôle les tailles et versions, génère `SHA256.txt`, publie les quatre fichiers puis relit la Release pour confirmer qu’elle est complète.
+
+Une réexécution est sans danger : les fichiers existants de la Release sont actualisés au lieu de créer un doublon. Le [site OwlSetup](https://owlnetgeekfr.github.io/OwlSetup-Website/) synchronise ensuite automatiquement la dernière Release stable et ses empreintes.
+
 ### Tester une bêta avant publication
 
 Pour produire une version locale clairement identifiée, sans créer de Release GitHub :
