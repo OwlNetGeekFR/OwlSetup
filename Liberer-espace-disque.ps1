@@ -1,4 +1,4 @@
-# PC Setup - Nettoyage du disque
+# OwlSetup - Nettoyage du disque
 param(
     [string]$ChoicesFile,
     [switch]$Integrated,
@@ -21,7 +21,7 @@ $choices = if ($ChoicesFile -and (Test-Path -LiteralPath $ChoicesFile)) {
 }
 if ($ChoicesFile) { Remove-Item -LiteralPath $ChoicesFile -Force -ErrorAction SilentlyContinue }
 
-$Host.UI.RawUI.WindowTitle = "PC Setup - Nettoyage du disque"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Nettoyage du disque"
 $logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $log = if ($LogPath) { $LogPath } else { Join-Path $logs ("PC-Setup-Nettoyage-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log") }
@@ -51,7 +51,7 @@ function Clear-Folder([string]$Path, [string]$Label) {
 
 $drive = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
 $before = [math]::Round($drive.FreeSpace / 1GB, 2)
-Write-Host "PC SETUP - LIBERATION D'ESPACE" -ForegroundColor Cyan
+Write-Host "OWLSETUP - LIBERATION D'ESPACE" -ForegroundColor Cyan
 Write-Host "Espace libre actuel : $before Go"
 Write-Host "Vos documents personnels et le dossier Telechargements ne seront pas touches." -ForegroundColor Cyan
 if ("recycle-bin" -in $choices) { Write-Host "Le contenu de la Corbeille sera supprime." -ForegroundColor Yellow }

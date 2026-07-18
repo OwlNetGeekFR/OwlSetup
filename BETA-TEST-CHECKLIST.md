@@ -12,7 +12,7 @@ Cette liste doit être vérifiée avant de créer un tag et une Release GitHub.
 
 - Installer au moins une application légère.
 - Vérifier que l'application est ensuite marquée comme installée.
-- Désinstaller cette application depuis PC Setup.
+- Désinstaller cette application depuis OwlSetup.
 - Utiliser le bouton Réparer sur une application compatible.
 - Vérifier qu'une application non compatible affiche un avertissement compréhensible.
 - Tester un échec d'installation et vérifier que le message reste compréhensible.

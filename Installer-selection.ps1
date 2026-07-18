@@ -23,9 +23,9 @@ $logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $log = Join-Path $logs ("PC-Setup-Installation-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log")
 Start-Transcript -Path $log -Force
-$Host.UI.RawUI.WindowTitle = "PC Setup - Installation"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Installation"
 
-Write-Host "PC SETUP - INSTALLATION" -ForegroundColor Cyan
+Write-Host "OWLSETUP - INSTALLATION" -ForegroundColor Cyan
 Write-Host "$(@($packages).Count) logiciel(s) selectionne(s) :"
 $packages | ForEach-Object { Write-Host " - $_" }
 $confirm = Read-Host "Tapez OUI pour commencer"

@@ -1,6 +1,6 @@
 param(
     [string]$Output = "OwlSetup.exe",
-    [string]$AppVersion = "3.3.1",
+    [string]$AppVersion = "3.4.0",
     [ValidateSet("stable", "beta")]
     [string]$Channel = "stable",
     [string]$PrereleaseLabel = ""

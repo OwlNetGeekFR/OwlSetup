@@ -1,4 +1,4 @@
-# PC Setup - Mise a jour complete du PC
+# OwlSetup - Mise a jour complete du PC
 $ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
 
@@ -8,13 +8,13 @@ if (-not $isAdmin) {
     exit
 }
 
-$Host.UI.RawUI.WindowTitle = "PC Setup - Mise a jour complete"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Mise a jour complete"
 $logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $log = Join-Path $logs ("PC-Setup-Update-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log")
 Start-Transcript -Path $log -Force
 
-Write-Host "PC SETUP - MISE A JOUR COMPLETE" -ForegroundColor Cyan
+Write-Host "OWLSETUP - MISE A JOUR COMPLETE" -ForegroundColor Cyan
 Write-Host "Ne fermez pas cette fenetre pendant l'operation."
 
 if (Get-Command winget -ErrorAction SilentlyContinue) {

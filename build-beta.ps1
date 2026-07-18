@@ -1,11 +1,11 @@
 param(
-    [string]$Version = "3.2.0-beta.1"
+    [string]$Version = "3.4.0-beta.3"
 )
 
 $ErrorActionPreference = "Stop"
 
 if ($Version -notmatch '^(\d+\.\d+\.\d+)-([A-Za-z0-9.-]+)$') {
-    throw "Utilisez un numéro comme 3.2.0-beta.1."
+    throw "Utilisez un numéro comme 3.4.0-beta.3."
 }
 
 $appVersion = $Matches[1]

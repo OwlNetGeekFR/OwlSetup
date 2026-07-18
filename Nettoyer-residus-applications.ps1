@@ -1,5 +1,5 @@
 param([switch]$Integrated)
-# PC Setup - Residus d'applications desinstallees
+# OwlSetup - Residus d'applications desinstallees
 # Les dossiers retenus sont deplaces en quarantaine, jamais supprimes directement.
 $ErrorActionPreference = "Continue"
 
@@ -9,7 +9,7 @@ if (-not $isAdmin) {
     exit
 }
 
-$Host.UI.RawUI.WindowTitle = "PC Setup - Residus d'applications"
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Residus d'applications"
 $stamp = Get-Date -Format "yyyy-MM-dd-HHmm"
 $dataRoot = Join-Path $env:LOCALAPPDATA "PCSetup"
 $logs = Join-Path $dataRoot "Logs"
@@ -41,7 +41,7 @@ $protected = @(
 $roots = @($env:LOCALAPPDATA, $env:APPDATA, $env:PROGRAMDATA) | Select-Object -Unique
 $moved = 0
 
-Write-Host "PC SETUP - RESIDUS D'APPLICATIONS" -ForegroundColor Cyan
+Write-Host "OWLSETUP - RESIDUS D'APPLICATIONS" -ForegroundColor Cyan
 Write-Host "Seuls les dossiers vieux de plus de 90 jours sans application correspondante seront proposes."
 Write-Host "Chaque deplacement demandera votre confirmation et restera reversible." -ForegroundColor Yellow
 
