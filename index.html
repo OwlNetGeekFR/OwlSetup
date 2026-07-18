@@ -73,7 +73,13 @@
         <button class="health-refresh" id="refreshHealth" title="Actualiser le diagnostic">↻</button>
       </div>
 
-      <div class="home-section-heading"><div><span class="label">OUTILS DISPONIBLES</span><h2>Que voulez-vous faire ?</h2></div><span class="local-pill">● 100 % local</span></div>
+      <div class="home-section-heading"><div><span class="label">OUTILS DISPONIBLES</span><h2>Que voulez-vous faire ?</h2></div><span class="local-pill">● Sans télémétrie</span></div>
+      <aside class="dashboard-announcement hidden" id="dashboardAnnouncement" role="status" aria-live="polite">
+        <span class="announcement-symbol" id="announcementSymbol">i</span>
+        <div><small>MESSAGE OWLSETUP</small><strong id="announcementTitle"></strong><p id="announcementMessage"></p><em id="announcementDate"></em></div>
+        <button type="button" id="dismissAnnouncement" aria-label="Masquer cette annonce">×</button>
+      </aside>
+
       <div class="feature-grid">
         <button class="feature-card install-feature" data-view="catalog">
           <span class="feature-number">01</span><span class="feature-icon">↓</span>
@@ -96,7 +102,7 @@
       <div class="home-trust">
         <div><span>✓</span><p><strong>Sources officielles</strong><small>Installation via winget</small></p></div>
         <div><span>✓</span><p><strong>Actions contrôlées</strong><small>Confirmation avant suppression</small></p></div>
-        <div><span>✓</span><p><strong>Aucune donnée envoyée</strong><small>Tout reste sur votre ordinateur</small></p></div>
+        <div><span>✓</span><p><strong>Aucune télémétrie</strong><small>Aucun rapport automatique</small></p></div>
         <div><span>✓</span><p><strong>Rapports détaillés</strong><small>Journaux rangés dans OwlSetup</small></p></div>
       </div>
     </section>

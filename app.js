@@ -125,6 +125,7 @@ let selectedUpdates = new Set();
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
 let currentBuildVersion = "inconnue";
 let currentBuildChannel = "stable";
+const dashboardAnnouncementEndpoint = "https://owlsetup-dashboard-owlnetgeekfr.onrender.com/api/announcements/latest";
 let feedbackDiagnostics = "Non généré";
 let updatesLoaded = false;
 let activeCategory = "Tout";
@@ -140,6 +141,34 @@ function notify(title, detail) {
   $("#toast").classList.add("show");
   clearTimeout(window.toastTimer);
   window.toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 2600);
+}
+
+async function loadDashboardAnnouncement() {
+  const panel = $("#dashboardAnnouncement");
+  try {
+    const response = await fetch(dashboardAnnouncementEndpoint, {cache:"no-store", credentials:"omit"});
+    if (response.status === 204) { panel.classList.add("hidden"); return; }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const announcement = await response.json();
+    if (!announcement?.title || !announcement?.message || !announcement?.updatedAt) return;
+    const key = `${announcement.updatedAt}|${announcement.title}`;
+    if (localStorage.getItem("owlsetup-dismissed-announcement") === key) return;
+    const severity = ["info","warning","critical"].includes(announcement.severity) ? announcement.severity : "info";
+    panel.dataset.announcementKey = key;
+    panel.className = `dashboard-announcement ${severity}`;
+    $("#announcementSymbol").textContent = severity === "critical" ? "!" : severity === "warning" ? "⚠" : "i";
+    $("#announcementTitle").textContent = announcement.title;
+    $("#announcementMessage").textContent = announcement.message;
+    $("#announcementDate").textContent = `Publié le ${new Date(announcement.updatedAt).toLocaleString("fr-FR", {dateStyle:"short", timeStyle:"short"})}`;
+  } catch {
+    panel.classList.add("hidden");
+  }
+}
+
+function dismissDashboardAnnouncement() {
+  const panel = $("#dashboardAnnouncement");
+  if (panel.dataset.announcementKey) localStorage.setItem("owlsetup-dismissed-announcement", panel.dataset.announcementKey);
+  panel.classList.add("hidden");
 }
 
 function renderFilters() {
@@ -1251,6 +1280,8 @@ if (window.chrome && window.chrome.webview) {
   requestQuarantine();
 }
 
+loadDashboardAnnouncement();
+
 document.addEventListener("click", event => {
   const card = event.target.closest("[data-app]");
   const uninstall = event.target.closest("[data-uninstall]");
@@ -1326,6 +1357,7 @@ $("#copyFeedback").addEventListener("click", copyFeedbackReport);
 $("#openGitHubFeedback").addEventListener("click", openGitHubFeedback);
 $("#collectFeedbackDiagnostics").addEventListener("click", collectFeedbackDiagnostics);
 $("#openFeedbackLogs").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"open-log-folder",payload:{}}));
+$("#dismissAnnouncement").addEventListener("click", dismissDashboardAnnouncement);
 $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
 $("#refreshHealth").addEventListener("click", requestHealth);
