@@ -219,6 +219,7 @@ function showView(id) {
   $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", updates:"Tout mettre à jour", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Dépannage", queue:"Ma sélection", history:"Guide d'installation"}[id];
   document.body.classList.remove("menu-open");
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
+  if (id === "home") loadDashboardAnnouncement();
   if (id === "quarantine") requestQuarantine();
   if (id === "tools") { requestHistory(); diagnoseWinget(); }
   if (id === "security") requestSecurityStatus();
