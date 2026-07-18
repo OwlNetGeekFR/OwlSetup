@@ -1482,6 +1482,14 @@ internal sealed class WebAppForm : Form
         return assets.Select(x=>x as Dictionary<string,object>).FirstOrDefault(x=>x!=null && x.ContainsKey("name") && String.Equals(Convert.ToString(x["name"]),name,StringComparison.OrdinalIgnoreCase));
     }
 
+    string ReadAssetHash(string hashText,string assetName)
+    {
+        string pattern="(?im)^\\s*([0-9a-f]{64})\\s+\\*?"+Regex.Escape(assetName)+"\\s*$";
+        Match match=Regex.Match(hashText,pattern);
+        if(!match.Success)throw new InvalidDataException("Empreinte SHA-256 absente pour "+assetName+".");
+        return match.Groups[1].Value.ToUpperInvariant();
+    }
+
     Version ReadReleaseVersion(Dictionary<string,object> release)
     {
         string tag=release.ContainsKey("tag_name")?Convert.ToString(release["tag_name"]):"";
@@ -1572,6 +1580,7 @@ internal sealed class WebAppForm : Form
                 var exeAsset=FindReleaseAsset(release,"OwlSetup.exe")??FindReleaseAsset(release,"PC-Setup.exe");
                 var hashAsset=FindReleaseAsset(release,"SHA256.txt");
                 if(exeAsset==null || hashAsset==null)throw new FileNotFoundException("La Release ne contient pas les fichiers de mise à jour requis.");
+                string exeName=Convert.ToString(exeAsset["name"]);
                 string exeUrl=Convert.ToString(exeAsset["browser_download_url"]);
                 string hashUrl=Convert.ToString(hashAsset["browser_download_url"]);
                 string trustedPrefix="https://github.com/OwlNetGeekFR/OwlSetup/releases/download/";
@@ -1584,9 +1593,7 @@ internal sealed class WebAppForm : Form
                 {
                     client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+CurrentVersionText();
                     string hashText=client.DownloadString(hashUrl);
-                    Match match=Regex.Match(hashText,"(?i)\\b[0-9a-f]{64}\\b");
-                    if(!match.Success)throw new InvalidDataException("Empreinte SHA-256 absente.");
-                    expected=match.Value.ToUpperInvariant();
+                    expected=ReadAssetHash(hashText,exeName);
                     client.DownloadFile(exeUrl,downloaded);
                 }
                 using(var stream=File.OpenRead(downloaded))
