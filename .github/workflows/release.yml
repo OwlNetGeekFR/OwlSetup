@@ -132,8 +132,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $assets = @("OwlSetup-Setup.exe", "OwlSetup.exe", "PC-Setup.exe", "SHA256.txt")
-          gh release view "$env:RELEASE_TAG" 2>$null
-          if ($LASTEXITCODE -eq 0) {
+          $previousErrorActionPreference = $ErrorActionPreference
+          $ErrorActionPreference = "Continue"
+          gh release view "$env:RELEASE_TAG" --json tagName 2>$null | Out-Null
+          $releaseExists = $LASTEXITCODE -eq 0
+          $ErrorActionPreference = $previousErrorActionPreference
+          if ($releaseExists) {
             gh release upload "$env:RELEASE_TAG" @assets --clobber
             gh release edit "$env:RELEASE_TAG" --title "OwlSetup $env:RELEASE_TAG"
           } else {
