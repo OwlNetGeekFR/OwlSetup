@@ -182,6 +182,8 @@ internal sealed class WebAppForm : Form
     void RunInstall(Dictionary<string, object> payload)
     {
         var packages = ReadArray(payload, "packages").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9.+_-]+$")).Distinct().Take(100).ToArray();
+        if(packages.Any(id=>String.Equals(id,"VMware.WorkstationPro",StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("VMware Workstation Pro necessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidee depuis sa carte.");
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         string shortcutPreference=payload!=null&&payload.ContainsKey("shortcut")?Convert.ToString(payload["shortcut"]):"start";

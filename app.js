@@ -71,7 +71,7 @@ apps.push(
   {id:"Amazon.Games",name:"Amazon Games",category:"Gaming",desc:"Lanceur de jeux Amazon",icon:"AG",color:"#4b83c3",site:"https://www.amazongames.com/en-us/support/prime-gaming/articles/download-and-install-the-amazon-games-app",tags:["gaming"],repairMode:"reinstall"},
   {id:"Overwolf.CurseForge",name:"CurseForge",category:"Gaming",desc:"Gestion des mods de jeux",icon:"CF",color:"#ef6c35",site:"https://www.curseforge.com/download/app",tags:["gaming"],repairMode:"reinstall"},
   {id:"Oracle.VirtualBox",name:"Oracle VirtualBox",category:"Virtualisation",desc:"Machines virtuelles multiplateformes",icon:"VB",color:"#3276a8",site:"https://www.virtualbox.org/wiki/Downloads",repairMode:"reinstall"},
-  {id:"VMware.WorkstationPro",name:"VMware Workstation Pro",category:"Virtualisation",desc:"Machines virtuelles professionnelles",icon:"VM",color:"#e38b35",site:"https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion",repairMode:"reinstall"},
+  {id:"VMware.WorkstationPro",name:"VMware Workstation Pro",category:"Virtualisation",desc:"Compte Broadcom gratuit requis · installation guidée",icon:"VM",color:"#e38b35",site:"https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html",manualInstallUrl:"https://support.broadcom.com/group/ecx/productdownloads?subfamily=VMware%20Workstation%20Pro&freeDownloads=true",manualInstall:true,repairMode:"reinstall"},
   {id:"Microsoft.WSL",name:"Windows Subsystem for Linux",category:"Virtualisation",desc:"Environnement Linux intégré à Windows",icon:"WSL",color:"#5c7894",site:"https://learn.microsoft.com/windows/wsl/install",repairMode:"reinstall"}
 );
 
@@ -113,8 +113,9 @@ const appLogos = {
 };
 apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${appLogos[app.id]}` : ""));
 
-const categories = ["Tout", ...new Set(apps.map(app => app.category))];
+const categories = ["Tout", "Installés", ...new Set(apps.map(app => app.category))];
 let selected = new Set(JSON.parse(localStorage.getItem("pcsetup-selection") || "[]"));
+apps.filter(app => app.manualInstall).forEach(app => selected.delete(app.id));
 let installedApps = new Set();
 let managedInstalled = new Set();
 let pendingUninstallId = null;
@@ -129,6 +130,11 @@ let feedbackDiagnostics = "Non généré";
 let updatesLoaded = false;
 let activeCategory = "Tout";
 let searchTerm = "";
+let installedSearchTerm = "";
+let installedSortMode = "name";
+const onboardingStorageKey = "owlsetup-onboarding-completed-v1";
+let onboardingStep = 0;
+let onboardingPreviousFocus = null;
 
 const $ = selector => document.querySelector(selector);
 const icon = app => `<span class="app-icon" style="--app:${app.color}">${app.logo ? `<img src="${app.logo}" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="app-icon-fallback" hidden>${app.icon}</span>` : `<span class="app-icon-fallback">${app.icon}</span>`}</span>`;
@@ -148,17 +154,84 @@ function renderFilters() {
 
 function renderApps() {
   const query = searchTerm.toLocaleLowerCase("fr");
-  const visible = apps.filter(app => (activeCategory === "Tout" || app.category === activeCategory) && `${app.name} ${app.desc} ${app.category}`.toLocaleLowerCase("fr").includes(query));
+  const visible = apps.filter(app => (activeCategory === "Tout" || (activeCategory === "Installés" ? installedApps.has(app.id) : app.category === activeCategory)) && `${app.name} ${app.desc} ${app.category}`.toLocaleLowerCase("fr").includes(query));
   $("#resultCount").textContent = `${visible.length} logiciel${visible.length > 1 ? "s" : ""}`;
   $("#appGrid").innerHTML = visible.map(app => `
-    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""}" data-app="${app.id}" tabindex="0" aria-label="${app.name}">
+    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""}" data-app="${app.id}" tabindex="0" aria-label="${app.name}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
       ${icon(app)}<span class="app-copy"><strong>${app.name}</strong><small>${app.desc}</small><span class="app-footer"><em>${app.category}</em><a class="official-link" href="${app.site}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${app.name}" onclick="event.stopPropagation()">Site officiel ↗</a></span></span>
-      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${app.id}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
+      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${app.id}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">Installation guidée</span><span class="add-icon">↗</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
     </article>`).join("");
   $("#emptyState").classList.toggle("hidden", visible.length !== 0);
   $("#installedManager").classList.toggle("hidden", installedApps.size === 0);
   $("#managedCount").textContent = `${managedInstalled.size} logiciel${managedInstalled.size > 1 ? "s" : ""} sélectionné${managedInstalled.size > 1 ? "s" : ""}`;
   $("#batchUninstallBtn").disabled = managedInstalled.size === 0;
+  $("#clearInstalledSelection").disabled = managedInstalled.size === 0;
+  $(".results-line span:last-child").textContent = activeCategory === "Installés" ? "Cliquez sur une carte pour la sélectionner à désinstaller" : "Cliquez sur une carte pour l'ajouter";
+  renderInstalledPage();
+}
+
+function renderOnboarding() {
+  const slides = [...document.querySelectorAll("[data-onboarding-step]")];
+  slides.forEach((slide,index) => slide.classList.toggle("active", index === onboardingStep));
+  $("#onboardingDots").innerHTML = slides.map((_,index) => `<button class="${index === onboardingStep ? "active" : ""}" data-onboarding-dot="${index}" aria-label="Étape ${index + 1}" aria-current="${index === onboardingStep ? "step" : "false"}"></button>`).join("");
+  $("#onboardingProgress").style.width = `${(onboardingStep + 1) / slides.length * 100}%`;
+  $("#previousOnboarding").disabled = onboardingStep === 0;
+  $("#nextOnboarding").innerHTML = onboardingStep === slides.length - 1 ? `Découvrir OwlSetup <span>✓</span>` : `${onboardingStep === 0 ? "Commencer" : "Suivant"} <span>→</span>`;
+}
+
+function openOnboarding(force = false) {
+  if (!force && localStorage.getItem(onboardingStorageKey) === "true") return;
+  onboardingPreviousFocus = document.activeElement;
+  onboardingStep = 0;
+  renderOnboarding();
+  $("#onboardingOverlay").classList.remove("hidden");
+  document.body.classList.add("onboarding-open");
+  window.setTimeout(() => $("#skipOnboarding").focus(), 80);
+}
+
+function closeOnboarding(skipped = false) {
+  localStorage.setItem(onboardingStorageKey, "true");
+  $("#onboardingOverlay").classList.add("hidden");
+  document.body.classList.remove("onboarding-open");
+  if (!skipped) showView("home");
+  onboardingPreviousFocus?.focus?.();
+  notify(skipped ? "Prise en main ignorée" : "Bienvenue dans OwlSetup", skipped ? "Vous pourrez la relancer depuis le guide d'installation." : "Votre application est prête à être utilisée.");
+}
+
+function moveOnboarding(direction) {
+  const last = document.querySelectorAll("[data-onboarding-step]").length - 1;
+  if (direction > 0 && onboardingStep === last) { closeOnboarding(false); return; }
+  onboardingStep = Math.max(0, Math.min(last, onboardingStep + direction));
+  renderOnboarding();
+}
+
+function renderInstalledPage() {
+  const query = installedSearchTerm.toLocaleLowerCase("fr");
+  const detected = apps.filter(app => installedApps.has(app.id));
+  const visible = detected.filter(app => `${app.name} ${app.id} ${app.category} ${app.desc}`.toLocaleLowerCase("fr").includes(query));
+  visible.sort((a,b) => {
+    if (installedSortMode === "selected") {
+      const selectedOrder = Number(managedInstalled.has(b.id)) - Number(managedInstalled.has(a.id));
+      if (selectedOrder) return selectedOrder;
+    }
+    const left = installedSortMode === "category" ? `${a.category} ${a.name}` : a.name;
+    const right = installedSortMode === "category" ? `${b.category} ${b.name}` : b.name;
+    return left.localeCompare(right, "fr", {sensitivity:"base"});
+  });
+  $("#installedNavCount").textContent = detected.length;
+  $("#installedPageCount").textContent = `${detected.length} application${detected.length > 1 ? "s" : ""}`;
+  $("#installedManagedCount").textContent = `${managedInstalled.size} application${managedInstalled.size > 1 ? "s" : ""} sélectionnée${managedInstalled.size > 1 ? "s" : ""}`;
+  $("#installedClearSelection").disabled = managedInstalled.size === 0;
+  $("#installedBatchUninstall").disabled = managedInstalled.size === 0;
+  $("#installedAppGrid").innerHTML = visible.map(app => `
+    <article class="installed-page-card ${managedInstalled.has(app.id) ? "selected" : ""}" data-installed-app="${app.id}" tabindex="0" aria-label="${app.name}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
+      <span class="installed-select-box" aria-hidden="true">${managedInstalled.has(app.id) ? "✓" : ""}</span>
+      ${icon(app)}
+      <span class="installed-page-copy"><strong>${app.name}</strong><small>${app.desc}</small><code>${app.id}</code></span>
+      <span class="installed-page-meta"><b>${app.category}</b><small>${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</small></span>
+      <span class="installed-page-actions"><a href="${app.site}" target="_blank" rel="noopener" title="Site officiel de ${app.name}" onclick="event.stopPropagation()">Site officiel ↗</a><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span>
+    </article>`).join("");
+  $("#installedEmpty").classList.toggle("hidden", visible.length !== 0);
 }
 
 function renderSelection() {
@@ -176,7 +249,15 @@ function renderSelection() {
 
 function toggleApp(id) {
   const app = apps.find(item => item.id === id);
-  if (installedApps.has(id)) return;
+  if (installedApps.has(id)) {
+    if (managedInstalled.has(id)) managedInstalled.delete(id); else managedInstalled.add(id);
+    renderApps();
+    return;
+  }
+  if (app?.manualInstall) {
+    openGuidedInstall(app);
+    return;
+  }
   if (selected.has(id)) selected.delete(id); else {
     selected.add(id);
     notify("Ajouté à la sélection", app.name);
@@ -184,15 +265,32 @@ function toggleApp(id) {
   renderApps(); renderSelection();
 }
 
+let guidedInstallApp = null;
+function openGuidedInstall(app) {
+  guidedInstallApp = app;
+  $("#guidedInstallTitle").textContent = `Installer ${app.name}`;
+  $("#guidedInstallModal").classList.remove("hidden");
+}
+function closeGuidedInstall() {
+  $("#guidedInstallModal").classList.add("hidden");
+  guidedInstallApp = null;
+}
+function openGuidedInstallLink(kind) {
+  if (!guidedInstallApp) return;
+  const url = kind === "download" ? guidedInstallApp.manualInstallUrl : guidedInstallApp.site;
+  window.open(url, "_blank", "noopener");
+}
+
 function showView(id) {
   document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === id));
   document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.view === id));
-  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", updates:"Tout mettre à jour", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Dépannage", queue:"Ma sélection", history:"Guide d'installation"}[id];
+  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", installed:"Applications installées", updates:"Tout mettre à jour", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Dépannage", queue:"Ma sélection", history:"Guide d'installation"}[id];
   document.body.classList.remove("menu-open");
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
   if (id === "quarantine") requestQuarantine();
   if (id === "tools") { requestHistory(); diagnoseWinget(); }
   if (id === "security") requestSecurityStatus();
+  if (id === "installed") renderInstalledPage();
   renderSelection();
   window.scrollTo({top: 0, behavior:"smooth"});
 }
@@ -270,7 +368,7 @@ function saveProfile() {
 function loadProfile() {
   const value=$("#savedProfiles").value;if(!value)return;
   const name=decodeURIComponent(value),profiles=JSON.parse(localStorage.getItem("pcsetup-profiles") || "{}");
-  selected=new Set((profiles[name]||[]).filter(id=>!installedApps.has(id)));
+  selected=new Set((profiles[name]||[]).filter(id=>!installedApps.has(id) && !apps.some(app=>app.id===id && app.manualInstall)));
   renderApps();renderSelection();notify("Profil chargé",name);
 }
 
@@ -297,6 +395,20 @@ function requestUpdateScan() {
   $("#scanUpdatesBtn").disabled = true;
   $("#updateAllBtn").disabled = true;
   window.chrome.webview.postMessage({action:"scan-updates", payload:{}});
+}
+
+function requestInstalledScan() {
+  if (!window.chrome?.webview) {
+    notify("Détection locale", "Cette fonction est disponible dans l'application Windows.");
+    return;
+  }
+  $("#installedPageCount").textContent = "Analyse en cours...";
+  window.chrome.webview.postMessage({action:"scan-installed", payload:{ids:apps.map(app => app.id), apps:apps.map(app => ({id:app.id,name:app.name,portable:!!app.portable}))}});
+}
+
+function requestBatchUninstall() {
+  if (!managedInstalled.size || !window.chrome?.webview) return;
+  window.chrome.webview.postMessage({action:"simulate-batch-uninstall",payload:{packages:[...managedInstalled]}});
 }
 
 function appForUpdate(id) { return apps.find(app => app.id.toLocaleLowerCase() === String(id).toLocaleLowerCase()); }
@@ -1023,7 +1135,7 @@ function handleInstallMessage(message) {
   }
   if (message.type === "config-imported") {
     const known = new Set(apps.map(app => app.id.toLocaleLowerCase()));
-    const restored = (message.packages || []).filter(id => known.has(String(id).toLocaleLowerCase()) && !installedApps.has(id));
+    const restored = (message.packages || []).filter(id => known.has(String(id).toLocaleLowerCase()) && !installedApps.has(id) && !apps.some(app=>app.id===id && app.manualInstall));
     selected = new Set(restored);
     document.querySelectorAll("[data-cleanup]").forEach(input => { input.checked = (message.cleanup || []).includes(input.dataset.cleanup); });
     updateCleanupCount(); renderApps(); renderSelection(); showView("queue");
@@ -1149,6 +1261,7 @@ function handleInstallMessage(message) {
   }
   if (message.type === "installed-state") {
     installedApps = new Set(message.ids || []);
+    managedInstalled = new Set([...managedInstalled].filter(id => installedApps.has(id)));
     installedApps.forEach(id => selected.delete(id));
     renderApps(); renderSelection();
     if (message.warning && message.method === "registre") {
@@ -1192,7 +1305,7 @@ function handleInstallMessage(message) {
     $("#uninstallProgressDetail").textContent = message.success ? "L'application a été supprimée." : (message.errorMessage || `Code de sortie : ${message.code}`);
     $("#uninstallSummary").textContent = message.success ? "La carte a été actualisée automatiquement." : "Consultez le rapport rangé dans OwlSetup.";
     $("#finishUninstall").classList.remove("hidden");
-    if (message.success) { installedApps.delete(message.id); renderApps(); }
+    if (message.success) { installedApps.delete(message.id); managedInstalled.delete(message.id); renderApps(); }
     requestHealth();
     return;
   }
@@ -1253,6 +1366,7 @@ if (window.chrome && window.chrome.webview) {
 
 document.addEventListener("click", event => {
   const card = event.target.closest("[data-app]");
+  const installedCard = event.target.closest("[data-installed-app]");
   const uninstall = event.target.closest("[data-uninstall]");
   const repair = event.target.closest("[data-repair]");
   const manageInstalled = event.target.closest("[data-manage-installed]");
@@ -1266,6 +1380,11 @@ document.addEventListener("click", event => {
   if (repair) openRepairModal(repair.dataset.repair);
   if (manageInstalled) {
     const id=manageInstalled.dataset.manageInstalled;
+    if(managedInstalled.has(id))managedInstalled.delete(id);else managedInstalled.add(id);
+    renderApps();
+  }
+  if (installedCard && !uninstall && !repair) {
+    const id=installedCard.dataset.installedApp;
     if(managedInstalled.has(id))managedInstalled.delete(id);else managedInstalled.add(id);
     renderApps();
   }
@@ -1299,6 +1418,9 @@ $("#confirmInstall").addEventListener("click", beginInstall);
 $("#cancelInstall").addEventListener("click", closeInstallModal);
 $("#closeInstallModal").addEventListener("click", closeInstallModal);
 $("#finishInstall").addEventListener("click", closeInstallModal);
+$("#closeGuidedInstall").addEventListener("click", closeGuidedInstall);
+$("#openVmwareGuide").addEventListener("click", () => openGuidedInstallLink("guide"));
+$("#continueVmwareDownload").addEventListener("click", () => openGuidedInstallLink("download"));
 $("#confirmUninstall").addEventListener("click", beginUninstall);
 $("#cancelUninstall").addEventListener("click", closeUninstallModal);
 $("#closeUninstallModal").addEventListener("click", closeUninstallModal);
@@ -1312,9 +1434,46 @@ $("#customPackageId").addEventListener("keydown", event => {if(event.key==="Ente
 $("#saveProfile").addEventListener("click", saveProfile);
 $("#loadProfile").addEventListener("click", loadProfile);
 $("#batchUninstallBtn").addEventListener("click", () => {
-  if(!managedInstalled.size || !window.chrome?.webview)return;
-  window.chrome.webview.postMessage({action:"simulate-batch-uninstall",payload:{packages:[...managedInstalled]}});
+  requestBatchUninstall();
 });
+
+document.addEventListener("keydown", event => {
+  const card = event.target.closest?.("[data-app],[data-installed-app]");
+  if (!card || event.target !== card || !["Enter", " "].includes(event.key)) return;
+  event.preventDefault();
+  if (card.dataset.installedApp) {
+    const id=card.dataset.installedApp;
+    if(managedInstalled.has(id))managedInstalled.delete(id);else managedInstalled.add(id);
+    renderApps();
+  } else toggleApp(card.dataset.app);
+});
+
+document.addEventListener("keydown", event => {
+  const overlay = $("#onboardingOverlay");
+  if (overlay.classList.contains("hidden")) return;
+  if (event.key === "Escape") { event.preventDefault(); closeOnboarding(true); return; }
+  if (event.key === "ArrowRight") { event.preventDefault(); moveOnboarding(1); return; }
+  if (event.key === "ArrowLeft") { event.preventDefault(); moveOnboarding(-1); return; }
+  if (event.key !== "Tab") return;
+  const focusable = [...overlay.querySelectorAll("button:not([disabled])")];
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
+$("#selectAllInstalled").addEventListener("click", () => { managedInstalled = new Set(installedApps); activeCategory = "Installés"; renderFilters(); renderApps(); });
+$("#clearInstalledSelection").addEventListener("click", () => { managedInstalled.clear(); renderApps(); });
+$("#installedSearchInput").addEventListener("input", event => { installedSearchTerm = event.target.value; renderInstalledPage(); });
+$("#installedSort").addEventListener("change", event => { installedSortMode = event.target.value; renderInstalledPage(); });
+$("#refreshInstalledApps").addEventListener("click", requestInstalledScan);
+$("#installedSelectAll").addEventListener("click", () => { managedInstalled = new Set(installedApps); renderApps(); });
+$("#installedClearSelection").addEventListener("click", () => { managedInstalled.clear(); renderApps(); });
+$("#installedBatchUninstall").addEventListener("click", requestBatchUninstall);
+$("#skipOnboarding").addEventListener("click", () => closeOnboarding(true));
+$("#previousOnboarding").addEventListener("click", () => moveOnboarding(-1));
+$("#nextOnboarding").addEventListener("click", () => moveOnboarding(1));
+$("#replayOnboarding").addEventListener("click", () => openOnboarding(true));
+$("#onboardingDots").addEventListener("click", event => { const dot=event.target.closest("[data-onboarding-dot]"); if(!dot)return; onboardingStep=Number(dot.dataset.onboardingDot); renderOnboarding(); });
 $("#exportConfig").addEventListener("click", exportConfiguration);
 $("#importConfig").addEventListener("click", importConfiguration);
 $("#appUpdateBtn").addEventListener("click", openAppUpdateModal);
@@ -1356,3 +1515,4 @@ $("#recommendedCleanup").addEventListener("click", () => {
 $("#mobileMenu").addEventListener("click", () => document.body.classList.toggle("menu-open"));
 
 refreshProfiles(); renderFilters(); renderApps(); renderSelection();
+window.setTimeout(() => openOnboarding(false), 650);

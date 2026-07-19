@@ -1,5 +1,5 @@
 #ifndef MyAppVersion
-  #define MyAppVersion "3.4.1"
+  #define MyAppVersion "3.5.0"
 #endif
 
 #define MyAppName "OwlSetup"

@@ -14,6 +14,8 @@ OwlSetup est une application Windows 10/11 qui centralise l’installation de lo
 - Profils personnalisés et installation d'un identifiant WinGet saisi manuellement.
 - Désinstallation groupée des applications sélectionnées.
 - Détection des logiciels déjà installés.
+- Page dédiée aux applications installées avec recherche, tri, réparation et sélection multiple.
+- Prise en main animée au premier lancement, ignorable et accessible à nouveau depuis le guide.
 - Aperçu des mises à jour avec comparaison des versions.
 - Sélection individuelle des applications à actualiser.
 - Recherche Windows Update et pilotes certifiés.
@@ -21,7 +23,7 @@ OwlSetup est une application Windows 10/11 qui centralise l’installation de lo
 - Analyse sans suppression avec estimation de l'espace récupérable et affichage des dossiers protégés.
 - Quarantaine restaurable pour les anciens dossiers AppData.
 - Tableau de santé local : mises à jour, espace disque et redémarrage en attente.
-- Mise à jour automatique de OwlSetup depuis les Releases GitHub avec contrôle SHA-256.
+- Notification de mise à jour de OwlSetup et accès à la Release GitHub officielle avec contrôle SHA-256.
 - Notification visuelle au démarrage lorsqu’une nouvelle version de OwlSetup est disponible.
 - Centre d'outils avec diagnostic et réparation de WinGet, point de restauration, historique local, programmes au démarrage et analyse en lecture seule du disque.
 - Rapports rangés dans `%LOCALAPPDATA%\PCSetup\Logs` sans encombrer le Bureau.
@@ -59,10 +61,18 @@ Le script télécharge le package Microsoft WebView2 nécessaire, compile l’ap
 Pour créer le véritable installateur utilisateur avec Inno Setup 6 :
 
 ```powershell
-./build-installer.ps1 -Version 3.4.1
+./build-installer.ps1 -Version 3.5.0
 ```
 
 L'installateur place OwlSetup dans `%LOCALAPPDATA%\Programs\OwlSetup`, crée le raccourci du Menu Démarrer et enregistre la désinstallation dans Windows.
+
+Pour préparer localement tous les fichiers d'une version stable sans les publier :
+
+```powershell
+./build-stable.ps1 -Version 3.5.0
+```
+
+Le dossier `artifacts\stable\3.5.0` contient alors l'application portable, l'installateur et leurs empreintes dans `SHA256.txt`.
 
 ### Publier une version stable
 
@@ -75,7 +85,7 @@ Une réexécution est sans danger : les fichiers existants de la Release sont ac
 Pour produire une version locale clairement identifiée, sans créer de Release GitHub :
 
 ```powershell
-./build-beta.ps1 -Version "3.3.2-beta.1"
+./build-beta.ps1 -Version "3.5.0-beta.2"
 ```
 
 L’exécutable de test est créé dans `artifacts\beta` avec son numéro de version dans le nom. Ce dossier est ignoré par Git et la mise à jour automatique est désactivée dans les constructions bêta. Une fois les essais validés, la version publique est compilée depuis un tag GitHub stable.
