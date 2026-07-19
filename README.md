@@ -86,6 +86,12 @@ Le mode destructif est réservé à une machine de test ou une machine virtuelle
 - Pour une vulnérabilité, suivez impérativement [SECURITY.md](SECURITY.md) et ne publiez pas les détails dans une Issue publique.
 - L’historique fonctionnel est disponible dans [CHANGELOG.md](CHANGELOG.md).
 
+## Soutenir le projet
+
+OwlSetup reste gratuit, open source et sans fonctionnalité payante. Les dons facultatifs contribuent aux tests, à l’hébergement et à la future signature numérique de l’application.
+
+[![Soutenir OwlSetup sur Ko-fi](https://img.shields.io/badge/Ko--fi-Soutenir%20OwlSetup-ff5e5b?logo=kofi&logoColor=white)](https://ko-fi.com/owlsetup)
+
 ## Licence et marques
 
 OwlSetup est distribué sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
