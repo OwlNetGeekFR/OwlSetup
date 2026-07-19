@@ -1,0 +1,56 @@
+name: Signaler un bug
+description: Signaler un comportement incorrect ou un échec dans OwlSetup
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Merci de ne joindre aucun mot de passe, jeton ou fichier contenant des données personnelles.
+  - type: input
+    id: version
+    attributes:
+      label: Version de OwlSetup
+      placeholder: 3.5.1
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Version de Windows
+      options:
+        - Windows 11
+        - Windows 10
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème rencontré
+      description: Expliquez ce qui s’est passé et ce que vous attendiez.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Ouvrir…
+        2. Cliquer sur…
+        3. Constater…
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Informations techniques facultatives
+      description: Supprimez les noms, chemins personnels et autres données privées avant de coller un extrait.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Vérifications
+      options:
+        - label: J’ai recherché un signalement identique.
+          required: true
+        - label: J’ai supprimé toute donnée sensible de mon rapport.
+          required: true

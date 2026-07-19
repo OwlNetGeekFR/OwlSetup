@@ -1,0 +1,30 @@
+name: Proposer une amélioration
+description: Suggérer une fonctionnalité ou une amélioration d’ergonomie
+title: "[Amélioration] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin utilisateur
+      description: Quel problème cette proposition aiderait-elle à résoudre ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solution proposée
+      description: Décrivez le fonctionnement souhaité.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Vérification
+      options:
+        - label: J’ai recherché une proposition identique.
+          required: true

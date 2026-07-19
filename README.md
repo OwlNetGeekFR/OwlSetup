@@ -1,112 +1,93 @@
-# OwlSetup
+<div align="center">
+  <img src="assets/branding/owlsetup-logo-512.png" width="150" alt="Logo OwlSetup">
 
-![OwlSetup](assets/branding/owlsetup-logo-512.png)
+  # OwlSetup
 
-OwlSetup est une application Windows 10/11 qui centralise l’installation de logiciels, les mises à jour, le nettoyage du disque et la récupération des résidus d’applications.
+  **Installer, mettre à jour et entretenir Windows depuis une seule application.**
 
-## Fonctionnalités
+  [![Version](https://img.shields.io/github/v/release/OwlNetGeekFR/OwlSetup?display_name=tag&sort=semver)](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest)
+  [![Publication](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml/badge.svg)](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml)
+  [![Licence MIT](https://img.shields.io/github/license/OwlNetGeekFR/OwlSetup)](LICENSE)
+  [![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-1473e6)](#configuration-requise)
 
-- Catalogue étendu de logiciels avec validation WinGet avant installation et liens vers les sites officiels.
-- Installation adaptée pour Chrome et Spotify, avec secours officiel contrôlé par signature numérique.
-- Installation et désinstallation silencieuses avec WinGet.
-- Réparation des applications compatibles avec `winget repair`.
-- Sauvegarde et restauration locale de la liste des logiciels dans un fichier de configuration.
-- Profils personnalisés et installation d'un identifiant WinGet saisi manuellement.
-- Désinstallation groupée des applications sélectionnées.
-- Détection des logiciels déjà installés.
-- Page dédiée aux applications installées avec recherche, tri, réparation et sélection multiple.
-- Prise en main animée au premier lancement, ignorable et accessible à nouveau depuis le guide.
-- Aperçu des mises à jour avec comparaison des versions.
-- Sélection individuelle des applications à actualiser.
-- Recherche Windows Update et pilotes certifiés.
-- Nettoyage des fichiers temporaires, caches, Corbeille et composants Windows.
-- Analyse sans suppression avec estimation de l'espace récupérable et affichage des dossiers protégés.
-- Quarantaine restaurable pour les anciens dossiers AppData.
-- Tableau de santé local : mises à jour, espace disque et redémarrage en attente.
-- Notification de mise à jour de OwlSetup et accès à la Release GitHub officielle avec contrôle SHA-256.
-- Notification visuelle au démarrage lorsqu’une nouvelle version de OwlSetup est disponible.
-- Centre d'outils avec diagnostic et réparation de WinGet, point de restauration, historique local, programmes au démarrage et analyse en lecture seule du disque.
-- Rapports rangés dans `%LOCALAPPDATA%\PCSetup\Logs` sans encombrer le Bureau.
+  [Télécharger](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest) · [Site officiel](https://owlnetgeekfr.github.io/OwlSetup-Website/) · [Signaler un problème](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) · [Confidentialité](PRIVACY.md)
+</div>
 
-## Télécharger
+---
 
-La dernière version publique est disponible dans les [Releases GitHub](../../releases/latest).
+OwlSetup est une application Windows open source qui centralise l’installation et la désinstallation de logiciels, les mises à jour, le nettoyage du disque et plusieurs outils de maintenance. Les actions sensibles sont présentées à l’utilisateur avant leur exécution.
 
-Le dépôt contient uniquement les sources nécessaires à la compilation. Pour une installation normale, utilisez `OwlSetup-Setup.exe` depuis les Releases. `OwlSetup.exe` reste disponible comme version portable.
+## Installation rapide
 
-La signature de code des futures versions signées sera fournie gratuitement par [SignPath.io](https://signpath.io/), avec un certificat délivré par la [SignPath Foundation](https://signpath.org/).
+1. Téléchargez **`OwlSetup-Setup.exe`** depuis la [dernière Release officielle](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest).
+2. Vérifiez, si vous le souhaitez, son empreinte avec le fichier `SHA256.txt` fourni dans la même Release.
+3. Lancez l’installateur et suivez les instructions.
 
-L’empreinte SHA-256 est publiée avec chaque version dans `SHA256.txt`.
+> OwlSetup n’est pas encore signé numériquement. Windows SmartScreen peut afficher un avertissement au premier lancement. Ne téléchargez l’application que depuis ce dépôt officiel.
 
-> L’exécutable n’est pas encore signé numériquement. Windows SmartScreen peut donc afficher un avertissement lors du premier lancement.
+## Fonctionnalités principales
+
+| Domaine | Fonctionnalités |
+| --- | --- |
+| Logiciels | Catalogue WinGet, liens officiels, profils, détection des applications installées |
+| Gestion | Installation, réparation, désinstallation individuelle ou groupée |
+| Mises à jour | Comparaison des versions, sélection individuelle, Windows Update et pilotes certifiés |
+| Nettoyage | Fichiers temporaires, caches, Corbeille, composants Windows et résidus d’applications |
+| Sécurité | Simulation et confirmation des actions sensibles, quarantaine restaurable, contrôles de chemins |
+| Diagnostic | WinGet, point de restauration, démarrage Windows, occupation du disque et rapports locaux |
+
+Les journaux et données de travail restent sur l’ordinateur, dans `%LOCALAPPDATA%\PCSetup`. OwlSetup ne contient ni publicité ni télémétrie.
 
 ## Configuration requise
 
-- Windows 10 version 1809 ou ultérieure, ou Windows 11.
-- Processeur 64 bits.
-- Microsoft Edge WebView2 Runtime.
-- WinGet / App Installer pour la gestion des logiciels.
-- Droits administrateur pour les opérations système.
+- Windows 10 version 1809 ou ultérieure, ou Windows 11 ;
+- processeur 64 bits ;
+- Microsoft Edge WebView2 Runtime ;
+- WinGet / App Installer ;
+- droits administrateur pour certaines opérations système.
 
-## Compiler
+## Compiler le projet
 
-Depuis Windows PowerShell :
+Prérequis : Windows PowerShell, .NET Framework et [Inno Setup 6](https://jrsoftware.org/isinfo.php) pour produire l’installateur.
 
 ```powershell
 ./build.ps1
-```
-
-Le script télécharge le package Microsoft WebView2 nécessaire, compile l’application avec le compilateur .NET Framework de Windows et produit `OwlSetup.exe`.
-
-Pour créer le véritable installateur utilisateur avec Inno Setup 6 :
-
-```powershell
 ./build-installer.ps1 -Version 3.5.1
 ```
 
-L'installateur place OwlSetup dans `%LOCALAPPDATA%\Programs\OwlSetup`, crée le raccourci du Menu Démarrer et enregistre la désinstallation dans Windows.
-
-Pour préparer localement tous les fichiers d'une version stable sans les publier :
+Pour préparer tous les fichiers d’une version stable sans les publier :
 
 ```powershell
 ./build-stable.ps1 -Version 3.5.1
 ```
 
-Le dossier `artifacts\stable\3.5.1` contient alors l'application portable, l'installateur et leurs empreintes dans `SHA256.txt`.
-
-### Publier une version stable
-
-Le workflow `Publier une version` accepte un tag `vMAJEUR.MINEUR.CORRECTIF` ou un lancement manuel depuis `main`. Il vérifie le format de version, compile l’application et l’installateur, contrôle les tailles et versions, génère `SHA256.txt`, publie les quatre fichiers puis relit la Release pour confirmer qu’elle est complète.
-
-Une réexécution est sans danger : les fichiers existants de la Release sont actualisés au lieu de créer un doublon. Le [site OwlSetup](https://owlnetgeekfr.github.io/OwlSetup-Website/) synchronise ensuite automatiquement la dernière Release stable et ses empreintes.
-
-### Tester une bêta avant publication
-
-Pour produire une version locale clairement identifiée, sans créer de Release GitHub :
+Pour produire une bêta locale clairement identifiée :
 
 ```powershell
-./build-beta.ps1 -Version "3.5.0-beta.2"
+./build-beta.ps1 -Version "3.5.2-beta.1"
 ```
 
-L’exécutable de test est créé dans `artifacts\beta` avec son numéro de version dans le nom. Ce dossier est ignoré par Git et la mise à jour automatique est désactivée dans les constructions bêta. Une fois les essais validés, la version publique est compilée depuis un tag GitHub stable.
+Les constructions locales sont placées dans `artifacts/` et ne sont pas suivies par Git.
 
-## Sécurité
+## Vérifier le catalogue
 
-- Les installations utilisent les identifiants du catalogue WinGet.
-- Les liens du catalogue pointent vers les sites des éditeurs.
-- Aucune donnée personnelle n’est envoyée par l’application.
-- Les documents et le dossier Téléchargements sont exclus du nettoyage.
-- Les chemins de quarantaine sont validés avant restauration ou suppression.
-- Une confirmation est exigée avant les opérations sensibles.
+Le script suivant contrôle les identifiants WinGet sans installer ni supprimer de logiciel :
 
-## Avertissement
+```powershell
+./tools/Test-OwlSetupCatalog.ps1
+```
 
-OwlSetup modifie des logiciels et certaines zones système. Vérifiez les sélections proposées, sauvegardez les documents importants et conservez la quarantaine quelques jours avant toute suppression définitive.
+Le mode destructif est réservé à une machine de test ou une machine virtuelle. Consultez le [guide de validation du catalogue](CATALOG-TEST-GUIDE.md) avant de l’utiliser.
 
-## Licence
+## Contribuer et obtenir de l’aide
 
-Le code source de OwlSetup est distribué gratuitement sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
+- Consultez [CONTRIBUTING.md](CONTRIBUTING.md) avant de proposer une modification.
+- Utilisez les [modèles de signalement](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) pour un bug ou une suggestion.
+- Pour une vulnérabilité, suivez impérativement [SECURITY.md](SECURITY.md) et ne publiez pas les détails dans une Issue publique.
+- L’historique fonctionnel est disponible dans [CHANGELOG.md](CHANGELOG.md).
 
-Les noms, marques et logos des applications proposées dans le catalogue restent la propriété de leurs éditeurs respectifs.
+## Licence et marques
 
-Consultez également la [politique de confidentialité](PRIVACY.md).
+OwlSetup est distribué sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
+
+Les noms, marques et logos des applications du catalogue appartiennent à leurs éditeurs respectifs. Leur présence sert uniquement à identifier les logiciels proposés.

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion générale
+    url: https://github.com/OwlNetGeekFR/OwlSetup/discussions
+    about: Poser une question ou échanger sur une idée qui n’est pas encore définie.
+  - name: Signaler une vulnérabilité
+    url: https://github.com/OwlNetGeekFR/OwlSetup/security/advisories/new
+    about: Envoyer les détails sensibles au mainteneur de manière privée.
