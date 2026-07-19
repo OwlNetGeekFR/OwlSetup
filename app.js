@@ -179,8 +179,7 @@ function toggleApp(id) {
   const app = apps.find(item => item.id === id);
   if (installedApps.has(id)) return;
   if (app?.manualInstall) {
-    notify("Installation guidée", "Broadcom demande une connexion gratuite et l’acceptation de ses conditions. Ouverture du portail officiel.");
-    window.open(app.manualInstallUrl || app.site, "_blank", "noopener");
+    openGuidedInstall(app);
     return;
   }
   if (selected.has(id)) selected.delete(id); else {
@@ -188,6 +187,22 @@ function toggleApp(id) {
     notify("Ajouté à la sélection", app.name);
   }
   renderApps(); renderSelection();
+}
+
+let guidedInstallApp = null;
+function openGuidedInstall(app) {
+  guidedInstallApp = app;
+  $("#guidedInstallTitle").textContent = `Installer ${app.name}`;
+  $("#guidedInstallModal").classList.remove("hidden");
+}
+function closeGuidedInstall() {
+  $("#guidedInstallModal").classList.add("hidden");
+  guidedInstallApp = null;
+}
+function openGuidedInstallLink(kind) {
+  if (!guidedInstallApp) return;
+  const url = kind === "download" ? guidedInstallApp.manualInstallUrl : guidedInstallApp.site;
+  window.open(url, "_blank", "noopener");
 }
 
 function showView(id) {
@@ -1305,6 +1320,9 @@ $("#confirmInstall").addEventListener("click", beginInstall);
 $("#cancelInstall").addEventListener("click", closeInstallModal);
 $("#closeInstallModal").addEventListener("click", closeInstallModal);
 $("#finishInstall").addEventListener("click", closeInstallModal);
+$("#closeGuidedInstall").addEventListener("click", closeGuidedInstall);
+$("#openVmwareGuide").addEventListener("click", () => openGuidedInstallLink("guide"));
+$("#continueVmwareDownload").addEventListener("click", () => openGuidedInstallLink("download"));
 $("#confirmUninstall").addEventListener("click", beginUninstall);
 $("#cancelUninstall").addEventListener("click", closeUninstallModal);
 $("#closeUninstallModal").addEventListener("click", closeUninstallModal);

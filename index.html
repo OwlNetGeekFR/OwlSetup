@@ -325,6 +325,24 @@
     <button id="viewSelection">Voir ma sélection <span>→</span></button>
   </div>
 
+  <div class="install-modal hidden" id="guidedInstallModal" role="dialog" aria-modal="true" aria-labelledby="guidedInstallTitle">
+    <div class="install-dialog guided-install-dialog">
+      <div class="dialog-glow guided-install-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo guided-install-logo">VM</span><div><span class="label">INSTALLATION GUIDÉE</span><h2 id="guidedInstallTitle">Installer VMware Workstation Pro</h2></div><button class="dialog-close" id="closeGuidedInstall" aria-label="Fermer">×</button></div>
+      <div class="dialog-confirm">
+        <p>Broadcom ne permet plus le téléchargement automatique par WinGet. Un compte gratuit et l’acceptation des conditions sont nécessaires sur son portail officiel.</p>
+        <ol class="guided-install-steps">
+          <li><b>1</b><span><strong>Créer ou ouvrir votre compte Broadcom</strong><small>Aucun identifiant n’est demandé ni enregistré par OwlSetup.</small></span></li>
+          <li><b>2</b><span><strong>Compléter le profil gratuit</strong><small>Broadcom peut demander votre pays et les informations de conformité commerciale.</small></span></li>
+          <li><b>3</b><span><strong>Choisir VMware Workstation Pro pour Windows</strong><small>Ouvrez les téléchargements gratuits, sélectionnez la version puis acceptez les conditions.</small></span></li>
+          <li><b>4</b><span><strong>Lancer l’installateur téléchargé</strong><small>Terminez l’installation, puis redémarrez OwlSetup pour afficher « Installé ».</small></span></li>
+        </ol>
+        <div class="guided-install-note"><span>✓</span><div><strong>VMware Workstation Pro est gratuit</strong><small>Les versions récentes sont gratuites pour un usage personnel, éducatif et commercial. Aucun abonnement payant n’est nécessaire.</small></div></div>
+        <div class="dialog-actions guided-install-actions"><button class="secondary-dialog-button" id="openVmwareGuide">Lire le guide officiel</button><button class="primary-dialog-button" id="continueVmwareDownload"><span>↗</span> Se connecter et télécharger</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="install-modal hidden" id="installModal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
     <div class="install-dialog">
       <div class="dialog-glow"></div>
