@@ -21,6 +21,7 @@
     <nav aria-label="Navigation">
       <button class="nav-item" data-view="home"><span>⌂</span> Accueil</button>
       <button class="nav-item active" data-view="catalog"><span>▦</span> Installer des logiciels</button>
+      <button class="nav-item" data-view="installed"><span>▣</span> Applications installées <b id="installedNavCount">0</b></button>
       <button class="nav-item" data-view="updates"><span>↥</span> Tout mettre à jour <b class="new-badge">NEW</b></button>
       <button class="nav-item" data-view="cleanup"><span>◇</span> Libérer de l'espace</button>
       <button class="nav-item" data-view="quarantine"><span>♲</span> Quarantaine <b id="quarantineNavCount">0</b></button>
@@ -129,7 +130,7 @@
           <div class="custom-install"><div><span class="label">PAQUET PERSONNALISÉ</span><strong>Installer un identifiant WinGet</strong></div><input id="customPackageId" placeholder="Exemple : Microsoft.PowerToys" spellcheck="false"><button class="primary-dialog-button" id="installCustomPackage">Ajouter</button></div>
           <div class="profile-tools"><input id="profileName" placeholder="Nom du profil"><button class="secondary-dialog-button" id="saveProfile">Enregistrer le profil</button><select id="savedProfiles"><option value="">Profils enregistrés</option></select><button class="secondary-dialog-button" id="loadProfile">Charger</button></div>
         </div>
-        <div class="installed-manager hidden" id="installedManager"><div><strong id="managedCount">0 logiciel sélectionné</strong><small>Sélectionnez les cases sur les applications installées pour une désinstallation groupée.</small></div><button class="danger-dialog-button" id="batchUninstallBtn" disabled>× Désinstaller la sélection</button></div>
+        <div class="installed-manager hidden" id="installedManager"><div><strong id="managedCount">0 logiciel sélectionné</strong><small>Ouvrez le filtre « Installés », puis cliquez sur les cartes à désinstaller.</small></div><div class="installed-manager-actions"><button class="secondary-dialog-button" id="selectAllInstalled">Tout sélectionner</button><button class="secondary-dialog-button" id="clearInstalledSelection" disabled>Effacer</button><button class="danger-dialog-button" id="batchUninstallBtn" disabled>× Désinstaller la sélection</button></div></div>
         <div class="catalog-tools">
           <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Rechercher un logiciel..." autocomplete="off" /></div>
           <div class="filters" id="filters"></div>
@@ -138,6 +139,27 @@
         <div class="app-grid" id="appGrid"></div>
         <div class="empty hidden" id="emptyState"><span>⌕</span><h3>Aucun logiciel trouvé</h3><p>Essayez un autre mot-clé ou une autre catégorie.</p></div>
       </section>
+    </section>
+
+    <section class="view" id="installed">
+      <div class="page-intro installed-intro">
+        <div><span class="label">GESTION DES LOGICIELS</span><h1>Applications installées</h1><p>Recherchez, réparez ou désinstallez les logiciels reconnus sur ce PC. Sélectionnez plusieurs cartes pour une désinstallation groupée.</p></div>
+        <div class="installed-hero-icon" aria-hidden="true">▣</div>
+      </div>
+      <div class="installed-overview">
+        <div><span class="installed-overview-icon">✓</span><p><small>DÉTECTÉES SUR CE PC</small><strong id="installedPageCount">Analyse en cours...</strong></p></div>
+        <button class="secondary-dialog-button" id="refreshInstalledApps">↻ Actualiser la détection</button>
+      </div>
+      <div class="installed-page-tools">
+        <div class="search"><span>⌕</span><input id="installedSearchInput" type="search" placeholder="Rechercher dans les applications installées..." autocomplete="off" /></div>
+        <select id="installedSort" aria-label="Trier les applications installées"><option value="name">Trier par nom</option><option value="category">Trier par catégorie</option><option value="selected">Sélectionnées en premier</option></select>
+      </div>
+      <div class="installed-selection-panel">
+        <div><strong id="installedManagedCount">0 application sélectionnée</strong><small>Cliquez sur une carte pour l’ajouter ou la retirer de la sélection.</small></div>
+        <div><button class="secondary-dialog-button" id="installedSelectAll">Tout sélectionner</button><button class="secondary-dialog-button" id="installedClearSelection" disabled>Effacer</button><button class="danger-dialog-button" id="installedBatchUninstall" disabled>× Désinstaller la sélection</button></div>
+      </div>
+      <div class="installed-app-grid" id="installedAppGrid"></div>
+      <div class="empty installed-empty hidden" id="installedEmpty"><span>▣</span><h3>Aucune application reconnue</h3><p>Actualisez la détection ou vérifiez que WinGet fonctionne dans les outils système.</p><button class="secondary-dialog-button" data-view="tools">Ouvrir les outils système</button></div>
     </section>
 
     <section class="view" id="updates">
@@ -185,32 +207,32 @@
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="user-temp" checked />
               <span class="check-ui">✓</span><span class="cleanup-icon blue">⌁</span>
-              <span class="cleanup-copy"><strong>Fichiers temporaires utilisateur</strong><small>Fichiers créés provisoirement par vos applications</small></span><em>Recommandé</em>
+              <span class="cleanup-copy"><strong>Fichiers temporaires utilisateur</strong><small>Fichiers créés provisoirement par vos applications</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="windows-temp" checked />
               <span class="check-ui">✓</span><span class="cleanup-icon cyan">⊞</span>
-              <span class="cleanup-copy"><strong>Fichiers temporaires Windows</strong><small>Résidus système inutilisés et fichiers verrouillés ignorés</small></span><em>Recommandé</em>
+              <span class="cleanup-copy"><strong>Fichiers temporaires Windows</strong><small>Résidus système inutilisés et fichiers verrouillés ignorés</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="recycle-bin" checked />
               <span class="check-ui">✓</span><span class="cleanup-icon violet">♲</span>
-              <span class="cleanup-copy"><strong>Corbeille</strong><small>Fichiers que vous avez précédemment supprimés</small></span><em>À vérifier</em>
+              <span class="cleanup-copy"><strong>Corbeille</strong><small>Fichiers que vous avez précédemment supprimés</small></span><em class="cleanup-review">À vérifier</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="delivery" checked />
               <span class="check-ui">✓</span><span class="cleanup-icon green">⇣</span>
-              <span class="cleanup-copy"><strong>Cache d'optimisation de livraison</strong><small>Copies locales utilisées pour distribuer les mises à jour</small></span><em>Recommandé</em>
+              <span class="cleanup-copy"><strong>Cache d'optimisation de livraison</strong><small>Copies locales utilisées pour distribuer les mises à jour</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="components" />
               <span class="check-ui">✓</span><span class="cleanup-icon orange">⚙</span>
-              <span class="cleanup-copy"><strong>Anciens composants Windows</strong><small>Nettoyage DISM du magasin de composants remplacés</small></span><em>Avancé</em>
+              <span class="cleanup-copy"><strong>Anciens composants Windows</strong><small>Nettoyage DISM du magasin de composants remplacés</small></span><em class="cleanup-advanced">Avancé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="app-leftovers" />
               <span class="check-ui">✓</span><span class="cleanup-icon red">⌫</span>
-              <span class="cleanup-copy"><strong>Résidus d'applications désinstallées</strong><small>Recherche les anciens dossiers AppData et demande votre accord pour chacun</small></span><em>Réversible</em>
+              <span class="cleanup-copy"><strong>Résidus d'applications désinstallées</strong><small>Recherche les anciens dossiers AppData et demande votre accord pour chacun</small></span><em class="cleanup-reversible">Réversible</em>
             </label>
           </div>
         </div>
@@ -316,6 +338,7 @@
         <article><b>04</b><div><h3>Consultez le résultat</h3><p>La progression reste visible dans l’application et un rapport local est enregistré pour chaque opération.</p></div></article>
       </div>
       <div class="notice"><span>i</span><div><strong>Avant de commencer</strong><p>Créez un point de restauration et fermez vos applications. Certains composants peuvent demander un redémarrage.</p></div></div>
+      <div class="onboarding-replay"><div><span>✦</span><p><strong>Besoin de revoir les bases ?</strong><small>Relancez à tout moment la prise en main animée d’OwlSetup.</small></p></div><button class="primary-dialog-button" id="replayOnboarding">Revoir la prise en main</button></div>
     </section>
   </main>
 
@@ -323,6 +346,32 @@
     <div class="selection-stack" id="selectionStack"></div>
     <div><strong><span id="barCount">0</span> élément(s) sélectionné(s)</strong><small>Prêt pour l'installation</small></div>
     <button id="viewSelection">Voir ma sélection <span>→</span></button>
+  </div>
+
+  <div class="onboarding-overlay hidden" id="onboardingOverlay" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="onboarding-dialog">
+      <div class="onboarding-ambient"></div>
+      <header class="onboarding-header"><span class="onboarding-brand"><img src="assets/branding/owlsetup-logo.png" alt=""><strong>OwlSetup</strong></span><button id="skipOnboarding">Ignorer</button></header>
+      <div class="onboarding-progress"><i id="onboardingProgress"></i></div>
+      <div class="onboarding-stage" id="onboardingStage">
+        <article class="onboarding-slide active" data-onboarding-step="0" data-target-view="home">
+          <div class="onboarding-visual welcome"><span>✦</span><i></i><i></i><i></i></div><span class="label">BIENVENUE</span><h2 id="onboardingTitle">Votre PC, simplement.</h2><p>OwlSetup réunit l’installation, les mises à jour, le nettoyage et la maintenance Windows dans une seule application.</p><div class="onboarding-pills"><span>✓ Sources officielles</span><span>✓ Actions confirmées</span><span>✓ Fonctionnement local</span></div>
+        </article>
+        <article class="onboarding-slide" data-onboarding-step="1" data-target-view="catalog">
+          <div class="onboarding-visual catalog"><span>▦</span><b>＋</b><b>✓</b></div><span class="label">INSTALLER</span><h2>Composez votre sélection.</h2><p>Choisissez un profil ou recherchez une application. OwlSetup prépare ensuite une installation groupée et silencieuse via WinGet.</p><div class="onboarding-tip"><span>1</span><p><strong>Cliquez sur les cartes</strong><small>Retrouvez votre liste dans « Ma sélection » avant de confirmer.</small></p></div>
+        </article>
+        <article class="onboarding-slide" data-onboarding-step="2" data-target-view="installed">
+          <div class="onboarding-visual installed"><span>▣</span><b>⚙</b><b>×</b></div><span class="label">GÉRER</span><h2>Retrouvez vos applications.</h2><p>La page « Applications installées » permet de rechercher, réparer ou sélectionner plusieurs logiciels à désinstaller.</p><div class="onboarding-tip"><span>2</span><p><strong>Simulation obligatoire</strong><small>Vous voyez toujours la liste concernée avant une désinstallation.</small></p></div>
+        </article>
+        <article class="onboarding-slide" data-onboarding-step="3" data-target-view="updates">
+          <div class="onboarding-visual maintenance"><span>↥</span><b>◇</b><b>↻</b></div><span class="label">ENTRETENIR</span><h2>Mettez à jour et nettoyez.</h2><p>Recherchez les nouvelles versions, contrôlez Windows Update et récupérez de l’espace sans toucher à vos documents personnels.</p><div class="onboarding-tip"><span>3</span><p><strong>Repères colorés</strong><small>Vert recommandé, orange à vérifier, violet avancé et bleu réversible.</small></p></div>
+        </article>
+        <article class="onboarding-slide" data-onboarding-step="4" data-target-view="security">
+          <div class="onboarding-visual security"><span>♢</span><b>✓</b></div><span class="label">SÉCURITÉ</span><h2>Vous gardez le contrôle.</h2><p>Les outils sensibles affichent une simulation, demandent une confirmation et enregistrent leurs rapports dans le dossier local OwlSetup.</p><div class="onboarding-pills"><span>✓ Point de restauration</span><span>✓ Quarantaine</span><span>✓ Rapports locaux</span></div>
+        </article>
+      </div>
+      <footer class="onboarding-footer"><div class="onboarding-dots" id="onboardingDots" aria-label="Étapes de la prise en main"></div><div><button class="onboarding-secondary" id="previousOnboarding" disabled>← Précédent</button><button class="onboarding-primary" id="nextOnboarding">Commencer <span>→</span></button></div></footer>
+    </div>
   </div>
 
   <div class="install-modal hidden" id="guidedInstallModal" role="dialog" aria-modal="true" aria-labelledby="guidedInstallTitle">

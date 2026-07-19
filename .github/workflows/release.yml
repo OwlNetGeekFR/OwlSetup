@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version à publier (par exemple 3.4.2)"
+        description: "Version à publier (par exemple 3.5.0)"
         required: true
         type: string
 

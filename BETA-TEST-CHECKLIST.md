@@ -7,6 +7,7 @@ Cette liste doit être vérifiée avant de créer un tag et une Release GitHub.
 - Le badge `BÊTA` et le numéro de version sont visibles.
 - La navigation et toutes les fenêtres s'affichent correctement.
 - Le bouton de mise à jour indique que la publication est désactivée.
+- La prise en main apparaît au premier lancement, peut être ignorée et se relance depuis le guide.
 
 ## Installation et désinstallation
 
@@ -34,6 +35,7 @@ Cette liste doit être vérifiée avant de créer un tag et une Release GitHub.
 - Analyser les applications au démarrage et ouvrir la page Windows correspondante.
 - Lancer l'analyse du disque et vérifier qu'aucun fichier n'est supprimé.
 - Sélectionner plusieurs applications installées et vérifier la confirmation de désinstallation groupée sans forcément la valider.
+- Vérifier la recherche, le tri, la réparation et la sélection multiple dans l'onglet Applications installées.
 
 ## Mises à jour
 
