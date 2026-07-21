@@ -79,7 +79,7 @@
       <div class="feature-grid">
         <button class="feature-card install-feature" data-view="catalog">
           <span class="feature-number">01</span><span class="feature-icon">↓</span>
-          <span class="feature-copy"><strong>Installer des logiciels</strong><small>Choisissez parmi le catalogue ou utilisez un profil prêt à l'emploi.</small><em>31 logiciels disponibles <b>→</b></em></span>
+          <span class="feature-copy"><strong>Installer des logiciels</strong><small>Choisissez parmi le catalogue ou utilisez un profil prêt à l'emploi.</small><em><span id="homeCatalogCount">93</span> logiciels disponibles <b>→</b></em></span>
         </button>
         <button class="feature-card update-feature" data-view="updates">
           <span class="feature-number">02</span><span class="feature-icon">↥</span>
@@ -378,16 +378,16 @@
   <div class="install-modal hidden" id="guidedInstallModal" role="dialog" aria-modal="true" aria-labelledby="guidedInstallTitle">
     <div class="install-dialog guided-install-dialog">
       <div class="dialog-glow guided-install-glow"></div>
-      <div class="dialog-header"><span class="dialog-logo guided-install-logo">VM</span><div><span class="label">INSTALLATION GUIDÉE</span><h2 id="guidedInstallTitle">Installer VMware Workstation Pro</h2></div><button class="dialog-close" id="closeGuidedInstall" aria-label="Fermer">×</button></div>
+      <div class="dialog-header"><span class="dialog-logo guided-install-logo" id="guidedInstallLogo">VM</span><div><span class="label" id="guidedInstallLabel">INSTALLATION GUIDÉE</span><h2 id="guidedInstallTitle">Installer VMware Workstation Pro</h2></div><button class="dialog-close" id="closeGuidedInstall" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm">
-        <p>Broadcom ne permet plus le téléchargement automatique par WinGet. Un compte gratuit et l’acceptation des conditions sont nécessaires sur son portail officiel.</p>
-        <ol class="guided-install-steps">
+        <p id="guidedInstallIntro">Broadcom ne permet plus le téléchargement automatique par WinGet. Un compte gratuit et l’acceptation des conditions sont nécessaires sur son portail officiel.</p>
+        <ol class="guided-install-steps" id="guidedInstallSteps">
           <li><b>1</b><span><strong>Créer ou ouvrir votre compte Broadcom</strong><small>Aucun identifiant n’est demandé ni enregistré par OwlSetup.</small></span></li>
           <li><b>2</b><span><strong>Compléter le profil gratuit</strong><small>Broadcom peut demander votre pays et les informations de conformité commerciale.</small></span></li>
           <li><b>3</b><span><strong>Choisir VMware Workstation Pro pour Windows</strong><small>Ouvrez les téléchargements gratuits, sélectionnez la version puis acceptez les conditions.</small></span></li>
           <li><b>4</b><span><strong>Lancer l’installateur téléchargé</strong><small>Terminez l’installation, puis redémarrez OwlSetup pour afficher « Installé ».</small></span></li>
         </ol>
-        <div class="guided-install-note"><span>✓</span><div><strong>VMware Workstation Pro est gratuit</strong><small>Les versions récentes sont gratuites pour un usage personnel, éducatif et commercial. Aucun abonnement payant n’est nécessaire.</small></div></div>
+        <div class="guided-install-note"><span>✓</span><div><strong id="guidedInstallNoteTitle">VMware Workstation Pro est gratuit</strong><small id="guidedInstallNoteText">Les versions récentes sont gratuites pour un usage personnel, éducatif et commercial. Aucun abonnement payant n’est nécessaire.</small></div></div>
         <div class="dialog-actions guided-install-actions"><button class="secondary-dialog-button" id="openVmwareGuide">Lire le guide officiel</button><button class="primary-dialog-button" id="continueVmwareDownload"><span>↗</span> Se connecter et télécharger</button></div>
       </div>
     </div>
@@ -489,6 +489,27 @@
         <div class="progress-track"><i id="repairProgressBar"></i></div>
         <div class="progress-summary" id="repairSummary">Ne fermez pas OwlSetup pendant l'opération.</div>
         <button class="primary-dialog-button hidden" id="finishRepair">Terminer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="install-modal hidden" id="batchUninstallModal" role="dialog" aria-modal="true" aria-labelledby="batchUninstallTitle">
+    <div class="install-dialog uninstall-dialog batch-uninstall-dialog">
+      <div class="dialog-glow batch-uninstall-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo uninstall-logo">−</span><div><span class="label">DÉSINSTALLATION GROUPÉE</span><h2 id="batchUninstallTitle">Vérifier la sélection</h2></div><button class="dialog-close" id="closeBatchUninstallModal" aria-label="Fermer">×</button></div>
+      <div class="dialog-confirm" id="batchUninstallConfirmView">
+        <div class="simulation-badge danger-simulation"><span>⌕</span><div><strong>APERÇU SANS SUPPRESSION</strong><small>Vérifiez la liste avant de lancer l’opération réelle</small></div></div>
+        <p><strong id="batchUninstallCount">0 logiciel</strong> seront désinstallés l’un après l’autre.</p>
+        <div class="batch-uninstall-list" id="batchUninstallList"></div>
+        <div class="dialog-warning danger-dialog-warning"><span>!</span> Les logiciels ouverts peuvent demander à être fermés. Les applications déjà retirées de Windows seront simplement signalées « à vérifier ».</div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelBatchUninstall">Conserver les logiciels</button><button class="danger-dialog-button" id="confirmBatchUninstall"><span>×</span> Désinstaller la sélection</button></div>
+      </div>
+      <div class="dialog-progress hidden" id="batchUninstallProgressView">
+        <div class="progress-status"><span class="pulse-dot danger-pulse"></span><div><strong id="batchUninstallProgressTitle">Préparation...</strong><small id="batchUninstallProgressDetail">Initialisation de WinGet</small></div><b id="batchUninstallProgressPercent">0%</b></div>
+        <div class="progress-track danger-track"><i id="batchUninstallProgressBar"></i></div>
+        <div class="batch-uninstall-current"><span>×</span><div><small>LOGICIEL EN COURS</small><strong id="batchUninstallCurrent">En attente...</strong></div><b id="batchUninstallPosition">—</b></div>
+        <div class="batch-uninstall-result" id="batchUninstallResult">0 réussi · 0 à vérifier</div>
+        <button class="primary-dialog-button hidden" id="finishBatchUninstall">Terminer</button>
       </div>
     </div>
   </div>

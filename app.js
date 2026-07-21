@@ -2,6 +2,13 @@ const apps = [
   { id:"Google.Chrome", name:"Google Chrome", category:"Navigateurs", desc:"Navigateur rapide et sécurisé", icon:"CH", color:"#4285f4", site:"https://www.google.com/chrome/", tags:["essentiel"] },
   { id:"Mozilla.Firefox", name:"Mozilla Firefox", category:"Navigateurs", desc:"Navigateur libre et respectueux", icon:"FF", color:"#ff7139", site:"https://www.mozilla.org/firefox/new/" },
   { id:"Brave.Brave", name:"Brave", category:"Navigateurs", desc:"Navigation privée avec bloqueur intégré", icon:"BR", color:"#fb542b", site:"https://brave.com/download/" },
+  { id:"Vivaldi.Vivaldi", name:"Vivaldi", category:"Navigateurs", desc:"Navigateur personnalisable avec outils intégrés", icon:"VI", color:"#ef3939", site:"https://vivaldi.com/download/", repairMode:"reinstall" },
+  { id:"Opera.Opera", name:"Opera", category:"Navigateurs", desc:"Navigateur moderne avec VPN et outils intégrés", icon:"OP", color:"#e51d5f", site:"https://www.opera.com/download", repairMode:"reinstall" },
+  { id:"Opera.OperaGX", name:"Opera GX", category:"Navigateurs", desc:"Navigateur conçu pour le gaming et le contrôle des ressources", icon:"GX", color:"#c728f2", site:"https://www.opera.com/gx", repairMode:"reinstall", tags:["gaming"] },
+  { id:"LibreWolf.LibreWolf", name:"LibreWolf", category:"Navigateurs", desc:"Version renforcée de Firefox orientée confidentialité", icon:"LW", color:"#546f91", site:"https://librewolf.net/installation/windows/", repairMode:"reinstall" },
+  { id:"Ablaze.Floorp", name:"Floorp", category:"Navigateurs", desc:"Navigateur Firefox personnalisable et respectueux de la vie privée", icon:"FL", color:"#4e7ce2", site:"https://floorp.app/download/", repairMode:"reinstall" },
+  { id:"TorProject.TorBrowser", name:"Tor Browser", category:"Navigateurs", desc:"Navigation privée via le réseau Tor", icon:"TOR", color:"#7d4698", site:"https://www.torproject.org/download/", repairMode:"reinstall" },
+  { id:"Waterfox.Waterfox", name:"Waterfox", category:"Navigateurs", desc:"Navigateur indépendant basé sur Firefox", icon:"WF", color:"#3d8fe7", site:"https://www.waterfox.net/download/", repairMode:"reinstall" },
   { id:"7zip.7zip", name:"7-Zip", category:"Utilitaires", desc:"Compression et extraction de fichiers", icon:"7z", color:"#596477", site:"https://www.7-zip.org/download.html", tags:["essentiel"] },
   { id:"VideoLAN.VLC", name:"VLC media player", category:"Multimédia", desc:"Lecteur audio et vidéo universel", icon:"▶", color:"#f08a24", site:"https://www.videolan.org/vlc/", tags:["essentiel"] },
   { id:"Notepad++.Notepad++", name:"Notepad++", category:"Utilitaires", desc:"Éditeur de texte rapide et léger", icon:"N+", color:"#72a13e", site:"https://notepad-plus-plus.org/downloads/", tags:["essentiel"] },
@@ -72,7 +79,22 @@ apps.push(
   {id:"Overwolf.CurseForge",name:"CurseForge",category:"Gaming",desc:"Gestion des mods de jeux",icon:"CF",color:"#ef6c35",site:"https://www.curseforge.com/download/app",tags:["gaming"],repairMode:"reinstall"},
   {id:"Oracle.VirtualBox",name:"Oracle VirtualBox",category:"Virtualisation",desc:"Machines virtuelles multiplateformes",icon:"VB",color:"#3276a8",site:"https://www.virtualbox.org/wiki/Downloads",repairMode:"reinstall"},
   {id:"VMware.WorkstationPro",name:"VMware Workstation Pro",category:"Virtualisation",desc:"Compte Broadcom gratuit requis · installation guidée",icon:"VM",color:"#e38b35",site:"https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html",manualInstallUrl:"https://support.broadcom.com/group/ecx/productdownloads?subfamily=VMware%20Workstation%20Pro&freeDownloads=true",manualInstall:true,repairMode:"reinstall"},
-  {id:"Microsoft.WSL",name:"Windows Subsystem for Linux",category:"Virtualisation",desc:"Environnement Linux intégré à Windows",icon:"WSL",color:"#5c7894",site:"https://learn.microsoft.com/windows/wsl/install",repairMode:"reinstall"}
+  {id:"Microsoft.WSL",name:"Windows Subsystem for Linux",category:"Virtualisation",desc:"Environnement Linux intégré à Windows",icon:"WSL",color:"#5c7894",site:"https://learn.microsoft.com/windows/wsl/install",repairMode:"reinstall"},
+  {id:"9NT1R1C2HH7J",name:"ChatGPT",category:"Intelligence artificielle",desc:"Application officielle OpenAI · compte en ligne requis",icon:"AI",color:"#10a37f",site:"https://openai.com/chatgpt/desktop/",source:"msstore",repairMode:"reinstall"},
+  {id:"Anthropic.Claude",name:"Claude",category:"Intelligence artificielle",desc:"Assistant IA officiel d’Anthropic · compte en ligne requis",icon:"CL",color:"#d97757",site:"https://claude.ai/download",repairMode:"reinstall"},
+  {id:"Ollama.Ollama",name:"Ollama",category:"Intelligence artificielle",desc:"Exécute des modèles d’IA localement sur votre PC",icon:"OL",color:"#4d5562",site:"https://ollama.com/download/windows",repairMode:"reinstall"},
+  {id:"ElementLabs.LMStudio",name:"LM Studio",category:"Intelligence artificielle",desc:"Télécharge et utilise des modèles d’IA locaux avec une interface graphique",icon:"LM",color:"#6c63ff",site:"https://lmstudio.ai/download",repairMode:"reinstall"},
+  {id:"Jan.Jan",name:"Jan",category:"Intelligence artificielle",desc:"Assistant IA local et open source respectueux de la vie privée",icon:"JN",color:"#4f8cff",site:"https://jan.ai/",repairMode:"reinstall"},
+  {id:"web.GoogleGemini",name:"Google Gemini",category:"Intelligence artificielle",desc:"Assistant IA de Google · service Web",icon:"GE",color:"#4f7df3",site:"https://gemini.google.com/",manualInstallUrl:"https://gemini.google.com/",manualInstall:true,webService:true},
+  {id:"web.MicrosoftCopilot",name:"Microsoft Copilot",category:"Intelligence artificielle",desc:"Assistant IA de Microsoft · service Web",icon:"CO",color:"#27a8a5",site:"https://copilot.microsoft.com/",manualInstallUrl:"https://copilot.microsoft.com/",manualInstall:true,webService:true},
+  {id:"web.Perplexity",name:"Perplexity",category:"Intelligence artificielle",desc:"Moteur de réponse et de recherche assisté par IA · service Web",icon:"PX",color:"#218f8c",site:"https://www.perplexity.ai/",manualInstallUrl:"https://www.perplexity.ai/",manualInstall:true,webService:true},
+  {id:"web.MistralLeChat",name:"Mistral Le Chat",category:"Intelligence artificielle",desc:"Assistant conversationnel de Mistral AI · service Web",icon:"MI",color:"#ff7b22",site:"https://chat.mistral.ai/",manualInstallUrl:"https://chat.mistral.ai/",manualInstall:true,webService:true},
+  {id:"guided.AnythingLLM",name:"AnythingLLM",category:"Intelligence artificielle",desc:"Espace de travail IA local avec documents et agents · installation guidée",icon:"AL",color:"#2f6fed",site:"https://anythingllm.com/desktop",manualInstallUrl:"https://anythingllm.com/desktop",manualInstall:true},
+  {id:"guided.GPT4All",name:"GPT4All",category:"Intelligence artificielle",desc:"Assistant privé utilisant des modèles locaux · installation guidée",icon:"G4",color:"#6e5bd5",site:"https://www.nomic.ai/gpt4all",manualInstallUrl:"https://www.nomic.ai/gpt4all",manualInstall:true},
+  {id:"guided.Pinokio",name:"Pinokio",category:"Intelligence artificielle",desc:"Installe et lance des projets IA locaux · installation guidée",icon:"PI",color:"#e34b51",site:"https://pinokio.computer/",manualInstallUrl:"https://pinokio.computer/",manualInstall:true},
+  {id:"guided.NVIDIAChatRTX",name:"NVIDIA ChatRTX",category:"Intelligence artificielle",desc:"Assistant local optimisé pour les cartes NVIDIA RTX · compatibilité à vérifier",icon:"NV",color:"#76b900",site:"https://www.nvidia.com/en-us/ai-on-rtx/chatrtx/",manualInstallUrl:"https://www.nvidia.com/en-us/ai-on-rtx/chatrtx/",manualInstall:true},
+  {id:"guided.StabilityMatrix",name:"Stability Matrix",category:"Intelligence artificielle",desc:"Gestionnaire d’outils de génération d’images locale · installation guidée",icon:"SM",color:"#8547d6",site:"https://lykos.ai/",manualInstallUrl:"https://github.com/LykosAI/StabilityMatrix/releases/latest",manualInstall:true},
+  {id:"Comfy.ComfyUI-Desktop",name:"ComfyUI Desktop",category:"Intelligence artificielle",desc:"Création d’images par IA avec workflows visuels",icon:"CU",color:"#2672d9",site:"https://www.comfy.org/download",repairMode:"reinstall"}
 );
 
 if (Array.isArray(window.PC_SETUP_CATALOG) && window.PC_SETUP_CATALOG.length) {
@@ -81,6 +103,9 @@ if (Array.isArray(window.PC_SETUP_CATALOG) && window.PC_SETUP_CATALOG.length) {
 
 const appLogos = {
   "Google.Chrome":"googlechrome.svg", "Mozilla.Firefox":"firefox.svg", "Brave.Brave":"brave.svg",
+  "Vivaldi.Vivaldi":"vivaldi.svg", "Opera.Opera":"opera.svg", "Opera.OperaGX":"operagx.svg",
+  "LibreWolf.LibreWolf":"librewolf.svg", "Ablaze.Floorp":"floorp.svg",
+  "TorProject.TorBrowser":"torbrowser.svg", "Waterfox.Waterfox":"waterfox.svg",
   "7zip.7zip":"sevenzip.svg", "VideoLAN.VLC":"vlc.svg", "Notepad++.Notepad++":"notepadpp.svg",
   "SumatraPDF.SumatraPDF":"sumatrapdf.ico", "TheDocumentFoundation.LibreOffice":"libreoffice.svg",
   "voidtools.Everything":"everything.ico", "Microsoft.PowerToys":"powertoys.png", "Discord.Discord":"discord.svg",
@@ -109,17 +134,25 @@ const appLogos = {
   "Blizzard.BattleNet":"battlenet.svg", "Playnite.Playnite":"playnite.svg",
   "HeroicGamesLauncher.HeroicGamesLauncher":"heroic.svg", "Amazon.Games":"amazongames.png",
   "Overwolf.CurseForge":"curseforge.svg", "Oracle.VirtualBox":"virtualbox.svg",
-  "VMware.WorkstationPro":"vmware.svg", "Microsoft.WSL":"wsl.svg"
+  "VMware.WorkstationPro":"vmware.svg", "Microsoft.WSL":"wsl.svg",
+  "9NT1R1C2HH7J":"openai.svg", "Anthropic.Claude":"claude.svg",
+  "Ollama.Ollama":"ollama.svg", "ElementLabs.LMStudio":"lmstudio.svg", "Jan.Jan":"jan.svg",
+  "web.GoogleGemini":"gemini.svg", "web.MicrosoftCopilot":"copilot.svg", "web.Perplexity":"perplexity.svg",
+  "web.MistralLeChat":"mistral.svg", "guided.AnythingLLM":"anythingllm.svg", "guided.GPT4All":"gpt4all.svg",
+  "guided.Pinokio":"pinokio.svg", "guided.NVIDIAChatRTX":"nvidia.svg",
+  "guided.StabilityMatrix":"stabilitymatrix.svg", "Comfy.ComfyUI-Desktop":"comfyui.svg"
 };
 apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${appLogos[app.id]}` : ""));
 
 const categories = ["Tout", "Installés", ...new Set(apps.map(app => app.category))];
+document.querySelector("#homeCatalogCount").textContent = apps.length;
 let selected = new Set(JSON.parse(localStorage.getItem("pcsetup-selection") || "[]"));
 apps.filter(app => app.manualInstall).forEach(app => selected.delete(app.id));
 let installedApps = new Set();
 let managedInstalled = new Set();
 let pendingUninstallId = null;
 let pendingRepairId = null;
+let pendingBatchUninstall = [];
 let pendingCleanupChoices = [];
 let availableUpdates = [];
 let selectedUpdates = new Set();
@@ -160,7 +193,7 @@ function renderApps() {
   $("#appGrid").innerHTML = visible.map(app => `
     <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""}" data-app="${app.id}" tabindex="0" aria-label="${app.name}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
       ${icon(app)}<span class="app-copy"><strong>${app.name}</strong><small>${app.desc}</small><span class="app-footer"><em>${app.category}</em><a class="official-link" href="${app.site}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${app.name}" onclick="event.stopPropagation()">Site officiel ↗</a></span></span>
-      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${app.id}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">Installation guidée</span><span class="add-icon">↗</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
+      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${app.id}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">${app.webService ? "Service Web" : "Installation guidée"}</span><span class="add-icon">↗</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
     </article>`).join("");
   $("#emptyState").classList.toggle("hidden", visible.length !== 0);
   $("#installedManager").classList.toggle("hidden", installedApps.size === 0);
@@ -269,7 +302,25 @@ function toggleApp(id) {
 let guidedInstallApp = null;
 function openGuidedInstall(app) {
   guidedInstallApp = app;
-  $("#guidedInstallTitle").textContent = `Installer ${app.name}`;
+  const isVmware = app.id === "VMware.WorkstationPro";
+  const isWeb = app.webService === true;
+  $("#guidedInstallLogo").textContent = app.icon;
+  $("#guidedInstallLabel").textContent = isWeb ? "SERVICE WEB" : "INSTALLATION GUIDÉE";
+  $("#guidedInstallTitle").textContent = isWeb ? `Ouvrir ${app.name}` : `Installer ${app.name}`;
+  $("#guidedInstallIntro").textContent = isVmware
+    ? "Broadcom ne permet plus le téléchargement automatique par WinGet. Un compte gratuit et l’acceptation des conditions sont nécessaires sur son portail officiel."
+    : isWeb
+      ? `${app.name} s’utilise dans votre navigateur. OwlSetup ouvrira uniquement le site officiel et ne transmettra aucune donnée.`
+      : `${app.name} utilise son propre installateur. OwlSetup vous conduit vers la source officielle afin que vous puissiez vérifier les options avant l’installation.`;
+  $("#guidedInstallSteps").innerHTML = isVmware
+    ? `<li><b>1</b><span><strong>Créer ou ouvrir votre compte Broadcom</strong><small>Aucun identifiant n’est demandé ni enregistré par OwlSetup.</small></span></li><li><b>2</b><span><strong>Compléter le profil gratuit</strong><small>Broadcom peut demander votre pays et les informations de conformité commerciale.</small></span></li><li><b>3</b><span><strong>Choisir VMware Workstation Pro pour Windows</strong><small>Sélectionnez la version puis acceptez les conditions.</small></span></li><li><b>4</b><span><strong>Lancer l’installateur téléchargé</strong><small>Redémarrez ensuite OwlSetup pour afficher « Installé ».</small></span></li>`
+    : isWeb
+      ? `<li><b>1</b><span><strong>Ouvrir le service officiel</strong><small>L’adresse du site est vérifiée dans le catalogue OwlSetup.</small></span></li><li><b>2</b><span><strong>Se connecter si nécessaire</strong><small>Vos identifiants restent dans votre navigateur et ne sont jamais accessibles à OwlSetup.</small></span></li>`
+      : `<li><b>1</b><span><strong>Ouvrir la page officielle</strong><small>Vérifiez la compatibilité et la configuration requise.</small></span></li><li><b>2</b><span><strong>Télécharger la version Windows</strong><small>Choisissez uniquement l’installateur proposé par l’éditeur.</small></span></li><li><b>3</b><span><strong>Contrôler les options</strong><small>Lisez chaque écran avant de valider l’installation.</small></span></li><li><b>4</b><span><strong>Relancer OwlSetup</strong><small>L’application installée pourra ensuite être détectée si elle est enregistrée dans Windows.</small></span></li>`;
+  $("#guidedInstallNoteTitle").textContent = isWeb ? "Aucune installation nécessaire" : isVmware ? "VMware Workstation Pro est gratuit" : "Téléchargement depuis l’éditeur";
+  $("#guidedInstallNoteText").textContent = isWeb ? "Ce bouton ouvre un nouvel onglet vers le service officiel." : isVmware ? "Les versions récentes sont gratuites. Aucun abonnement payant n’est nécessaire." : "OwlSetup ne télécharge pas silencieusement ce logiciel et vous laisse contrôler l’installateur.";
+  $("#openVmwareGuide").textContent = isWeb ? "Voir le site officiel" : "Lire les informations officielles";
+  $("#continueVmwareDownload").innerHTML = `<span>↗</span> ${isWeb ? "Ouvrir le service" : "Télécharger"}`;
   $("#guidedInstallModal").classList.remove("hidden");
 }
 function closeGuidedInstall() {
@@ -412,6 +463,42 @@ function requestBatchUninstall() {
   window.chrome.webview.postMessage({action:"simulate-batch-uninstall",payload:{packages:[...managedInstalled]}});
 }
 
+function openBatchUninstallModal(packages) {
+  pendingBatchUninstall = [...(packages || [])];
+  const selectedApps = pendingBatchUninstall.map(id => apps.find(app => app.id === id) || {id,name:id,icon:"APP",color:"#536174",logo:""});
+  $("#batchUninstallCount").textContent = `${selectedApps.length} logiciel${selectedApps.length > 1 ? "s" : ""}`;
+  $("#batchUninstallList").innerHTML = selectedApps.map(app => `<article data-batch-package="${app.id}">${icon(app)}<span><strong>${app.name}</strong><small>${app.id}</small></span><b class="batch-item-state">Prêt</b></article>`).join("");
+  $("#batchUninstallConfirmView").classList.remove("hidden");
+  $("#batchUninstallProgressView").classList.add("hidden");
+  $("#confirmBatchUninstall").disabled = selectedApps.length === 0;
+  $("#batchUninstallModal").dataset.running = "false";
+  $("#batchUninstallModal").dataset.success = "0";
+  $("#batchUninstallModal").dataset.failed = "0";
+  $("#batchUninstallModal").classList.remove("hidden");
+}
+
+function closeBatchUninstallModal() {
+  if ($("#batchUninstallModal").dataset.running === "true") return;
+  $("#batchUninstallModal").classList.add("hidden");
+  pendingBatchUninstall = [];
+}
+
+function beginBatchUninstall() {
+  if (!pendingBatchUninstall.length || !window.chrome?.webview) return;
+  $("#batchUninstallConfirmView").classList.add("hidden");
+  $("#batchUninstallProgressView").classList.remove("hidden");
+  $("#batchUninstallModal").dataset.running = "true";
+  $("#batchUninstallProgressBar").style.width = "4%";
+  $("#batchUninstallProgressPercent").textContent = "4%";
+  $("#batchUninstallProgressTitle").textContent = "Préparation de la désinstallation";
+  $("#batchUninstallProgressDetail").textContent = `${pendingBatchUninstall.length} logiciel(s) dans la file`;
+  $("#batchUninstallCurrent").textContent = "Initialisation de WinGet...";
+  $("#batchUninstallPosition").textContent = `0/${pendingBatchUninstall.length}`;
+  $("#batchUninstallResult").textContent = "0 réussi · 0 à vérifier";
+  $("#finishBatchUninstall").classList.add("hidden");
+  window.chrome.webview.postMessage({action:"batch-uninstall",payload:{packages:pendingBatchUninstall}});
+}
+
 function appForUpdate(id) { return apps.find(app => app.id.toLocaleLowerCase() === String(id).toLocaleLowerCase()); }
 
 function renderAvailableUpdates() {
@@ -483,8 +570,8 @@ function confirmQuarantineAction(action, batch, item) {
 
 function generateScript() {
   const picked = apps.filter(app => selected.has(app.id));
-  const ids = picked.map(app => `  "${app.id}"`).join(",\r\n");
-  const script = `# OwlSetup - Installateur Windows\r\n# Généré le ${new Date().toLocaleString("fr-FR")}\r\n# Vérifiez cette liste avant exécution.\r\n\r\n$ErrorActionPreference = "Continue"\r\n$Host.UI.RawUI.WindowTitle = "OwlSetup - Installation"\r\n\r\nif (-not (Get-Command winget -ErrorAction SilentlyContinue)) {\r\n  Write-Host "winget est introuvable. Installez 'App Installer' depuis le Microsoft Store." -ForegroundColor Red\r\n  Read-Host "Appuyez sur Entrée pour quitter"\r\n  exit 1\r\n}\r\n\r\n$packages = @(\r\n${ids}\r\n)\r\n\r\nWrite-Host "OWLSETUP" -ForegroundColor Cyan\r\nWrite-Host "$($packages.Count) élément(s) à installer."\r\n\r\nforeach ($package in $packages) {\r\n  Write-Host "\\nInstallation de $package..." -ForegroundColor Yellow\r\n  winget install --id $package --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity\r\n  if ($LASTEXITCODE -eq 0) { Write-Host "Terminé : $package" -ForegroundColor Green }\r\n  else { Write-Host "À vérifier : $package (code $LASTEXITCODE)" -ForegroundColor DarkYellow }\r\n}\r\n\r\nWrite-Host "\\nInstallation terminée. Un redémarrage peut être nécessaire." -ForegroundColor Cyan\r\nRead-Host "Appuyez sur Entrée pour fermer"\r\n`;
+  const ids = picked.map(app => `  @{ Id = "${app.id}"; Source = "${app.source || "winget"}" }`).join(",\r\n");
+  const script = `# OwlSetup - Installateur Windows\r\n# Généré le ${new Date().toLocaleString("fr-FR")}\r\n# Vérifiez cette liste avant exécution.\r\n\r\n$ErrorActionPreference = "Continue"\r\n$Host.UI.RawUI.WindowTitle = "OwlSetup - Installation"\r\n\r\nif (-not (Get-Command winget -ErrorAction SilentlyContinue)) {\r\n  Write-Host "winget est introuvable. Installez 'App Installer' depuis le Microsoft Store." -ForegroundColor Red\r\n  Read-Host "Appuyez sur Entrée pour quitter"\r\n  exit 1\r\n}\r\n\r\n$packages = @(\r\n${ids}\r\n)\r\n\r\nWrite-Host "OWLSETUP" -ForegroundColor Cyan\r\nWrite-Host "$($packages.Count) élément(s) à installer."\r\n\r\nforeach ($package in $packages) {\r\n  Write-Host "\\nInstallation de $($package.Id)..." -ForegroundColor Yellow\r\n  winget install --id $package.Id --source $package.Source --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity\r\n  if ($LASTEXITCODE -eq 0) { Write-Host "Terminé : $($package.Id)" -ForegroundColor Green }\r\n  else { Write-Host "À vérifier : $($package.Id) (code $LASTEXITCODE)" -ForegroundColor DarkYellow }\r\n}\r\n\r\nWrite-Host "\\nInstallation terminée. Un redémarrage peut être nécessaire." -ForegroundColor Cyan\r\nRead-Host "Appuyez sur Entrée pour fermer"\r\n`;
   const blob = new Blob(["\ufeff", script], {type:"text/plain;charset=utf-8"});
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -1039,9 +1126,7 @@ function handleInstallMessage(message) {
     return;
   }
   if (message.type === "batch-uninstall-simulation") {
-    const names=(message.packages||[]).map(id=>apps.find(app=>app.id===id)?.name||id);
-    const preview=`MODE SIMULATION — aucun logiciel n'a encore été supprimé.\n\n${names.map(name=>`• ${name}`).join("\n")}\n\nConfirmer la désinstallation de ces ${names.length} logiciel(s) ?`;
-    if(confirm(preview))window.chrome?.webview?.postMessage({action:"batch-uninstall",payload:{packages:message.packages}});
+    openBatchUninstallModal(message.packages || []);
     return;
   }
   if (message.type === "winget-diagnostic") {
@@ -1091,18 +1176,40 @@ function handleInstallMessage(message) {
     $("#diskList").innerHTML = `<p class="tool-empty">${message.message}</p>`; return;
   }
   if (message.type === "batch-uninstall-start") {
-    notify("Désinstallation groupée", `${message.total} logiciel(s) dans la file.`); return;
+    $("#batchUninstallProgressTitle").textContent="Désinstallation en cours";
+    $("#batchUninstallProgressDetail").textContent=`${message.total} logiciel(s) dans la file`;
+    return;
   }
   if (message.type === "batch-uninstall-progress") {
-    notify("Désinstallation en cours", `${message.index}/${message.total} · ${message.id}`); return;
+    const percent=Math.max(5,Math.round(((message.index-1)/Math.max(message.total,1))*100));
+    const app=apps.find(item=>item.id===message.id);
+    $("#batchUninstallProgressBar").style.width=`${percent}%`;
+    $("#batchUninstallProgressPercent").textContent=`${percent}%`;
+    $("#batchUninstallCurrent").textContent=app?.name||message.id;
+    $("#batchUninstallPosition").textContent=`${message.index}/${message.total}`;
+    return;
   }
   if (message.type === "batch-uninstall-item") {
+    const modal=$("#batchUninstallModal");
+    const key=message.success?"success":"failed";
+    modal.dataset[key]=String(Number(modal.dataset[key]||0)+1);
+    const row=[...document.querySelectorAll("[data-batch-package]")].find(item=>item.dataset.batchPackage===message.id);
+    if(row){const state=row.querySelector(".batch-item-state");state.textContent=message.success?"Désinstallé":"À vérifier";state.className=`batch-item-state ${message.success?"success":"failed"}`;}
     if(message.success){installedApps.delete(message.id);managedInstalled.delete(message.id);renderApps();}
-    else notify("Désinstallation à vérifier", message.errorMessage || `WinGet a renvoyé le code ${message.code}.`);
+    $("#batchUninstallResult").textContent=`${modal.dataset.success} réussi · ${modal.dataset.failed} à vérifier`;
     return;
   }
   if (message.type === "batch-uninstall-complete") {
-    notify("Désinstallation terminée", `${message.success} réussi(s), ${message.failed} à vérifier. Rapport : ${message.logName}`); requestHistory(); return;
+    $("#batchUninstallModal").dataset.running="false";
+    $("#batchUninstallProgressBar").style.width="100%";
+    $("#batchUninstallProgressPercent").textContent="100%";
+    $("#batchUninstallProgressTitle").textContent=message.failed?"Désinstallation terminée avec vérifications":"Désinstallation terminée";
+    $("#batchUninstallProgressDetail").textContent=`${message.success} réussi(s) · ${message.failed} à vérifier`;
+    $("#batchUninstallCurrent").textContent=`Rapport : ${message.logName}`;
+    $("#batchUninstallResult").textContent=`${message.success} réussi · ${message.failed} à vérifier`;
+    $("#finishBatchUninstall").classList.remove("hidden");
+    requestHistory(); requestInstalledScan();
+    return;
   }
   if (message.type === "app-info") {
     currentBuildVersion = message.version || "inconnue";
@@ -1437,6 +1544,10 @@ $("#loadProfile").addEventListener("click", loadProfile);
 $("#batchUninstallBtn").addEventListener("click", () => {
   requestBatchUninstall();
 });
+$("#cancelBatchUninstall").addEventListener("click", closeBatchUninstallModal);
+$("#closeBatchUninstallModal").addEventListener("click", closeBatchUninstallModal);
+$("#finishBatchUninstall").addEventListener("click", closeBatchUninstallModal);
+$("#confirmBatchUninstall").addEventListener("click", beginBatchUninstall);
 
 document.addEventListener("keydown", event => {
   const card = event.target.closest?.("[data-app],[data-installed-app]");

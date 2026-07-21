@@ -2,7 +2,28 @@
 
 Cette liste doit être vérifiée avant de créer un tag et une Release GitHub.
 
+## Applications d’intelligence artificielle
+
+- [ ] La catégorie « Intelligence artificielle » apparaît dans le catalogue.
+- [ ] ChatGPT utilise la source Microsoft Store et s’installe correctement.
+- [ ] Claude s’installe, est détecté puis peut être désinstallé.
+- [ ] Ollama s’installe, est détecté puis peut être désinstallé.
+- [ ] LM Studio s’installe, est détecté puis peut être désinstallé.
+- [ ] Jan s’installe, est détecté puis peut être désinstallé.
+- [ ] Gemini, Copilot, Perplexity et Mistral affichent « Service Web » et ouvrent uniquement leur site officiel.
+- [ ] AnythingLLM, GPT4All, Pinokio, ChatRTX et Stability Matrix affichent un guide générique adapté.
+- [ ] ComfyUI Desktop s’installe avec l’identifiant `Comfy.ComfyUI-Desktop`.
+- [ ] La fenêtre guidée VMware conserve ses instructions spécifiques.
+- [ ] Sur le PC de test, lancer `tests\Test-AiCatalog.ps1 -Mode Verify` pour contrôler les identifiants sans installation.
+- [ ] Sur un PC jetable uniquement, lancer `tests\Test-AiCatalog.ps1 -Mode Lifecycle -IUnderstandThisInstallsSoftware` ; les applications déjà présentes doivent être ignorées.
+- [ ] Le script PowerShell généré utilise la bonne source pour chaque application.
+
 ## Interface
+
+- [ ] Les 10 navigateurs apparaissent avec leur logo : Chrome, Firefox, Brave, Vivaldi, Opera, Opera GX, LibreWolf, Floorp, Tor Browser et Waterfox.
+- [ ] Microsoft Edge n’est pas proposé à la désinstallation.
+- [ ] Sur le PC de test, lancer `tests\Test-BrowserCatalog.ps1 -Mode Verify` pour contrôler les identifiants sans installation.
+- [ ] Sur un PC jetable uniquement, lancer `tests\Test-BrowserCatalog.ps1 -Mode Lifecycle -IUnderstandThisInstallsSoftware`.
 
 - Le badge `BÊTA` et le numéro de version sont visibles.
 - La navigation et toutes les fenêtres s'affichent correctement.
