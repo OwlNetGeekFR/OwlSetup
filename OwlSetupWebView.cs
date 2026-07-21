@@ -210,7 +210,7 @@ internal sealed class WebAppForm : Form
                     SendToWeb(new { type="install-progress", index=i+1, total=packages.Length, id=id });
                     report.AppendLine(); report.AppendLine("===== "+id+" =====");
                     var preflight=new StringBuilder();
-                    int showCode=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact --accept-source-agreements --disable-interactivity",preflight);
+                    int showCode=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",preflight);
                     report.AppendLine("Contrôle du manifeste et de la source : "+(showCode==0?"OK":"ÉCHEC"));
                     report.Append(preflight.ToString());
                     SendToWeb(new { type="install-security", index=i+1, total=packages.Length, id=id, success=showCode==0 });
@@ -255,7 +255,7 @@ internal sealed class WebAppForm : Form
     int RunWinget(string packageId, StringBuilder report)
     {
         string scope=String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase)?" --scope machine":String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)?" --scope user":"";
-        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+scope+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+scope+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
         if(code!=0 && (String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase) || String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)))
         {
             report.AppendLine();
@@ -263,6 +263,11 @@ internal sealed class WebAppForm : Form
             code=InstallSignedPublisherFallback(packageId,report);
         }
         return code;
+    }
+
+    string WingetSourceArgument(string packageId)
+    {
+        return String.Equals(packageId,"9NT1R1C2HH7J",StringComparison.OrdinalIgnoreCase)?" --source msstore":" --source winget";
     }
 
     bool EnsurePortableShortcut(string packageId,StringBuilder report)
@@ -1005,7 +1010,7 @@ internal sealed class WebAppForm : Form
                     report.AppendLine();
                     report.AppendLine("La réparation native n'est pas disponible. Tentative de réinstallation réparatrice sans désinstallation...");
                     SendToWeb(new { type="repair-fallback", id=packageId, nativeCode=nativeCode });
-                    code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+                    code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+" --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
                 }
                 if(IsManagedPortable(packageId) && EnsurePortableShortcut(packageId,report))code=0;
                 success=code==0;
