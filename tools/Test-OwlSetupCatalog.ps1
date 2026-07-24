@@ -79,12 +79,18 @@ foreach ($app in $catalog) {
     Write-Host ("[{0}/{1}] {2}" -f ($results.Count + 1), $catalog.Count, $app.Name) -ForegroundColor Cyan
     $status = "Catalogue valide"
     $detail = ""
-    $show = Invoke-WinGetCommand @("show", "--id", $app.Id, "--exact", "--accept-source-agreements", "--disable-interactivity")
-    Set-Content -LiteralPath (Join-Path $reportRoot ($app.Id + ".log")) -Value ("SHOW`r`n" + $show.Output) -Encoding UTF8
-    if ($show.Code -ne 0) {
+    if ($app.Manual) {
+        $status = "Installation guidee"
+        $detail = "Aucun paquet WinGet requis"
+        Set-Content -LiteralPath (Join-Path $reportRoot ($app.Id + ".log")) -Value "CONTROLE`r`nInstallation manuelle ou service Web : aucun appel WinGet." -Encoding UTF8
+    } else {
+        $show = Invoke-WinGetCommand @("show", "--id", $app.Id, "--exact", "--accept-source-agreements", "--disable-interactivity")
+        Set-Content -LiteralPath (Join-Path $reportRoot ($app.Id + ".log")) -Value ("SHOW`r`n" + $show.Output) -Encoding UTF8
+    }
+    if (-not $app.Manual -and $show.Code -ne 0) {
         $status = "Identifiant invalide"
         $detail = "WinGet show : $($show.Code)"
-    } elseif ($InstallAndUninstall) {
+    } elseif (-not $app.Manual -and $InstallAndUninstall) {
         if ($app.Protected) { $status = "Ignore - protege"; $detail = "Jamais desinstalle automatiquement" }
         elseif ($app.Manual) { $status = "Ignore - manuel"; $detail = "Installation guidee" }
         elseif (-not $IncludeHighRisk -and $highRiskCategories -contains $app.Category) { $status = "Ignore - risque eleve"; $detail = "Utilisez -IncludeHighRisk uniquement dans une VM avec instantane" }

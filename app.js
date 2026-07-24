@@ -60,14 +60,14 @@ apps.push(
   {id:"Nextcloud.NextcloudDesktop",name:"Nextcloud",category:"Communication",desc:"Synchronisation avec un cloud personnel",icon:"NC",color:"#0082c9",site:"https://nextcloud.com/install/#install-clients",repairMode:"reinstall"},
   {id:"Tailscale.Tailscale",name:"Tailscale",category:"Sécurité",desc:"Réseau privé simple basé sur WireGuard",icon:"TL",color:"#626b78",site:"https://tailscale.com/download/windows",repairMode:"reinstall"},
   {id:"WireGuard.WireGuard",name:"WireGuard",category:"Sécurité",desc:"Client VPN moderne et léger",icon:"WG",color:"#a43b42",site:"https://www.wireguard.com/install/",repairMode:"reinstall"},
-  {id:"RustDesk.RustDesk",name:"RustDesk",category:"Communication",desc:"Contrôle à distance libre",icon:"RD",color:"#e34a50",site:"https://rustdesk.com/",repairMode:"reinstall"},
+  {id:"guided.RustDesk",name:"RustDesk",category:"Communication",desc:"Contrôle à distance libre · installation guidée",icon:"RD",color:"#e34a50",site:"https://rustdesk.com/",manualInstallUrl:"https://github.com/rustdesk/rustdesk/releases/latest",manualInstall:true,repairMode:"reinstall"},
   {id:"TeamViewer.TeamViewer",name:"TeamViewer",category:"Communication",desc:"Assistance et contrôle à distance",icon:"TV",color:"#1677d2",site:"https://www.teamviewer.com/download/windows/",repairMode:"reinstall"},
   {id:"GitHub.GitHubDesktop",name:"GitHub Desktop",category:"Développement",desc:"Client graphique officiel pour GitHub",icon:"GH",color:"#6d5ac5",site:"https://desktop.github.com/download/",tags:["dev"],repairMode:"reinstall"},
-  {id:"dbeaver.dbeaver",name:"DBeaver Community",category:"Développement",desc:"Gestion universelle de bases de données",icon:"DB",color:"#70533e",site:"https://dbeaver.io/download/",tags:["dev"],repairMode:"reinstall"},
+  {id:"DBeaver.DBeaver.Community",name:"DBeaver Community",category:"Développement",desc:"Gestion universelle de bases de données",icon:"DB",color:"#70533e",site:"https://dbeaver.io/download/",tags:["dev"],repairMode:"reinstall"},
   {id:"JetBrains.Toolbox",name:"JetBrains Toolbox",category:"Développement",desc:"Gestionnaire des outils JetBrains",icon:"JB",color:"#e34d80",site:"https://www.jetbrains.com/toolbox-app/",tags:["dev"],repairMode:"reinstall"},
   {id:"WinSCP.WinSCP",name:"WinSCP",category:"Développement",desc:"Transfert sécurisé de fichiers SFTP",icon:"WS",color:"#61a841",site:"https://winscp.net/eng/download.php",tags:["dev"],repairMode:"reinstall"},
   {id:"PuTTY.PuTTY",name:"PuTTY",category:"Développement",desc:"Client SSH et terminal distant",icon:"PT",color:"#4d8bc3",site:"https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html",tags:["dev"],repairMode:"reinstall"},
-  {id:"FileZilla.Client",name:"FileZilla Client",category:"Internet",desc:"Transfert de fichiers FTP et SFTP",icon:"FZ",color:"#b93434",site:"https://filezilla-project.org/download.php",repairMode:"reinstall"},
+  {id:"guided.FileZillaClient",name:"FileZilla Client",category:"Internet",desc:"Transfert de fichiers FTP et SFTP · installation guidée",icon:"FZ",color:"#b93434",site:"https://filezilla-project.org/download.php",manualInstallUrl:"https://filezilla-project.org/download.php?type=client",manualInstall:true,repairMode:"reinstall"},
   {id:"EclipseAdoptium.Temurin.21.JDK",name:"Java Temurin 21 JDK",category:"Composants",desc:"Environnement Java libre et maintenu",icon:"JV",color:"#e07235",site:"https://adoptium.net/temurin/releases/",tags:["dev"],repairMode:"reinstall"},
   {id:"GoLang.Go",name:"Go",category:"Développement",desc:"Langage Go et ses outils",icon:"GO",color:"#18a8c5",site:"https://go.dev/dl/",tags:["dev"],repairMode:"reinstall"},
   {id:"Rustlang.Rustup",name:"Rustup",category:"Développement",desc:"Installation et gestion du langage Rust",icon:"RS",color:"#b35f38",site:"https://rustup.rs/",tags:["dev"],repairMode:"reinstall"},
@@ -126,10 +126,10 @@ const appLogos = {
   "BlenderFoundation.Blender":"blender.svg", "calibre.calibre":"calibre.png",
   "Mozilla.Thunderbird":"thunderbird.svg", "Nextcloud.NextcloudDesktop":"nextcloud.svg",
   "Tailscale.Tailscale":"tailscale.svg", "WireGuard.WireGuard":"wireguard.svg",
-  "RustDesk.RustDesk":"rustdesk.svg", "TeamViewer.TeamViewer":"teamviewer.svg",
-  "GitHub.GitHubDesktop":"githubdesktop.svg", "dbeaver.dbeaver":"dbeaver.svg",
+  "guided.RustDesk":"rustdesk.svg", "TeamViewer.TeamViewer":"teamviewer.svg",
+  "GitHub.GitHubDesktop":"githubdesktop.svg", "DBeaver.DBeaver.Community":"dbeaver.svg",
   "JetBrains.Toolbox":"jetbrains.svg", "WinSCP.WinSCP":"winscp.png", "PuTTY.PuTTY":"putty.svg",
-  "FileZilla.Client":"filezilla.svg", "EclipseAdoptium.Temurin.21.JDK":"temurin.svg",
+  "guided.FileZillaClient":"filezilla.svg", "EclipseAdoptium.Temurin.21.JDK":"temurin.svg",
   "GoLang.Go":"golang.svg", "Rustlang.Rustup":"rustup.svg", "ElectronicArts.EADesktop":"ea.svg",
   "Blizzard.BattleNet":"battlenet.svg", "Playnite.Playnite":"playnite.svg",
   "HeroicGamesLauncher.HeroicGamesLauncher":"heroic.svg", "Amazon.Games":"amazongames.png",
@@ -144,16 +144,50 @@ const appLogos = {
 };
 apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${appLogos[app.id]}` : ""));
 
+const customPackagesStorageKey = "owlsetup-custom-packages-v1";
+const isValidPackageId = id => typeof id === "string" && /^[A-Za-z0-9.+_-]+$/.test(id);
+
+function addCustomAppDefinition(id, persist = true) {
+  if (!isValidPackageId(id)) return false;
+  if (!apps.some(app => app.id.toLocaleLowerCase() === id.toLocaleLowerCase())) {
+    apps.push({id,name:id,category:"Personnalisé",desc:"Paquet ajouté manuellement par identifiant WinGet",icon:"+",color:"#4677c9",site:"https://learn.microsoft.com/windows/package-manager/winget/search",repairMode:"reinstall",custom:true});
+  }
+  if (persist) {
+    const ids = apps.filter(app => app.custom && isValidPackageId(app.id)).map(app => app.id);
+    localStorage.setItem(customPackagesStorageKey, JSON.stringify([...new Set(ids)]));
+  }
+  return true;
+}
+
+try {
+  const storedCustomPackages = JSON.parse(localStorage.getItem(customPackagesStorageKey) || "[]");
+  if (Array.isArray(storedCustomPackages)) storedCustomPackages.filter(isValidPackageId).slice(0, 100).forEach(id => addCustomAppDefinition(id, false));
+} catch {
+  localStorage.removeItem(customPackagesStorageKey);
+}
+
 const categories = ["Tout", "Installés", ...new Set(apps.map(app => app.category))];
 document.querySelector("#homeCatalogCount").textContent = apps.length;
-let selected = new Set(JSON.parse(localStorage.getItem("pcsetup-selection") || "[]"));
+let selected;
+try {
+  const storedSelection = JSON.parse(localStorage.getItem("pcsetup-selection") || "[]");
+  selected = new Set((Array.isArray(storedSelection) ? storedSelection : []).filter(id => typeof id === "string" && /^[A-Za-z0-9.+_-]+$/.test(id)));
+} catch {
+  selected = new Set();
+  localStorage.removeItem("pcsetup-selection");
+}
 apps.filter(app => app.manualInstall).forEach(app => selected.delete(app.id));
 let installedApps = new Set();
 let managedInstalled = new Set();
 let pendingUninstallId = null;
+let pendingUninstallResidueToken = "";
 let pendingRepairId = null;
 let pendingBatchUninstall = [];
+let pendingBatchResidueToken = "";
 let pendingCleanupChoices = [];
+let lastFailedInstallPackages = [];
+let lastInstallReportName = "";
+let installPreflightRequestId = 0;
 let availableUpdates = [];
 let selectedUpdates = new Set();
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
@@ -168,11 +202,27 @@ let installedSortMode = "name";
 const onboardingStorageKey = "owlsetup-onboarding-completed-v1";
 let onboardingStep = 0;
 let onboardingPreviousFocus = null;
+const notificationStorageKey = "owlsetup-notifications-v2";
+let notificationFeed = [];
+let currentInstallRun = "";
+let currentUninstallRun = "";
+let activeUninstallMode = "";
+let currentReportName = "";
 
 const $ = selector => document.querySelector(selector);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
 
-const icon = app => `<span class="app-icon" style="--app:${app.color}">${app.logo ? `<img src="${app.logo}" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="app-icon-fallback" hidden>${app.icon}</span>` : `<span class="app-icon-fallback">${app.icon}</span>`}</span>`;
+const icon = app => `<span class="app-icon" style="--app:${escapeHtml(app.color)}">${app.logo ? `<img src="${escapeHtml(app.logo)}" alt="" loading="lazy" data-image-fallback="${escapeHtml(app.icon)}"><span class="app-icon-fallback" hidden>${escapeHtml(app.icon)}</span>` : `<span class="app-icon-fallback">${escapeHtml(app.icon)}</span>`}</span>`;
 const save = () => localStorage.setItem("pcsetup-selection", JSON.stringify([...selected]));
+
+function setNavAlert(selector, value, warning = false) {
+  const badge = $(selector);
+  if (!badge) return;
+  const visible = value !== null && value !== undefined && value !== "" && Number(value) !== 0;
+  badge.classList.toggle("hidden", !visible);
+  badge.classList.toggle("warning", visible && warning);
+  if (visible) badge.textContent = String(value);
+}
 
 function notify(title, detail) {
   $("#toastTitle").textContent = title;
@@ -182,8 +232,148 @@ function notify(title, detail) {
   window.toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 2600);
 }
 
+function loadNotificationFeed() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(notificationStorageKey) || "[]");
+    notificationFeed = Array.isArray(stored) ? stored.slice(0, 40) : [];
+  } catch { notificationFeed = []; }
+  renderNotificationFeed();
+}
+
+function saveNotificationFeed() {
+  localStorage.setItem(notificationStorageKey, JSON.stringify(notificationFeed.slice(0, 40)));
+}
+
+function addNotification({key, title, detail, kind = "info", action = "", symbol = "i"}) {
+  const id = key || `${Date.now()}-${Math.random()}`;
+  const previous = notificationFeed.find(item => item.key === id);
+  const item = {key:id, title, detail, kind, action, symbol, unread:true, createdAt:new Date().toISOString()};
+  notificationFeed = [item, ...notificationFeed.filter(entry => entry.key !== id)].slice(0, 40);
+  if (previous && previous.title === title && previous.detail === detail && previous.unread) item.createdAt = previous.createdAt;
+  saveNotificationFeed();
+  renderNotificationFeed();
+}
+
+function renderNotificationFeed() {
+  const list = $("#notificationList");
+  if (!list) return;
+  const unread = notificationFeed.filter(item => item.unread).length;
+  const count = $("#notificationCount");
+  const clearButton = $("#clearNotifications");
+  count.textContent = unread > 99 ? "99+" : String(unread);
+  count.classList.toggle("hidden", unread === 0);
+  clearButton.disabled = unread === 0;
+  clearButton.textContent = unread === 0 ? "Tout est lu" : "Tout marquer comme lu";
+  $("#appUpdateNotification").classList.toggle("available", unread > 0);
+  setNavAlert("#troubleshootingNavBadge", notificationFeed.filter(item => item.unread && item.kind === "warning").length, true);
+  if (!notificationFeed.length) {
+    list.innerHTML = `<div class="notification-empty"><span>✓</span><strong>Tout est calme</strong><small>Les mises à jour et installations apparaîtront ici.</small></div>`;
+    return;
+  }
+  list.innerHTML = notificationFeed.map(item => {
+    const date = new Date(item.createdAt);
+    const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleString("fr-FR", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"});
+    const kind = ["info", "success", "warning", "error"].includes(item.kind) ? item.kind : "info";
+    return `<article class="notification-item ${kind} ${item.unread ? "unread" : ""}" data-notification-key="${escapeHtml(item.key)}" data-notification-action="${escapeHtml(item.action)}"><span class="notification-symbol">${escapeHtml(item.symbol)}</span><span class="notification-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><time>${time}</time></span>${item.unread ? `<i class="notification-dot"></i>` : ""}</article>`;
+  }).join("");
+}
+
+function toggleNotificationCenter(force) {
+  const center = $("#notificationCenter");
+  const open = typeof force === "boolean" ? force : center.classList.contains("hidden");
+  center.classList.toggle("hidden", !open);
+}
+
+function setBackgroundInstall(title, detail, percent, state = "running") {
+  const dock = $("#backgroundInstall");
+  dock.classList.remove("hidden", "complete", "warning");
+  if (state !== "running") dock.classList.add(state);
+  $("#backgroundInstallTitle").textContent = title;
+  $("#backgroundInstallDetail").textContent = detail;
+  $("#backgroundInstallPercent").textContent = `${percent}%`;
+  $("#backgroundInstallBar").style.width = `${percent}%`;
+  $("#showInstallProgress").textContent = state === "running" ? "Afficher" : "Voir le résultat";
+}
+
+function minimizeInstallProgress() {
+  if ($("#installModal").dataset.running !== "true") return;
+  $("#installModal").classList.add("hidden");
+  notify("Installation en arrière-plan", "Vous pouvez continuer à utiliser OwlSetup et rouvrir la progression à tout moment.");
+}
+
+function setBackgroundUninstall(title, detail, percent, state = "running") {
+  const dock = $("#backgroundUninstall");
+  dock.classList.remove("hidden", "complete", "warning");
+  if (state !== "running") dock.classList.add(state);
+  $("#backgroundUninstallTitle").textContent = title;
+  $("#backgroundUninstallDetail").textContent = detail;
+  $("#backgroundUninstallPercent").textContent = `${percent}%`;
+  $("#backgroundUninstallBar").style.width = `${percent}%`;
+  $("#showUninstallProgress").textContent = state === "running" ? "Afficher" : "Voir le résultat";
+}
+
+function activeUninstallModal() {
+  return activeUninstallMode === "batch" ? $("#batchUninstallModal") : $("#uninstallModal");
+}
+
+function minimizeUninstallProgress(mode = activeUninstallMode) {
+  const modal = mode === "batch" ? $("#batchUninstallModal") : $("#uninstallModal");
+  if (modal.dataset.running !== "true") return;
+  activeUninstallMode = mode;
+  modal.classList.add("hidden");
+  notify("Désinstallation en arrière-plan", "Vous pouvez continuer à utiliser OwlSetup et rouvrir la progression à tout moment.");
+}
+
+function showUninstallProgress() {
+  if (!activeUninstallMode) return;
+  activeUninstallModal().classList.remove("hidden");
+}
+
+function openReportViewer(name) {
+  if (!window.chrome?.webview || !name) return;
+  currentReportName = name;
+  $("#reportViewerTitle").textContent = "Chargement du rapport...";
+  $("#reportItems").innerHTML = `<div class="notification-empty"><span>↻</span><strong>Lecture du rapport</strong><small>Préparation de la présentation...</small></div>`;
+  $("#reportModal").classList.remove("hidden");
+  window.chrome.webview.postMessage({action:"open-report", payload:{name}});
+}
+
+function closeReportViewer() {
+  $("#reportModal").classList.add("hidden");
+}
+
+function renderReportViewer(message) {
+  const report = message.report || {};
+  const summary = report.summary || {};
+  const items = Array.isArray(report.items) ? report.items : [];
+  const success = Number(summary.success || 0);
+  const failed = Number(summary.failed || 0);
+  const total = Number(summary.total ?? items.length);
+  const operationNames = {installation:"Installation", desinstallation:"Désinstallation", reparation:"Réparation", nettoyage:"Nettoyage", update:"Mise à jour"};
+  const operation = operationNames[report.operation] || "Opération";
+  const date = new Date(report.createdAtUtc);
+  currentReportName = message.name || currentReportName;
+  $("#reportViewerTitle").textContent = `Rapport d’${operation.toLocaleLowerCase("fr-FR")}`;
+  $("#reportHero").classList.toggle("warning", failed > 0);
+  $("#reportHeroIcon").textContent = failed > 0 ? "!" : "✓";
+  $("#reportHeroTitle").textContent = failed > 0 ? `${operation} terminée avec vérifications` : `${operation} réussie`;
+  $("#reportHeroDetail").textContent = failed > 0 ? `${failed} élément(s) nécessitent votre attention.` : "Tous les éléments ont été traités correctement.";
+  $("#reportSuccessCount").textContent = String(success);
+  $("#reportFailedCount").textContent = String(failed);
+  $("#reportTotalCount").textContent = String(total);
+  $("#reportFileName").textContent = currentReportName;
+  const environment = report.environment || {};
+  $("#reportMeta").innerHTML = `<span>Date <b>${Number.isNaN(date.getTime()) ? "Inconnue" : date.toLocaleString("fr-FR")}</b></span><span>Version <b>${escapeHtml(report.owlSetupVersion || "—")}</b></span><span>Canal <b>${escapeHtml(report.channel || "—")}</b></span><span>Windows <b>${escapeHtml(environment.architecture || "—")}</b></span>`;
+  $("#reportItems").innerHTML = items.length ? items.map(item => {
+    const app = apps.find(entry => entry.id === item.id);
+    const appVisual = app?.logo ? `<img src="${escapeHtml(app.logo)}" alt="" data-image-fallback="${escapeHtml(app.icon || "APP")}">` : escapeHtml(app?.icon || "APP");
+    const ok = item.success === true;
+    return `<article class="report-item"><span class="report-item-icon" style="${app ? `background:${escapeHtml(app.color)}22;color:${escapeHtml(app.color)}` : ""}">${appVisual}</span><span><strong>${escapeHtml(item.name || app?.name || item.id || "Application")}</strong><small>${escapeHtml(item.message || (ok ? "Opération réussie" : `Code de sortie : ${item.code ?? "inconnu"}`))}</small></span><b class="report-result ${ok ? "" : "failed"}">${ok ? "RÉUSSI" : "À VÉRIFIER"}</b></article>`;
+  }).join("") : `<div class="notification-empty"><span>i</span><strong>Aucun détail disponible</strong><small>Le résumé général reste valide.</small></div>`;
+}
+
 function renderFilters() {
-  $("#filters").innerHTML = categories.map(c => `<button class="filter ${c === activeCategory ? "active" : ""}" data-category="${c}">${c}</button>`).join("");
+  $("#filters").innerHTML = categories.map(c => `<button class="filter ${c === activeCategory ? "active" : ""}" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("");
 }
 
 function renderApps() {
@@ -191,9 +381,9 @@ function renderApps() {
   const visible = apps.filter(app => (activeCategory === "Tout" || (activeCategory === "Installés" ? installedApps.has(app.id) : app.category === activeCategory)) && `${app.name} ${app.desc} ${app.category}`.toLocaleLowerCase("fr").includes(query));
   $("#resultCount").textContent = `${visible.length} logiciel${visible.length > 1 ? "s" : ""}`;
   $("#appGrid").innerHTML = visible.map(app => `
-    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""}" data-app="${app.id}" tabindex="0" aria-label="${app.name}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
-      ${icon(app)}<span class="app-copy"><strong>${app.name}</strong><small>${app.desc}</small><span class="app-footer"><em>${app.category}</em><a class="official-link" href="${app.site}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${app.name}" onclick="event.stopPropagation()">Site officiel ↗</a></span></span>
-      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${app.id}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">${app.webService ? "Service Web" : "Installation guidée"}</span><span class="add-icon">↗</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
+    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""}" data-app="${escapeHtml(app.id)}" tabindex="0" aria-label="${escapeHtml(app.name)}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
+      ${icon(app)}<span class="app-copy"><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(app.desc)}</small><span class="app-footer"><em>${escapeHtml(app.category)}</em><a class="official-link" href="${escapeHtml(app.site)}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${escapeHtml(app.name)}">Site officiel ↗</a></span></span>
+      ${installedApps.has(app.id) ? `<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${escapeHtml(app.id)}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${escapeHtml(app.id)}" title="Réparer ${escapeHtml(app.name)}">⚙</button><button class="uninstall-icon" data-uninstall="${escapeHtml(app.id)}" title="Désinstaller ${escapeHtml(app.name)}">×</button></span><span class="repair-capability">${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">${app.webService ? "Service Web" : "Installation guidée"}</span><span class="add-icon">↗</span>` : `<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
     </article>`).join("");
   $("#emptyState").classList.toggle("hidden", visible.length !== 0);
   $("#installedManager").classList.toggle("hidden", installedApps.size === 0);
@@ -258,12 +448,12 @@ function renderInstalledPage() {
   $("#installedClearSelection").disabled = managedInstalled.size === 0;
   $("#installedBatchUninstall").disabled = managedInstalled.size === 0;
   $("#installedAppGrid").innerHTML = visible.map(app => `
-    <article class="installed-page-card ${managedInstalled.has(app.id) ? "selected" : ""}" data-installed-app="${app.id}" tabindex="0" aria-label="${app.name}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
+    <article class="installed-page-card ${managedInstalled.has(app.id) ? "selected" : ""}" data-installed-app="${escapeHtml(app.id)}" tabindex="0" aria-label="${escapeHtml(app.name)}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
       <span class="installed-select-box" aria-hidden="true">${managedInstalled.has(app.id) ? "✓" : ""}</span>
       ${icon(app)}
-      <span class="installed-page-copy"><strong>${app.name}</strong><small>${app.desc}</small><code>${app.id}</code></span>
-      <span class="installed-page-meta"><b>${app.category}</b><small>${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</small></span>
-      <span class="installed-page-actions"><a href="${app.site}" target="_blank" rel="noopener" title="Site officiel de ${app.name}" onclick="event.stopPropagation()">Site officiel ↗</a><button class="repair-icon" data-repair="${app.id}" title="Réparer ${app.name}">⚙</button><button class="uninstall-icon" data-uninstall="${app.id}" title="Désinstaller ${app.name}">×</button></span>
+      <span class="installed-page-copy"><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(app.desc)}</small><code>${escapeHtml(app.id)}</code></span>
+      <span class="installed-page-meta"><b>${escapeHtml(app.category)}</b><small>${app.repairMode === "native" ? "Réparation native" : "Réinstallation réparatrice"}</small></span>
+      <span class="installed-page-actions"><a class="official-link" href="${escapeHtml(app.site)}" target="_blank" rel="noopener" title="Site officiel de ${escapeHtml(app.name)}">Site officiel ↗</a><button class="repair-icon" data-repair="${escapeHtml(app.id)}" title="Réparer ${escapeHtml(app.name)}">⚙</button><button class="uninstall-icon" data-uninstall="${escapeHtml(app.id)}" title="Désinstaller ${escapeHtml(app.name)}">×</button></span>
     </article>`).join("");
   $("#installedEmpty").classList.toggle("hidden", visible.length !== 0);
 }
@@ -276,7 +466,7 @@ function renderSelection() {
   $("#summaryCount").textContent = count;
   $("#selectionBar").classList.toggle("hidden", count === 0 || $("#queue").classList.contains("active"));
   $("#selectionStack").innerHTML = picked.slice(0, 4).map(icon).join("") + (count > 4 ? `<span class="more">+${count - 4}</span>` : "");
-  $("#queueList").innerHTML = count ? picked.map(app => `<article class="queue-item">${icon(app)}<div><strong>${app.name}</strong><small>${app.id}</small></div><span>${app.category}</span><button data-remove="${app.id}" aria-label="Retirer ${app.name}">×</button></article>`).join("") : `<div class="queue-empty"><span>＋</span><h3>Votre sélection est vide</h3><p>Ajoutez des logiciels depuis le catalogue.</p><button data-go-catalog>Parcourir le catalogue</button></div>`;
+  $("#queueList").innerHTML = count ? picked.map(app => `<article class="queue-item">${icon(app)}<div><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(app.id)}</small></div><span>${escapeHtml(app.category)}</span><button data-remove="${escapeHtml(app.id)}" aria-label="Retirer ${escapeHtml(app.name)}">×</button></article>`).join("") : `<div class="queue-empty"><span>＋</span><h3>Votre sélection est vide</h3><p>Ajoutez des logiciels depuis le catalogue.</p><button data-go-catalog>Parcourir le catalogue</button></div>`;
   $("#installBtn").disabled = count === 0;
   save();
 }
@@ -349,17 +539,16 @@ function showView(id) {
 
 function addCustomPackage() {
   const id = $("#customPackageId").value.trim();
-  if (!/^[A-Za-z0-9.+_-]+$/.test(id)) {
+  if (!isValidPackageId(id)) {
     notify("Identifiant invalide", "Utilisez uniquement l'identifiant exact affiché par WinGet.");
     return;
   }
-  if (!apps.some(app => app.id.toLocaleLowerCase() === id.toLocaleLowerCase())) {
-    apps.push({id,name:id,category:"Personnalisé",desc:"Paquet ajouté manuellement par identifiant WinGet",icon:"+",color:"#4677c9",site:"https://learn.microsoft.com/windows/package-manager/winget/search",repairMode:"reinstall"});
-    categories.push("Personnalisé");
-    renderFilters();
-  }
-  selected.add(id); $("#customPackageId").value=""; renderApps(); renderSelection();
-  notify("Paquet ajouté", id);
+  addCustomAppDefinition(id);
+  const canonicalId = apps.find(app => app.id.toLocaleLowerCase() === id.toLocaleLowerCase())?.id || id;
+  if (!categories.includes("Personnalisé")) categories.push("Personnalisé");
+  renderFilters();
+  selected.add(canonicalId); $("#customPackageId").value=""; renderApps(); renderSelection();
+  notify("Paquet ajouté", canonicalId);
 }
 
 function composeFeedbackReport() {
@@ -404,14 +593,22 @@ function collectFeedbackDiagnostics() {
 }
 
 function refreshProfiles() {
-  const profiles = JSON.parse(localStorage.getItem("pcsetup-profiles") || "{}");
-  $("#savedProfiles").innerHTML = `<option value="">Profils enregistrés</option>${Object.keys(profiles).sort().map(name => `<option value="${encodeURIComponent(name)}">${name}</option>`).join("")}`;
+  const profiles = readProfiles();
+  $("#savedProfiles").innerHTML = `<option value="">Choisir un profil</option>${Object.keys(profiles).sort().map(name => `<option value="${encodeURIComponent(name)}">${escapeHtml(name)}</option>`).join("")}`;
+}
+
+function readProfiles() {
+  try {
+    const value = JSON.parse(localStorage.getItem("pcsetup-profiles") || "{}");
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
 }
 
 function saveProfile() {
   const name=$("#profileName").value.trim();
-  if (!name || !selected.size) { notify("Profil incomplet","Donnez un nom et sélectionnez au moins un logiciel."); return; }
-  const profiles=JSON.parse(localStorage.getItem("pcsetup-profiles") || "{}");
+  if (!name || name.length > 60 || ["__proto__","prototype","constructor"].includes(name.toLocaleLowerCase())) { notify("Nom de profil invalide","Utilisez un nom de 1 à 60 caractères."); return; }
+  if (!selected.size) { notify("Profil incomplet","Sélectionnez au moins un logiciel."); return; }
+  const profiles=readProfiles();
   profiles[name]=[...selected];
   localStorage.setItem("pcsetup-profiles",JSON.stringify(profiles));
   $("#profileName").value="";refreshProfiles();notify("Profil enregistré",name);
@@ -419,8 +616,13 @@ function saveProfile() {
 
 function loadProfile() {
   const value=$("#savedProfiles").value;if(!value)return;
-  const name=decodeURIComponent(value),profiles=JSON.parse(localStorage.getItem("pcsetup-profiles") || "{}");
-  selected=new Set((profiles[name]||[]).filter(id=>!installedApps.has(id) && !apps.some(app=>app.id===id && app.manualInstall)));
+  const name=decodeURIComponent(value),profiles=readProfiles();
+  const profilePackages=Array.isArray(profiles[name]) ? profiles[name].filter(isValidPackageId).slice(0,100) : [];
+  profilePackages.filter(id=>!apps.some(app=>app.id.toLocaleLowerCase()===id.toLocaleLowerCase())).forEach(id=>addCustomAppDefinition(id));
+  const canonicalPackages=profilePackages.map(id=>apps.find(app=>app.id.toLocaleLowerCase()===id.toLocaleLowerCase())?.id || id);
+  if (canonicalPackages.some(id=>apps.some(app=>app.id===id && app.custom)) && !categories.includes("Personnalisé")) categories.push("Personnalisé");
+  selected=new Set(canonicalPackages.filter(id=>!installedApps.has(id) && !apps.some(app=>app.id===id && app.manualInstall)));
+  renderFilters();
   renderApps();renderSelection();notify("Profil chargé",name);
 }
 
@@ -467,9 +669,13 @@ function openBatchUninstallModal(packages) {
   pendingBatchUninstall = [...(packages || [])];
   const selectedApps = pendingBatchUninstall.map(id => apps.find(app => app.id === id) || {id,name:id,icon:"APP",color:"#536174",logo:""});
   $("#batchUninstallCount").textContent = `${selectedApps.length} logiciel${selectedApps.length > 1 ? "s" : ""}`;
-  $("#batchUninstallList").innerHTML = selectedApps.map(app => `<article data-batch-package="${app.id}">${icon(app)}<span><strong>${app.name}</strong><small>${app.id}</small></span><b class="batch-item-state">Prêt</b></article>`).join("");
+  $("#batchUninstallList").innerHTML = selectedApps.map(app => `<article data-batch-package="${escapeHtml(app.id)}">${icon(app)}<span><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(app.id)}</small></span><b class="batch-item-state">Prêt</b></article>`).join("");
   $("#batchUninstallConfirmView").classList.remove("hidden");
   $("#batchUninstallProgressView").classList.add("hidden");
+  $("#batchResiduePanel").classList.add("hidden");
+  $("#batchCleanupResidues").checked=true;
+  $("#quarantineBatchResidues").disabled=false;
+  pendingBatchResidueToken="";
   $("#confirmBatchUninstall").disabled = selectedApps.length === 0;
   $("#batchUninstallModal").dataset.running = "false";
   $("#batchUninstallModal").dataset.success = "0";
@@ -478,9 +684,12 @@ function openBatchUninstallModal(packages) {
 }
 
 function closeBatchUninstallModal() {
-  if ($("#batchUninstallModal").dataset.running === "true") return;
+  if ($("#batchUninstallModal").dataset.running === "true") { minimizeUninstallProgress("batch"); return; }
   $("#batchUninstallModal").classList.add("hidden");
+  $("#backgroundUninstall").classList.add("hidden");
   pendingBatchUninstall = [];
+  pendingBatchResidueToken = "";
+  if (activeUninstallMode === "batch") activeUninstallMode = "";
 }
 
 function beginBatchUninstall() {
@@ -496,7 +705,12 @@ function beginBatchUninstall() {
   $("#batchUninstallPosition").textContent = `0/${pendingBatchUninstall.length}`;
   $("#batchUninstallResult").textContent = "0 réussi · 0 à vérifier";
   $("#finishBatchUninstall").classList.add("hidden");
-  window.chrome.webview.postMessage({action:"batch-uninstall",payload:{packages:pendingBatchUninstall}});
+  $("#batchUninstallBackgroundActions").classList.remove("hidden");
+  activeUninstallMode = "batch";
+  currentUninstallRun = `batch-uninstall-${Date.now()}`;
+  setBackgroundUninstall("Préparation de la désinstallation", `${pendingBatchUninstall.length} logiciel(s) dans la file`, 4);
+  window.chrome.webview.postMessage({action:"batch-uninstall",payload:{packages:pendingBatchUninstall,apps:apps.filter(app=>pendingBatchUninstall.includes(app.id)).map(app=>({id:app.id,name:app.name})),scanResidues:$("#batchCleanupResidues").checked}});
+  window.setTimeout(() => minimizeUninstallProgress("batch"), 450);
 }
 
 function appForUpdate(id) { return apps.find(app => app.id.toLocaleLowerCase() === String(id).toLocaleLowerCase()); }
@@ -505,12 +719,13 @@ function renderAvailableUpdates() {
   $("#updateScanState").classList.add("hidden");
   $("#scanUpdatesBtn").disabled = false;
   const hasUpdates = availableUpdates.length > 0;
+  setNavAlert("#updatesNavBadge", availableUpdates.length, availableUpdates.length > 0);
   $("#availableUpdates").classList.toggle("hidden", !hasUpdates);
   $("#noUpdates").classList.toggle("hidden", hasUpdates);
   $("#availableUpdates").innerHTML = availableUpdates.map(update => {
     const app = appForUpdate(update.id);
-    const appIcon = app ? `<img src="${app.logo}" alt="">` : `<span>APP</span>`;
-    return `<label class="available-update"><input type="checkbox" data-update-id="${update.id}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon" style="${app ? `background:${app.color}` : ""}">${appIcon}</span><span><strong>${update.name}</strong><small>${update.id}</small></span><span class="version-flow">${update.current}<i>→</i><b>${update.available}</b></span></label>`;
+    const appIcon = app?.logo ? `<img src="${escapeHtml(app.logo)}" alt="" data-image-fallback="APP">` : `<span>APP</span>`;
+    return `<label class="available-update"><input type="checkbox" data-update-id="${escapeHtml(update.id)}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon" style="${app ? `background:${escapeHtml(app.color)}` : ""}">${appIcon}</span><span><strong>${escapeHtml(update.name)}</strong><small>${escapeHtml(update.id)}</small></span><span class="version-flow">${escapeHtml(update.current)}<i>→</i><b>${escapeHtml(update.available)}</b></span></label>`;
   }).join("");
   const count = selectedUpdates.size;
   $("#updateAllBtn").disabled = count === 0;
@@ -531,6 +746,8 @@ function renderHealth(message) {
   $("#healthRestart").textContent = message.pendingRestart ? "Nécessaire" : "Non requis";
   $("#healthQuarantine").textContent = `${message.quarantineCount} élément${message.quarantineCount > 1 ? "s" : ""}`;
   $("#quarantineNavCount").textContent = message.quarantineCount;
+  setNavAlert("#updatesNavBadge", message.error ? "!" : message.updateCount, message.error || message.updateCount > 0);
+  setNavAlert("#toolsNavBadge", message.error ? "!" : 0, true);
 }
 
 function requestHealth() {
@@ -552,14 +769,14 @@ function renderQuarantine(items) {
   $("#quarantineNavCount").textContent = list.length;
   $("#quarantineList").classList.toggle("hidden", list.length === 0);
   $("#quarantineEmpty").classList.toggle("hidden", list.length !== 0);
-  $("#quarantineList").innerHTML = list.map(entry => `<article class="quarantine-item"><span>♲</span><div><strong>${entry.item}</strong><small>${entry.batch} · Modifié le ${entry.modified}</small></div><div class="quarantine-actions"><button class="restore-quarantine" data-quarantine-action="restore" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">↶ Restaurer</button><button class="delete-quarantine" data-quarantine-action="delete" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">× Supprimer</button></div></article>`).join("");
+  $("#quarantineList").innerHTML = list.map(entry => `<article class="quarantine-item"><span>♲</span><div><strong>${escapeHtml(entry.item)}</strong><small>${escapeHtml(entry.batch)} · Modifié le ${escapeHtml(entry.modified)}</small></div><div class="quarantine-actions"><button class="restore-quarantine" data-quarantine-action="restore" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">↶ Restaurer</button><button class="delete-quarantine" data-quarantine-action="delete" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">× Supprimer</button></div></article>`).join("");
 }
 
 function confirmQuarantineAction(action, batch, item) {
   const deleting = action === "delete";
   const overlay = document.createElement("div");
   overlay.className = "quarantine-confirm";
-  overlay.innerHTML = `<div><h3>${deleting ? "Supprimer définitivement ?" : "Restaurer ce dossier ?"}</h3><p><strong>${item}</strong><br>${deleting ? "Cette suppression ne pourra pas être annulée." : "Le dossier sera remis dans son emplacement AppData d'origine."}</p><div class="dialog-actions"><button class="secondary-dialog-button" data-confirm-no>Annuler</button><button class="${deleting ? "danger-dialog-button" : "primary-dialog-button"}" data-confirm-yes>${deleting ? "Supprimer" : "Restaurer"}</button></div></div>`;
+  overlay.innerHTML = `<div><h3>${deleting ? "Supprimer définitivement ?" : "Restaurer ce dossier ?"}</h3><p><strong>${escapeHtml(item)}</strong><br>${deleting ? "Cette suppression ne pourra pas être annulée." : "Le dossier sera remis dans son emplacement AppData d'origine."}</p><div class="dialog-actions"><button class="secondary-dialog-button" data-confirm-no>Annuler</button><button class="${deleting ? "danger-dialog-button" : "primary-dialog-button"}" data-confirm-yes>${deleting ? "Supprimer" : "Restaurer"}</button></div></div>`;
   document.body.appendChild(overlay);
   overlay.querySelector("[data-confirm-no]").onclick = () => overlay.remove();
   overlay.querySelector("[data-confirm-yes]").onclick = () => {
@@ -802,20 +1019,49 @@ function openInstallModal() {
   $("#installConfirmView").classList.remove("hidden");
   $("#installProgressView").classList.add("hidden");
   $("#finishInstall").classList.add("hidden");
+  $("#installResultActions").classList.add("hidden");
   $("#closeInstallModal").disabled = false;
   $("#installModal").dataset.running = "false";
   $("#installModal").classList.remove("hidden");
+  requestInstallPreflight();
+}
+
+function setPreflightState(key, state, detail) {
+  const item=document.querySelector(`[data-preflight="${key}"]`);
+  if(!item)return;
+  item.classList.remove("checking","success","warning","failed");
+  item.classList.add(state);
+  item.querySelector("i").textContent=state==="success"?"✓":state==="failed"?"×":state==="warning"?"!":"…";
+  item.querySelector("small").textContent=detail||"Vérification...";
+}
+
+function requestInstallPreflight() {
+  const requestId=++installPreflightRequestId;
+  const packages=[...selected];
+  const button=$("#confirmInstall");
+  button.disabled=true;
+  $("#preflightTitle").textContent="Analyse de la sélection...";
+  ["winget","disk","system","packages"].forEach(key=>setPreflightState(key,"checking","Vérification..."));
+  if(!packages.length){$("#preflightTitle").textContent="Aucun logiciel sélectionné";return;}
+  if(!window.chrome?.webview){
+    $("#preflightTitle").textContent="Diagnostic disponible dans l’application Windows";
+    ["winget","disk","system","packages"].forEach(key=>setPreflightState(key,"warning","Mode aperçu"));
+    return;
+  }
+  window.chrome.webview.postMessage({action:"preflight-install",payload:{requestId,packages,apps:apps.filter(app=>selected.has(app.id)).map(app=>({id:app.id,name:app.name,portable:!!app.portable}))}});
 }
 
 function closeInstallModal() {
-  if ($("#installModal").dataset.running === "true") return;
+  if ($("#installModal").dataset.running === "true") { minimizeInstallProgress(); return; }
   $("#installModal").classList.add("hidden");
+  $("#backgroundInstall").classList.add("hidden");
 }
 
 function beginInstall() {
+  if ($("#confirmInstall").disabled) return;
   $("#installConfirmView").classList.add("hidden");
   $("#installProgressView").classList.remove("hidden");
-  $("#closeInstallModal").disabled = true;
+  $("#closeInstallModal").disabled = false;
   $("#installModal").dataset.running = "true";
   $("#progressTitle").textContent = "Préparation de l'installation";
   $("#progressDetail").textContent = "Connexion au gestionnaire winget";
@@ -824,8 +1070,14 @@ function beginInstall() {
   $("#currentPackage").textContent = "Initialisation...";
   $("#packageResult").textContent = "EN ATTENTE";
   $("#progressSummary").textContent = "Ne fermez pas OwlSetup pendant l'installation.";
+  $("#installResultActions").classList.add("hidden");
+  $("#installBackgroundActions").classList.remove("hidden");
+  lastFailedInstallPackages=[];
+  currentInstallRun = `install-${Date.now()}`;
+  setBackgroundInstall("Préparation de l'installation", `${selected.size} logiciel(s) dans la file`, 0);
   const selectedApps=apps.filter(app=>selected.has(app.id)).map(app=>({id:app.id,name:app.name,portable:!!app.portable}));
   executeWithButton($("#confirmInstall"), "install", {packages:[...selected],apps:selectedApps,shortcut:$("#installShortcutLocation").value,launchAfter:$("#launchAfterInstall").checked});
+  window.setTimeout(minimizeInstallProgress, 450);
 }
 
 function openUpdateModal() {
@@ -966,6 +1218,10 @@ function openUninstallModal(id) {
   $("#uninstallConfirmView").classList.remove("hidden");
   $("#uninstallProgressView").classList.add("hidden");
   $("#finishUninstall").classList.add("hidden");
+  $("#uninstallResiduePanel").classList.add("hidden");
+  $("#uninstallCleanupResidues").checked=true;
+  $("#quarantineUninstallResidues").disabled=false;
+  pendingUninstallResidueToken="";
   $("#closeUninstallModal").disabled = false;
   $("#uninstallModal").dataset.running = "false";
   $("#uninstallModal").classList.remove("hidden");
@@ -973,19 +1229,30 @@ function openUninstallModal(id) {
 }
 
 function closeUninstallModal() {
-  if ($("#uninstallModal").dataset.running === "true") return;
+  if ($("#uninstallModal").dataset.running === "true") { minimizeUninstallProgress("single"); return; }
   $("#uninstallModal").classList.add("hidden");
+  $("#backgroundUninstall").classList.add("hidden");
   pendingUninstallId = null;
+  pendingUninstallResidueToken = "";
+  if (activeUninstallMode === "single") activeUninstallMode = "";
 }
 
 function beginUninstall() {
   if (!pendingUninstallId || !window.chrome?.webview) return;
   $("#uninstallConfirmView").classList.add("hidden");
   $("#uninstallProgressView").classList.remove("hidden");
-  $("#closeUninstallModal").disabled = true;
+  $("#closeUninstallModal").disabled = false;
   $("#uninstallModal").dataset.running = "true";
   $("#uninstallProgressBar").style.width = "25%";
-  window.chrome.webview.postMessage({action:"uninstall", payload:{id:pendingUninstallId}});
+  const app=apps.find(item=>item.id===pendingUninstallId);
+  $("#uninstallProgressTitle").textContent = "Préparation de la désinstallation";
+  $("#uninstallProgressDetail").textContent = app?.name || pendingUninstallId;
+  $("#uninstallBackgroundActions").classList.remove("hidden");
+  activeUninstallMode = "single";
+  currentUninstallRun = `uninstall-${Date.now()}`;
+  setBackgroundUninstall(`Préparation de ${app?.name || pendingUninstallId}`, "Connexion à WinGet", 25);
+  window.chrome.webview.postMessage({action:"uninstall", payload:{id:pendingUninstallId,name:app?.name||pendingUninstallId,scanResidues:$("#uninstallCleanupResidues").checked}});
+  window.setTimeout(() => minimizeUninstallProgress("single"), 450);
 }
 
 function openAppUpdateModal() {
@@ -1030,21 +1297,20 @@ function renderAppUpdateState(message) {
   } else if (message.status === "available") {
     const officialRelease = "https://github.com/OwlNetGeekFR/OwlSetup/releases/";
     appUpdateReleasePage = typeof message.page === "string" && message.page.startsWith(officialRelease) ? message.page : `${officialRelease}latest`;
-    notification.classList.add("available");
-    notification.title = `OwlSetup ${message.latest} est disponible`;
+    notification.title = `${message.latest} disponible · ouvrir les notifications`;
     notification.setAttribute("aria-label", `Mise à jour OwlSetup ${message.latest} disponible`);
     if (notification.dataset.notified !== message.latest) {
       notification.dataset.notified = message.latest;
       notifyAction("Mise à jour disponible", `OwlSetup ${message.latest} est disponible sur GitHub.`);
+      addNotification({key:`owlsetup-update-${message.latest}`, title:`OwlSetup ${message.latest} est disponible`, detail:"Téléchargez la nouvelle version depuis la Release GitHub officielle.", kind:"warning", action:"self-update", symbol:"↻"});
     }
     icon.textContent = "↓";
     $("#appUpdateStateTitle").textContent = `OwlSetup ${message.latest} est disponible`;
     $("#appUpdateStateDetail").textContent = "Ouvrez la Release officielle GitHub pour télécharger cette version.";
     install.classList.remove("hidden"); install.disabled = false;
   } else if (message.status === "current") {
-    notification.classList.remove("available");
-    notification.title = "OwlSetup est à jour";
-    notification.setAttribute("aria-label", "OwlSetup est à jour");
+    notification.title = "Notifications";
+    notification.setAttribute("aria-label", "Ouvrir les notifications");
     icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || message.current;
     $("#appUpdateStateTitle").textContent = "OwlSetup est à jour";
@@ -1054,7 +1320,6 @@ function renderAppUpdateState(message) {
     $("#closeAppUpdate").disabled = false;
     $("#cancelAppUpdate").disabled = false;
     install.disabled = true;
-    notification.classList.remove("available");
     notification.title = "Version bêta locale";
     notification.setAttribute("aria-label", "Version bêta locale");
     icon.classList.remove("spinning");
@@ -1067,7 +1332,6 @@ function renderAppUpdateState(message) {
     $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
     $("#appUpdateStateDetail").textContent = "Téléchargement puis vérification de l'empreinte SHA-256...";
   } else if (message.status === "restarting") {
-    notification.classList.remove("available");
     icon.classList.remove("spinning"); icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || "—";
     $("#appUpdateStateTitle").textContent = "Mise à jour vérifiée";
@@ -1106,6 +1370,16 @@ function handleInstallMessage(message) {
     mark("#securityWebView",message.webview!=="Indisponible",message.webview,"WebView2 indisponible");
     mark("#securityWorker",message.secureRuntime,"Dossier protégé actif","Créé au premier nettoyage");
     $("#securityLogs").textContent=`${message.logs} rapport(s) conservé(s) dans ${message.logFolder}`;
+    const securityWarnings=[
+      !message.integrity,
+      !message.originLocked,
+      !message.standardUser,
+      !(message.signed&&message.trusted),
+      message.winget==="Indisponible",
+      message.webview==="Indisponible",
+      !message.secureRuntime
+    ].filter(Boolean).length;
+    setNavAlert("#securityNavBadge", securityWarnings, securityWarnings > 0);
     return;
   }
   if (message.type === "uninstall-simulation") {
@@ -1132,6 +1406,7 @@ function handleInstallMessage(message) {
   if (message.type === "winget-diagnostic") {
     $("#wingetDiagnosticText").textContent = `${message.message}${message.version ? ` (${message.version})` : ""}`;
     $("#wingetDiagnosticText").classList.toggle("tool-success", message.available && message.sources);
+    setNavAlert("#toolsNavBadge", message.available && message.sources ? 0 : "!", true);
     return;
   }
   if (message.type === "winget-repair-start") {
@@ -1141,6 +1416,7 @@ function handleInstallMessage(message) {
   if (message.type === "winget-repair-complete") {
     $("#wingetDiagnosticText").textContent = message.success ? "WinGet a été réparé et ses sources ont été actualisées." : `Réparation incomplète (code ${message.code}). Consultez ${message.logName}.`;
     notify(message.success ? "WinGet réparé" : "Réparation à vérifier", $("#wingetDiagnosticText").textContent);
+    setNavAlert("#toolsNavBadge", message.success ? 0 : "!", true);
     return;
   }
   if (message.type === "restore-point-start") {
@@ -1153,14 +1429,21 @@ function handleInstallMessage(message) {
     return;
   }
   if (message.type === "history-state") {
-    $("#operationHistory").innerHTML = (message.items || []).length ? message.items.map(item => `<article><span class="history-type">${item.type}</span><div><strong>${item.name}</strong><small>${item.date} · ${item.size}</small></div><button data-open-log="${encodeURIComponent(item.name)}">Ouvrir</button></article>`).join("") : `<p class="tool-empty">Aucun rapport enregistré.</p>`;
+    $("#operationHistory").innerHTML = (message.items || []).length ? message.items.map(item => {
+      const resultClass = ["success","failed"].includes(item.result) ? item.result : "";
+      return `<article><span class="history-type ${resultClass}">${escapeHtml(item.type)}</span><div><strong>${escapeHtml(item.title||item.name)}</strong><small>${escapeHtml(item.date)} · ${escapeHtml(item.size)}${item.summary?` · ${escapeHtml(item.summary)}`:""}</small></div><span class="history-actions"><button data-open-log="${encodeURIComponent(item.name)}">Journal</button>${item.reportName?`<button data-open-report="${encodeURIComponent(item.reportName)}">Rapport visuel</button>`:""}</span></article>`;
+    }).join("") : `<p class="tool-empty">Aucun rapport enregistré.</p>`;
+    return;
+  }
+  if (message.type === "report-data") {
+    renderReportViewer(message);
     return;
   }
   if (message.type === "history-error") {
-    $("#operationHistory").innerHTML = `<p class="tool-empty">${message.message}</p>`; return;
+    $("#operationHistory").innerHTML = `<p class="tool-empty">${escapeHtml(message.message)}</p>`; return;
   }
   if (message.type === "startup-state") {
-    $("#startupList").innerHTML = (message.items || []).length ? message.items.map(item => `<article><div><strong>${item.name}</strong><small>${item.source} · ${item.command}</small></div></article>`).join("") : `<p class="tool-empty">Aucun élément de démarrage détecté.</p>`;
+    $("#startupList").innerHTML = (message.items || []).length ? message.items.map(item => `<article><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.source)} · ${escapeHtml(item.command)}</small></div></article>`).join("") : `<p class="tool-empty">Aucun élément de démarrage détecté.</p>`;
     return;
   }
   if (message.type === "disk-scan-start") {
@@ -1169,15 +1452,16 @@ function handleInstallMessage(message) {
   }
   if (message.type === "disk-scan-state") {
     const max=Math.max(...(message.items || []).map(item=>Number(item.bytes)),1);
-    $("#diskList").innerHTML = (message.items || []).map(item => `<article class="disk-item"><div><strong>${item.name}</strong><small>${item.path} · ${item.files} fichiers</small><i style="width:${Math.max(2,Number(item.bytes)/max*100)}%"></i></div><b>${item.size}</b></article>`).join("");
+    $("#diskList").innerHTML = (message.items || []).map(item => `<article class="disk-item"><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.path)} · ${Number(item.files)||0} fichiers</small><i style="width:${Math.min(100,Math.max(2,Number(item.bytes)/max*100))}%"></i></div><b>${escapeHtml(item.size)}</b></article>`).join("");
     return;
   }
   if (message.type === "disk-scan-error") {
-    $("#diskList").innerHTML = `<p class="tool-empty">${message.message}</p>`; return;
+    $("#diskList").innerHTML = `<p class="tool-empty">${escapeHtml(message.message)}</p>`; return;
   }
   if (message.type === "batch-uninstall-start") {
     $("#batchUninstallProgressTitle").textContent="Désinstallation en cours";
     $("#batchUninstallProgressDetail").textContent=`${message.total} logiciel(s) dans la file`;
+    setBackgroundUninstall("Désinstallation en cours", `${message.total} logiciel(s) dans la file`, 4);
     return;
   }
   if (message.type === "batch-uninstall-progress") {
@@ -1187,6 +1471,7 @@ function handleInstallMessage(message) {
     $("#batchUninstallProgressPercent").textContent=`${percent}%`;
     $("#batchUninstallCurrent").textContent=app?.name||message.id;
     $("#batchUninstallPosition").textContent=`${message.index}/${message.total}`;
+    setBackgroundUninstall(`Désinstallation de ${app?.name||message.id}`, `${message.index} sur ${message.total}`, percent);
     return;
   }
   if (message.type === "batch-uninstall-item") {
@@ -1197,6 +1482,10 @@ function handleInstallMessage(message) {
     if(row){const state=row.querySelector(".batch-item-state");state.textContent=message.success?"Désinstallé":"À vérifier";state.className=`batch-item-state ${message.success?"success":"failed"}`;}
     if(message.success){installedApps.delete(message.id);managedInstalled.delete(message.id);renderApps();}
     $("#batchUninstallResult").textContent=`${modal.dataset.success} réussi · ${modal.dataset.failed} à vérifier`;
+    const app=apps.find(item=>item.id===message.id);
+    const percent=Math.round((message.index/Math.max(message.total,1))*100);
+    setBackgroundUninstall(message.success?`${app?.name||message.id} désinstallé`:`${app?.name||message.id} à vérifier`,`${message.index} sur ${message.total} traité(s)`,percent,message.success?"running":"warning");
+    addNotification({key:`${currentUninstallRun}-${message.id}`,title:message.success?`${app?.name||message.id} est désinstallé`:`${app?.name||message.id} est à vérifier`,detail:message.success?"L'application a été retirée du PC.":(message.errorMessage||`Code de sortie ${message.code}`),kind:message.success?"success":"warning",action:"installed",symbol:message.success?"✓":"!"});
     return;
   }
   if (message.type === "batch-uninstall-complete") {
@@ -1207,7 +1496,20 @@ function handleInstallMessage(message) {
     $("#batchUninstallProgressDetail").textContent=`${message.success} réussi(s) · ${message.failed} à vérifier`;
     $("#batchUninstallCurrent").textContent=`Rapport : ${message.logName}`;
     $("#batchUninstallResult").textContent=`${message.success} réussi · ${message.failed} à vérifier`;
-    $("#finishBatchUninstall").classList.remove("hidden");
+    $("#batchUninstallBackgroundActions").classList.add("hidden");
+    const residues=message.residues||[];
+    if(residues.length){
+      pendingBatchResidueToken=message.residueToken||"";
+      $("#batchResidueTitle").textContent=`${residues.length} dossier${residues.length>1?"s":""} · ${message.residueSize||"taille inconnue"}`;
+      $("#batchResidueList").innerHTML=residues.map(item=>`<article><span>▣</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.display)}</small></div><b>${escapeHtml(item.size)}</b></article>`).join("");
+      $("#batchResiduePanel").classList.remove("hidden");
+      $("#finishBatchUninstall").classList.add("hidden");
+      $("#batchUninstallModal").classList.remove("hidden");
+      setBackgroundUninstall("Décision requise", `${residues.length} dossier(s) résiduel(s) à vérifier`, 100, "warning");
+      notify("Dossiers résiduels détectés", "Vérifiez-les avant de les conserver ou de les placer en quarantaine.");
+    }else $("#finishBatchUninstall").classList.remove("hidden");
+    if(!residues.length)setBackgroundUninstall(message.failed?"Désinstallation terminée avec vérifications":"Désinstallation terminée",`${message.success} réussi(s) · ${message.failed} à vérifier`,100,message.failed?"warning":"complete");
+    addNotification({key:`${currentUninstallRun}-summary`,title:residues.length?"Désinstallation terminée · décision requise":message.failed?"Désinstallation terminée avec avertissement":"Désinstallation terminée",detail:residues.length?`${residues.length} dossier(s) résiduel(s) à vérifier`:`${message.success} application(s) retirée(s) · ${message.failed} à vérifier`,kind:(residues.length||message.failed)?"warning":"success",action:"installed",symbol:(residues.length||message.failed)?"!":"✓"});
     requestHistory(); requestInstalledScan();
     return;
   }
@@ -1261,7 +1563,7 @@ function handleInstallMessage(message) {
   if (message.type === "cleanup-analysis") {
     $("#cleanupAnalysisTitle").textContent = `${message.size} récupérables estimés`;
     $("#cleanupModalDetail").textContent = `${(message.items || []).reduce((sum, item) => sum + Number(item.files || 0), 0)} fichier(s) mesurés avant suppression`;
-    $("#cleanupAnalysisList").innerHTML = (message.items || []).map(item => `<article><div><strong>${item.label}</strong><small>${item.path}${item.note ? ` · ${item.note}` : ""}</small></div><b>${item.bytes ? item.size : "À calculer"}</b></article>`).join("");
+    $("#cleanupAnalysisList").innerHTML = (message.items || []).map(item => `<article><div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.path)}${item.note ? ` · ${escapeHtml(item.note)}` : ""}</small></div><b>${item.bytes ? escapeHtml(item.size) : "À calculer"}</b></article>`).join("");
     $("#protectedFoldersList").textContent = (message.protectedFolders || []).join(" · ");
     $("#protectedFolders").classList.remove("hidden");
     $("#confirmCleanup").disabled = false;
@@ -1295,6 +1597,17 @@ function handleInstallMessage(message) {
     selectedUpdates = new Set(availableUpdates.map(update => update.id));
     updatesLoaded = true;
     renderAvailableUpdates();
+    if (availableUpdates.length) {
+      addNotification({
+        key:"application-updates",
+        title:`${availableUpdates.length} mise${availableUpdates.length > 1 ? "s" : ""} à jour disponible${availableUpdates.length > 1 ? "s" : ""}`,
+        detail:availableUpdates.slice(0, 3).map(update => update.name).join(", ") + (availableUpdates.length > 3 ? ` et ${availableUpdates.length - 3} autre(s)` : ""),
+        kind:"warning", action:"updates", symbol:"↥"
+      });
+    } else {
+      notificationFeed = notificationFeed.filter(item => item.key !== "application-updates");
+      saveNotificationFeed(); renderNotificationFeed();
+    }
     if (message.error) notify("Analyse partielle", message.error);
     return;
   }
@@ -1364,6 +1677,12 @@ function handleInstallMessage(message) {
     $("#updateSummary").textContent = `${message.windowsStarted ? "Recherche Windows Update lancée." : "Windows Update n'a pas pu être lancé."} Rapport : ${message.logName}`;
     document.querySelectorAll("[data-update-step]").forEach(step => { step.classList.remove("active"); step.classList.add("done"); });
     $("#finishUpdate").classList.remove("hidden");
+    addNotification({
+      key:`system-update-${Date.now()}`,
+      title:message.success ? "Mises à jour terminées" : "Mises à jour à vérifier",
+      detail:message.appsSuccess ? "Les applications sélectionnées ont été traitées." : (message.errorMessage || "Consultez le rapport OwlSetup."),
+      kind:message.success ? "success" : "warning", action:"updates", symbol:message.success ? "✓" : "!"
+    });
     updatesLoaded = false; requestHealth();
     return;
   }
@@ -1380,6 +1699,8 @@ function handleInstallMessage(message) {
   if (message.type === "uninstall-start") {
     $("#uninstallProgressBar").style.width = "55%";
     $("#uninstallProgressDetail").textContent = `Suppression de ${message.id}`;
+    const app=apps.find(item=>item.id===message.id);
+    setBackgroundUninstall(`Désinstallation de ${app?.name||message.id}`, "Suppression avec WinGet", 55);
     return;
   }
   if (message.type === "repair-start") {
@@ -1411,16 +1732,64 @@ function handleInstallMessage(message) {
     $("#uninstallProgressBar").style.width = "100%";
     $("#uninstallProgressTitle").textContent = message.success ? "Logiciel désinstallé" : "Désinstallation à vérifier";
     $("#uninstallProgressDetail").textContent = message.success ? "L'application a été supprimée." : (message.errorMessage || `Code de sortie : ${message.code}`);
-    $("#uninstallSummary").textContent = message.success ? "La carte a été actualisée automatiquement." : "Consultez le rapport rangé dans OwlSetup.";
-    $("#finishUninstall").classList.remove("hidden");
+    const residues=message.residues||[];
+    $("#uninstallBackgroundActions").classList.add("hidden");
+    $("#uninstallSummary").textContent = message.success ? (residues.length?`${residues.length} dossier(s) résiduel(s) trouvé(s). Vérifiez-les ci-dessous.`:"La carte a été actualisée automatiquement. Aucun dossier résiduel ciblé n’a été trouvé.") : "Consultez le rapport rangé dans OwlSetup.";
+    if(message.success&&residues.length){
+      pendingUninstallResidueToken=message.residueToken||"";
+      $("#uninstallResidueTitle").textContent=`${residues.length} dossier${residues.length>1?"s":""} · ${message.residueSize||"taille inconnue"}`;
+      $("#uninstallResidueList").innerHTML=residues.map(item=>`<article><span>▣</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.display)}</small></div><b>${escapeHtml(item.size)}</b></article>`).join("");
+      $("#uninstallResiduePanel").classList.remove("hidden");
+      $("#finishUninstall").classList.add("hidden");
+      $("#uninstallModal").classList.remove("hidden");
+      setBackgroundUninstall("Décision requise", `${residues.length} dossier(s) résiduel(s) à vérifier`, 100, "warning");
+      notify("Dossiers résiduels détectés", "Vérifiez-les avant de les conserver ou de les placer en quarantaine.");
+    }else $("#finishUninstall").classList.remove("hidden");
+    if(!residues.length)setBackgroundUninstall(message.success?"Désinstallation terminée":"Désinstallation à vérifier",message.success?"L'application a été retirée du PC.":(message.errorMessage||`Code de sortie ${message.code}`),100,message.success?"complete":"warning");
+    const app=apps.find(item=>item.id===message.id);
+    addNotification({key:`${currentUninstallRun}-summary`,title:residues.length?"Désinstallation terminée · décision requise":message.success?`${app?.name||message.id} est désinstallé`:`${app?.name||message.id} est à vérifier`,detail:residues.length?`${residues.length} dossier(s) résiduel(s) à vérifier`:message.success?"L'application a été retirée du PC.":(message.errorMessage||`Code de sortie ${message.code}`),kind:(residues.length||!message.success)?"warning":"success",action:"installed",symbol:(residues.length||!message.success)?"!":"✓"});
     if (message.success) { installedApps.delete(message.id); managedInstalled.delete(message.id); renderApps(); }
     requestHealth();
+    return;
+  }
+  if(message.type==="uninstall-residues-complete"&&message.context!=="batch"){
+    $("#quarantineUninstallResidues").disabled=false;
+    $("#uninstallResiduePanel").classList.add("hidden");
+    $("#finishUninstall").classList.remove("hidden");
+    $("#uninstallSummary").textContent=message.failed?`${message.moved} dossier(s) placé(s) en quarantaine · ${message.failed} à vérifier.`:`${message.moved} dossier(s) placé(s) en quarantaine réversible.`;
+    pendingUninstallResidueToken="";
+    setBackgroundUninstall(message.failed?"Nettoyage terminé avec vérifications":"Nettoyage terminé",message.failed?`${message.failed} dossier(s) à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`,100,message.failed?"warning":"complete");
+    requestHealth();requestQuarantine();requestHistory();
+    return;
+  }
+  if(message.type==="uninstall-residues-complete"&&message.context==="batch"){
+    $("#quarantineBatchResidues").disabled=false;
+    $("#batchResiduePanel").classList.add("hidden");
+    $("#finishBatchUninstall").classList.remove("hidden");
+    $("#batchUninstallResult").textContent=message.failed?`${message.moved} dossier(s) en quarantaine · ${message.failed} à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`;
+    pendingBatchResidueToken="";
+    setBackgroundUninstall(message.failed?"Nettoyage terminé avec vérifications":"Nettoyage terminé",message.failed?`${message.failed} dossier(s) à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`,100,message.failed?"warning":"complete");
+    requestHealth();requestQuarantine();requestHistory();return;
+  }
+  if (message.type === "install-preflight-progress") {
+    if(Number(message.requestId)!==installPreflightRequestId)return;
+    setPreflightState(message.key,message.state||"checking",message.detail);
+    $("#preflightTitle").textContent=message.title||"Diagnostic en cours...";
+    return;
+  }
+  if (message.type === "install-preflight-complete") {
+    if(Number(message.requestId)!==installPreflightRequestId)return;
+    $("#preflightTitle").textContent=message.ready?"Votre PC est prêt":"Action requise avant installation";
+    $("#confirmInstall").disabled=!message.ready;
+    if(message.ready) $("#confirmInstall").focus();
+    else if(message.message) notify("Diagnostic d’installation",message.message);
     return;
   }
   if (!message.type?.startsWith("install-")) return;
   if (message.type === "install-start") {
     $("#progressTitle").textContent = "Installation en cours";
     $("#progressDetail").textContent = `${message.total} logiciel(s) dans la file`;
+    setBackgroundInstall("Installation en cours", `${message.total} logiciel(s) dans la file`, 2);
   }
   if (message.type === "install-progress") {
     const percent = Math.round(((message.index - 1) / message.total) * 100);
@@ -1428,12 +1797,16 @@ function handleInstallMessage(message) {
     $("#progressBar").style.width = `${percent}%`;
     $("#currentPackage").textContent = message.id;
     $("#packageResult").textContent = "INSTALLATION";
+    const app = apps.find(item => item.id === message.id);
+    setBackgroundInstall(`Installation de ${app?.name || message.id}`, `${message.index} sur ${message.total}`, percent);
   }
   if (message.type === "install-security") {
     const percent = Math.round(((message.index - 1 + .25) / message.total) * 100);
     $("#progressPercent").textContent = `${percent}%`;
     $("#progressBar").style.width = `${percent}%`;
     $("#packageResult").textContent = message.success ? "SOURCE VÉRIFIÉE" : "SOURCE INTROUVABLE";
+    const app = apps.find(item => item.id === message.id);
+    setBackgroundInstall(`Vérification de ${app?.name || message.id}`, message.success ? "Source officielle vérifiée" : "Source à vérifier", percent, message.success ? "running" : "warning");
   }
   if (message.type === "install-execution") {
     const percent = Math.round(((message.index - 1 + .45) / message.total) * 100);
@@ -1441,14 +1814,23 @@ function handleInstallMessage(message) {
     $("#progressBar").style.width = `${percent}%`;
     $("#progressDetail").textContent = `Installation de ${message.id} avec WinGet`;
     $("#packageResult").textContent = "INSTALLATION EN COURS";
+    const app = apps.find(item => item.id === message.id);
+    setBackgroundInstall(`Installation de ${app?.name || message.id}`, "Téléchargement et installation avec WinGet", percent);
   }
   if (message.type === "install-item") {
     const percent = Math.round((message.index / message.total) * 100);
     $("#progressPercent").textContent = `${percent}%`;
     $("#progressBar").style.width = `${percent}%`;
     $("#packageResult").textContent = message.success ? "TERMINÉ ✓" : "À VÉRIFIER";
+    const app = apps.find(item => item.id === message.id);
     if (!message.success && message.errorMessage) $("#progressDetail").textContent = message.errorMessage;
-    if (message.success) { installedApps.add(message.id); selected.delete(message.id); renderApps(); renderSelection(); }
+    if (message.success) {
+      installedApps.add(message.id); selected.delete(message.id); renderApps(); renderSelection();
+      addNotification({key:`${currentInstallRun}-${message.id}`, title:`${app?.name || message.id} est installé`, detail:"L'application est maintenant disponible sur votre PC.", kind:"success", action:"installed", symbol:"✓"});
+    } else {
+      addNotification({key:`${currentInstallRun}-${message.id}`, title:`${app?.name || message.id} est à vérifier`, detail:message.errorMessage || `Code de sortie ${message.code}`, kind:"warning", action:"history", symbol:"!"});
+    }
+    setBackgroundInstall(message.success ? `${app?.name || message.id} installé` : `${app?.name || message.id} à vérifier`, `${message.index} sur ${message.total} traité(s)`, percent, message.success ? "running" : "warning");
   }
   if (message.type === "install-complete") {
     $("#installModal").dataset.running = "false";
@@ -1458,7 +1840,21 @@ function handleInstallMessage(message) {
     $("#progressPercent").textContent = "100%";
     $("#progressBar").style.width = "100%";
     $("#progressSummary").textContent = `Rapport rangé dans OwlSetup : ${message.logName}`;
+    lastFailedInstallPackages=[...(message.failedPackages||[])];
+    lastInstallReportName=message.reportName||"";
+    $("#openInstallReport").classList.toggle("hidden",!lastInstallReportName);
+    $("#retryFailedInstall").classList.toggle("hidden",lastFailedInstallPackages.length===0);
+    $("#installResultActions").classList.remove("hidden");
+    $("#installBackgroundActions").classList.add("hidden");
     $("#finishInstall").classList.remove("hidden");
+    setBackgroundInstall(message.failed ? "Installation terminée avec vérifications" : "Installation terminée", `${message.success} réussi(s) · ${message.failed} à vérifier`, 100, message.failed ? "warning" : "complete");
+    addNotification({
+      key:`${currentInstallRun}-summary`,
+      title:message.failed ? "Installation terminée avec avertissement" : "Installation terminée",
+      detail:`${message.success} application(s) installée(s) · ${message.failed} à vérifier`,
+      kind:message.failed ? "warning" : "success", action:"install-result", symbol:message.failed ? "!" : "✓"
+    });
+    requestHistory();
     requestHealth();
   }
 }
@@ -1470,11 +1866,13 @@ if (window.chrome && window.chrome.webview) {
   window.chrome.webview.postMessage({action:"check-app-update", payload:{}});
   requestHealth();
   requestQuarantine();
+  requestSecurityStatus();
 }
 
 document.addEventListener("click", event => {
   const card = event.target.closest("[data-app]");
   const installedCard = event.target.closest("[data-installed-app]");
+  const officialLink = event.target.closest(".official-link");
   const uninstall = event.target.closest("[data-uninstall]");
   const repair = event.target.closest("[data-repair]");
   const manageInstalled = event.target.closest("[data-manage-installed]");
@@ -1484,6 +1882,7 @@ document.addEventListener("click", event => {
   const remove = event.target.closest("[data-remove]");
   const quarantineAction = event.target.closest("[data-quarantine-action]");
   const openLog = event.target.closest("[data-open-log]");
+  const openReport = event.target.closest("[data-open-report]");
   if (uninstall) openUninstallModal(uninstall.dataset.uninstall);
   if (repair) openRepairModal(repair.dataset.repair);
   if (manageInstalled) {
@@ -1491,13 +1890,14 @@ document.addEventListener("click", event => {
     if(managedInstalled.has(id))managedInstalled.delete(id);else managedInstalled.add(id);
     renderApps();
   }
-  if (installedCard && !uninstall && !repair && !manageInstalled) {
+  if (installedCard && !uninstall && !repair && !manageInstalled && !officialLink) {
     const id=installedCard.dataset.installedApp;
     if(managedInstalled.has(id))managedInstalled.delete(id);else managedInstalled.add(id);
     renderApps();
   }
   if (openLog && window.chrome?.webview) window.chrome.webview.postMessage({action:"open-log",payload:{name:decodeURIComponent(openLog.dataset.openLog)}});
-  if (card && !uninstall && !repair && !manageInstalled) toggleApp(card.dataset.app);
+  if (openReport) openReportViewer(decodeURIComponent(openReport.dataset.openReport));
+  if (card && !uninstall && !repair && !manageInstalled && !officialLink) toggleApp(card.dataset.app);
   if (nav) showView(nav.dataset.view);
   if (event.target.closest("[data-focus-cleanup]")) {
     const target = event.target.closest("[data-focus-cleanup]").dataset.focusCleanup;
@@ -1510,6 +1910,20 @@ document.addEventListener("click", event => {
   if (quarantineAction) confirmQuarantineAction(quarantineAction.dataset.quarantineAction, decodeURIComponent(quarantineAction.dataset.batch), decodeURIComponent(quarantineAction.dataset.item));
   if (event.target.closest("[data-go-catalog]")) showView("catalog");
 });
+
+document.addEventListener("error", event => {
+  const image = event.target?.closest?.("img[data-image-fallback]");
+  if (!image) return;
+  const fallback = image.dataset.imageFallback || "APP";
+  const sibling = image.nextElementSibling;
+  image.hidden = true;
+  if (sibling?.classList.contains("app-icon-fallback")) {
+    sibling.textContent = fallback;
+    sibling.hidden = false;
+  } else if (image.parentElement) {
+    image.parentElement.textContent = fallback;
+  }
+}, true);
 
 document.addEventListener("change", event => {
   const update = event.target.closest("[data-update-id]");
@@ -1526,6 +1940,22 @@ $("#confirmInstall").addEventListener("click", beginInstall);
 $("#cancelInstall").addEventListener("click", closeInstallModal);
 $("#closeInstallModal").addEventListener("click", closeInstallModal);
 $("#finishInstall").addEventListener("click", closeInstallModal);
+$("#refreshInstallPreflight").addEventListener("click", requestInstallPreflight);
+$("#openInstallReport").addEventListener("click", () => openReportViewer(lastInstallReportName));
+$("#closeReportModal").addEventListener("click", closeReportViewer);
+$("#finishReport").addEventListener("click", closeReportViewer);
+$("#exportTechnicalReport").addEventListener("click", () => {
+  if (window.chrome?.webview && currentReportName) window.chrome.webview.postMessage({action:"export-report", payload:{name:currentReportName}});
+});
+$("#retryFailedInstall").addEventListener("click", () => {
+  if(!lastFailedInstallPackages.length)return;
+  selected=new Set(lastFailedInstallPackages);
+  save();renderApps();renderSelection();
+  $("#installProgressView").classList.add("hidden");
+  $("#installConfirmView").classList.remove("hidden");
+  $("#closeInstallModal").disabled=false;
+  requestInstallPreflight();
+});
 $("#closeGuidedInstall").addEventListener("click", closeGuidedInstall);
 $("#openVmwareGuide").addEventListener("click", () => openGuidedInstallLink("guide"));
 $("#continueVmwareDownload").addEventListener("click", () => openGuidedInstallLink("download"));
@@ -1533,6 +1963,10 @@ $("#confirmUninstall").addEventListener("click", beginUninstall);
 $("#cancelUninstall").addEventListener("click", closeUninstallModal);
 $("#closeUninstallModal").addEventListener("click", closeUninstallModal);
 $("#finishUninstall").addEventListener("click", closeUninstallModal);
+$("#keepUninstallResidues").addEventListener("click",()=>{$("#uninstallResiduePanel").classList.add("hidden");$("#finishUninstall").classList.remove("hidden");$("#uninstallSummary").textContent="Les dossiers résiduels ont été conservés.";pendingUninstallResidueToken="";setBackgroundUninstall("Désinstallation terminée","Les dossiers résiduels ont été conservés.",100,"complete");});
+$("#quarantineUninstallResidues").addEventListener("click",()=>{if(!pendingUninstallResidueToken||!window.chrome?.webview)return;$("#quarantineUninstallResidues").disabled=true;window.chrome.webview.postMessage({action:"quarantine-uninstall-residues",payload:{token:pendingUninstallResidueToken,context:"single"}});});
+$("#keepBatchResidues").addEventListener("click",()=>{$("#batchResiduePanel").classList.add("hidden");$("#finishBatchUninstall").classList.remove("hidden");$("#batchUninstallResult").textContent="Les dossiers résiduels ont été conservés.";pendingBatchResidueToken="";setBackgroundUninstall("Désinstallation terminée","Les dossiers résiduels ont été conservés.",100,"complete");});
+$("#quarantineBatchResidues").addEventListener("click",()=>{if(!pendingBatchResidueToken||!window.chrome?.webview)return;$("#quarantineBatchResidues").disabled=true;window.chrome.webview.postMessage({action:"quarantine-uninstall-residues",payload:{token:pendingBatchResidueToken,context:"batch"}});});
 $("#confirmRepair").addEventListener("click", beginRepair);
 $("#cancelRepair").addEventListener("click", closeRepairModal);
 $("#closeRepairModal").addEventListener("click", closeRepairModal);
@@ -1589,7 +2023,36 @@ $("#onboardingDots").addEventListener("click", event => { const dot=event.target
 $("#exportConfig").addEventListener("click", exportConfiguration);
 $("#importConfig").addEventListener("click", importConfiguration);
 $("#appUpdateBtn").addEventListener("click", openAppUpdateModal);
-$("#appUpdateNotification").addEventListener("click", openAppUpdateModal);
+$("#appUpdateNotification").addEventListener("click", event => { event.stopPropagation(); toggleNotificationCenter(); });
+$("#clearNotifications").addEventListener("click", () => {
+  notificationFeed.forEach(item => { item.unread = false; });
+  saveNotificationFeed(); renderNotificationFeed();
+});
+$("#notificationList").addEventListener("click", event => {
+  const item = event.target.closest("[data-notification-key]");
+  if (!item) return;
+  const notification = notificationFeed.find(entry => entry.key === item.dataset.notificationKey);
+  if (notification) {
+    notification.unread = false;
+    saveNotificationFeed();
+    renderNotificationFeed();
+  }
+  const action = item.dataset.notificationAction;
+  toggleNotificationCenter(false);
+  if (action === "self-update") openAppUpdateModal();
+  else if (action === "updates") showView("updates");
+  else if (action === "installed") showView("installed");
+  else if (action === "history") showView("history");
+  else if (action === "install-result") $("#installModal").classList.remove("hidden");
+});
+document.addEventListener("click", event => {
+  if (!event.target.closest("#notificationCenter") && !event.target.closest("#appUpdateNotification")) toggleNotificationCenter(false);
+});
+$("#hideInstallProgress").addEventListener("click", minimizeInstallProgress);
+$("#showInstallProgress").addEventListener("click", () => $("#installModal").classList.remove("hidden"));
+$("#hideUninstallProgress").addEventListener("click", () => minimizeUninstallProgress("single"));
+$("#hideBatchUninstallProgress").addEventListener("click", () => minimizeUninstallProgress("batch"));
+$("#showUninstallProgress").addEventListener("click", showUninstallProgress);
 $("#installAppUpdate").addEventListener("click", beginAppUpdate);
 $("#cancelAppUpdate").addEventListener("click", closeAppUpdateModal);
 $("#closeAppUpdate").addEventListener("click", closeAppUpdateModal);
@@ -1626,4 +2089,5 @@ $("#recommendedCleanup").addEventListener("click", () => {
 });
 $("#mobileMenu").addEventListener("click", () => document.body.classList.toggle("menu-open"));
 refreshProfiles(); renderFilters(); renderApps(); renderSelection();
+loadNotificationFeed();
 window.setTimeout(() => openOnboarding(false), 650);

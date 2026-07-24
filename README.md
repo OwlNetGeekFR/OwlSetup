@@ -52,19 +52,19 @@ Prérequis : Windows PowerShell, .NET Framework et [Inno Setup 6](https://jrsoft
 
 ```powershell
 ./build.ps1
-./build-installer.ps1 -Version 3.5.1
+./build-installer.ps1 -Version 3.6.0
 ```
 
 Pour préparer tous les fichiers d’une version stable sans les publier :
 
 ```powershell
-./build-stable.ps1 -Version 3.5.1
+./build-stable.ps1 -Version 3.6.0
 ```
 
 Pour produire une bêta locale clairement identifiée :
 
 ```powershell
-./build-beta.ps1 -Version "3.5.2-beta.1"
+./build-beta.ps1 -Version "3.6.1-beta.1"
 ```
 
 Les constructions locales sont placées dans `artifacts/` et ne sont pas suivies par Git.

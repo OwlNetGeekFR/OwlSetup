@@ -79,8 +79,12 @@ if ("components" -in $choices) {
 }
 if ("app-leftovers" -in $choices) {
     Write-Output "PCSETUP_STAGE|app-leftovers|Résidus d'applications désinstallées"
-    if ($Integrated) { & (Join-Path $PSScriptRoot "Nettoyer-residus-applications.ps1") -Integrated }
-    else { & (Join-Path $PSScriptRoot "Nettoyer-residus-applications.ps1") }
+    if ($Integrated) {
+        Write-Warning "Le balayage automatique large des dossiers AppData est désactivé pour votre sécurité. Utilisez la désinstallation ciblée d'OwlSetup : chaque résidu y est présenté avant sa mise en quarantaine."
+    }
+    else {
+        & (Join-Path $PSScriptRoot "Nettoyer-residus-applications.ps1")
+    }
 }
 
 $drive = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"

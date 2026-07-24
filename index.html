@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';" />
   <title>OwlSetup — Installateur Windows</title>
   <link rel="icon" href="assets/branding/owlsetup-logo.png" />
   <link rel="stylesheet" href="styles.css" />
@@ -22,12 +23,12 @@
       <button class="nav-item" data-view="home"><span>⌂</span> Accueil</button>
       <button class="nav-item active" data-view="catalog"><span>▦</span> Installer des logiciels</button>
       <button class="nav-item" data-view="installed"><span>▣</span> Applications installées <b id="installedNavCount">0</b></button>
-      <button class="nav-item" data-view="updates"><span>↥</span> Tout mettre à jour <b class="new-badge">NEW</b></button>
+      <button class="nav-item" data-view="updates"><span>↥</span> Tout mettre à jour <b class="new-badge hidden" id="updatesNavBadge">0</b></button>
       <button class="nav-item" data-view="cleanup"><span>◇</span> Libérer de l'espace</button>
       <button class="nav-item" data-view="quarantine"><span>♲</span> Quarantaine <b id="quarantineNavCount">0</b></button>
-      <button class="nav-item" data-view="tools"><span>⚙</span> Outils système <b class="new-badge">NEW</b></button>
-      <button class="nav-item" data-view="security"><span>♢</span> Centre de sécurité <b class="new-badge">NEW</b></button>
-      <button class="nav-item" data-view="troubleshooting"><span>?</span> Dépannage <b class="new-badge">NEW</b></button>
+      <button class="nav-item" data-view="tools"><span>⚙</span> Outils système <b class="new-badge hidden" id="toolsNavBadge">!</b></button>
+      <button class="nav-item" data-view="security"><span>♢</span> Centre de sécurité <b class="new-badge hidden" id="securityNavBadge">0</b></button>
+      <button class="nav-item" data-view="troubleshooting"><span>?</span> Dépannage <b class="new-badge hidden" id="troubleshootingNavBadge">0</b></button>
       <button class="nav-item" data-view="queue"><span>↓</span> Ma sélection <b id="navCount">0</b></button>
       <button class="nav-item" data-view="history"><span>↻</span> Guide d'installation</button>
     </nav>
@@ -48,7 +49,7 @@
       <div class="breadcrumb">OwlSetup <span>/</span> <b id="currentView">Installer des logiciels</b></div>
       <div class="topbar-actions">
         <a class="top-support" href="https://ko-fi.com/owlsetup" target="_blank" rel="noopener" aria-label="Soutenir OwlSetup sur Ko-fi" title="Don facultatif sur Ko-fi"><span>♡</span><strong>Soutenir</strong></a>
-        <button class="update-notification" id="appUpdateNotification" aria-label="Vérifier les mises à jour de OwlSetup" title="OwlSetup est à jour"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+        <button class="update-notification" id="appUpdateNotification" aria-label="Ouvrir les notifications" title="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i><b id="notificationCount" class="hidden">0</b></button>
         <div class="secure"><span>✓</span> Sources vérifiées</div>
       </div>
     </header>
@@ -129,7 +130,11 @@
         </div>
         <div class="custom-tools">
           <div class="custom-install"><div><span class="label">PAQUET PERSONNALISÉ</span><strong>Installer un identifiant WinGet</strong></div><input id="customPackageId" placeholder="Exemple : Microsoft.PowerToys" spellcheck="false"><button class="primary-dialog-button" id="installCustomPackage">Ajouter</button></div>
-          <div class="profile-tools"><input id="profileName" placeholder="Nom du profil"><button class="secondary-dialog-button" id="saveProfile">Enregistrer le profil</button><select id="savedProfiles"><option value="">Profils enregistrés</option></select><button class="secondary-dialog-button" id="loadProfile">Charger</button></div>
+          <details class="profile-panel">
+            <summary><span><small>OPTION FACULTATIVE</small><strong>Profils de sélection</strong></span><b>Afficher</b></summary>
+            <p>Un profil mémorise votre sélection pour la réutiliser plus tard ou préparer un autre PC. Il n’est pas nécessaire pour installer des logiciels maintenant.</p>
+            <div class="profile-tools"><input id="profileName" placeholder="Exemple : Nouveau PC"><button class="secondary-dialog-button" id="saveProfile">Enregistrer</button><select id="savedProfiles" aria-label="Profils enregistrés"><option value="">Choisir un profil</option></select><button class="secondary-dialog-button" id="loadProfile">Charger</button></div>
+          </details>
         </div>
         <div class="installed-manager hidden" id="installedManager"><div><strong id="managedCount">0 logiciel sélectionné</strong><small>Ouvrez le filtre « Installés », puis cliquez sur les cartes à désinstaller.</small></div><div class="installed-manager-actions"><button class="secondary-dialog-button" id="selectAllInstalled">Tout sélectionner</button><button class="secondary-dialog-button" id="clearInstalledSelection" disabled>Effacer</button><button class="danger-dialog-button" id="batchUninstallBtn" disabled>× Désinstaller la sélection</button></div></div>
         <div class="catalog-tools">
@@ -399,16 +404,27 @@
       <div class="dialog-header"><span class="dialog-logo">↓</span><div><span class="label">INSTALLATION GROUPÉE</span><h2 id="installModalTitle">Prêt à installer</h2></div><button class="dialog-close" id="closeInstallModal" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm" id="installConfirmView">
         <p><strong id="modalAppCount">0 logiciel</strong> seront installés depuis les sources officielles winget.</p>
+        <div class="install-preflight" id="installPreflight" aria-live="polite">
+          <div class="preflight-heading"><div><span class="label">DIAGNOSTIC AVANT INSTALLATION</span><strong id="preflightTitle">Vérification en attente</strong></div><button class="secondary-dialog-button" id="refreshInstallPreflight" type="button">↻ Relancer</button></div>
+          <div class="preflight-grid" id="preflightGrid">
+            <span data-preflight="winget"><i>…</i><b>WinGet</b><small>En attente</small></span>
+            <span data-preflight="disk"><i>…</i><b>Espace disque</b><small>En attente</small></span>
+            <span data-preflight="system"><i>…</i><b>Compatibilité</b><small>En attente</small></span>
+            <span data-preflight="packages"><i>…</i><b>Paquets</b><small>En attente</small></span>
+          </div>
+        </div>
         <div class="dialog-checks"><span>✓ Téléchargement automatique</span><span>✓ Installation silencieuse</span><span>✓ Rapport rangé dans OwlSetup</span></div>
         <div class="install-preferences"><label for="installShortcutLocation"><span>Emplacement du raccourci</span><select id="installShortcutLocation"><option value="start">Menu Démarrer — recommandé</option><option value="desktop">Bureau</option><option value="both">Menu Démarrer et Bureau</option><option value="none">Aucun raccourci supplémentaire</option></select></label><label class="launch-after hidden" id="launchAfterOption"><input type="checkbox" id="launchAfterInstall"><span>Lancer l’application après l’installation</span></label><small id="portableInstallNotice">Les fichiers restent dans le dossier sécurisé choisi par WinGet ou l’éditeur.</small></div>
         <div class="dialog-warning"><span>i</span> Fermez les applications concernées avant de continuer.</div>
-        <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelInstall">Annuler</button><button class="primary-dialog-button" id="confirmInstall"><span>▶</span> Commencer l'installation</button></div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelInstall">Annuler</button><button class="primary-dialog-button" id="confirmInstall" disabled><span>▶</span> Commencer l'installation</button></div>
       </div>
       <div class="dialog-progress hidden" id="installProgressView">
         <div class="progress-status"><span class="pulse-dot"></span><div><strong id="progressTitle">Préparation...</strong><small id="progressDetail">Initialisation de winget</small></div><b id="progressPercent">0%</b></div>
         <div class="progress-track"><i id="progressBar"></i></div>
         <div class="current-package"><span class="package-icon">↓</span><div><small>LOGICIEL EN COURS</small><strong id="currentPackage">En attente...</strong></div><span id="packageResult">—</span></div>
         <div class="progress-summary" id="progressSummary">Ne fermez pas OwlSetup pendant l'installation.</div>
+        <div class="install-result-actions" id="installBackgroundActions"><button class="secondary-dialog-button" id="hideInstallProgress" type="button">Continuer en arrière-plan</button></div>
+        <div class="install-result-actions hidden" id="installResultActions"><button class="secondary-dialog-button" id="openInstallReport" type="button">Ouvrir le rapport</button><button class="primary-dialog-button" id="retryFailedInstall" type="button">↻ Réessayer les échecs</button></div>
         <button class="primary-dialog-button hidden" id="finishInstall">Terminer</button>
       </div>
     </div>
@@ -501,6 +517,7 @@
         <div class="simulation-badge danger-simulation"><span>⌕</span><div><strong>APERÇU SANS SUPPRESSION</strong><small>Vérifiez la liste avant de lancer l’opération réelle</small></div></div>
         <p><strong id="batchUninstallCount">0 logiciel</strong> seront désinstallés l’un après l’autre.</p>
         <div class="batch-uninstall-list" id="batchUninstallList"></div>
+        <label class="uninstall-residue-choice"><input type="checkbox" id="batchCleanupResidues" checked><span><strong>Rechercher les dossiers résiduels après chaque désinstallation</strong><small>Une liste groupée sera affichée avant la mise en quarantaine.</small></span></label>
         <div class="dialog-warning danger-dialog-warning"><span>!</span> Les logiciels ouverts peuvent demander à être fermés. Les applications déjà retirées de Windows seront simplement signalées « à vérifier ».</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelBatchUninstall">Conserver les logiciels</button><button class="danger-dialog-button" id="confirmBatchUninstall"><span>×</span> Désinstaller la sélection</button></div>
       </div>
@@ -509,6 +526,8 @@
         <div class="progress-track danger-track"><i id="batchUninstallProgressBar"></i></div>
         <div class="batch-uninstall-current"><span>×</span><div><small>LOGICIEL EN COURS</small><strong id="batchUninstallCurrent">En attente...</strong></div><b id="batchUninstallPosition">—</b></div>
         <div class="batch-uninstall-result" id="batchUninstallResult">0 réussi · 0 à vérifier</div>
+        <div class="install-result-actions" id="batchUninstallBackgroundActions"><button class="secondary-dialog-button" id="hideBatchUninstallProgress" type="button">Continuer en arrière-plan</button></div>
+        <div class="uninstall-residue-panel hidden" id="batchResiduePanel"><div><span class="label">RÉSIDUS DE LA SÉLECTION</span><strong id="batchResidueTitle">Vérifiez les dossiers trouvés</strong><small>Ils resteront récupérables depuis la quarantaine.</small></div><div class="uninstall-residue-list" id="batchResidueList"></div><div class="dialog-actions"><button class="secondary-dialog-button" id="keepBatchResidues" type="button">Conserver les dossiers</button><button class="danger-dialog-button" id="quarantineBatchResidues" type="button">Placer en quarantaine</button></div></div>
         <button class="primary-dialog-button hidden" id="finishBatchUninstall">Terminer</button>
       </div>
     </div>
@@ -521,6 +540,7 @@
         <p>Vous êtes sur le point de désinstaller <strong id="uninstallAppName"></strong>.</p>
         <div class="simulation-badge danger-simulation"><span>⌕</span><div><strong>SIMULATION AVANT DÉSINSTALLATION</strong><small id="uninstallSimulationStatus">Vérification du paquet et de ses accès...</small></div></div>
         <div class="uninstall-preview" id="uninstallPreview"><div><span>Paquet</span><b id="uninstallPreviewPackage">—</b></div><div><span>Type</span><b id="uninstallPreviewScope">—</b></div><div><span>Raccourcis gérés</span><b id="uninstallPreviewShortcuts">—</b></div></div>
+        <label class="uninstall-residue-choice"><input type="checkbox" id="uninstallCleanupResidues" checked><span><strong>Rechercher les dossiers résiduels après la désinstallation</strong><small>Les éléments trouvés seront affichés avant leur placement en quarantaine réversible.</small></span></label>
         <div class="dialog-warning danger-dialog-warning"><span>!</span> Les réglages locaux du logiciel peuvent également être supprimés.</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelUninstall">Annuler</button><button class="danger-dialog-button" id="confirmUninstall"><span>×</span> Désinstaller</button></div>
       </div>
@@ -528,10 +548,46 @@
         <div class="progress-status"><span class="pulse-dot danger-pulse"></span><div><strong id="uninstallProgressTitle">Désinstallation en cours</strong><small id="uninstallProgressDetail">Veuillez patienter...</small></div></div>
         <div class="progress-track danger-track"><i id="uninstallProgressBar"></i></div>
         <div class="progress-summary" id="uninstallSummary">Ne fermez pas OwlSetup pendant l'opération.</div>
+        <div class="install-result-actions" id="uninstallBackgroundActions"><button class="secondary-dialog-button" id="hideUninstallProgress" type="button">Continuer en arrière-plan</button></div>
+        <div class="uninstall-residue-panel hidden" id="uninstallResiduePanel"><div><span class="label">DOSSIERS RÉSIDUELS DÉTECTÉS</span><strong id="uninstallResidueTitle">Vérifiez les éléments trouvés</strong><small>Ils peuvent contenir des préférences, profils ou sauvegardes. Rien n’est supprimé sans votre accord.</small></div><div class="uninstall-residue-list" id="uninstallResidueList"></div><div class="dialog-actions"><button class="secondary-dialog-button" id="keepUninstallResidues" type="button">Conserver les dossiers</button><button class="danger-dialog-button" id="quarantineUninstallResidues" type="button">Placer en quarantaine</button></div></div>
         <button class="primary-dialog-button hidden" id="finishUninstall">Terminer</button>
       </div>
     </div>
   </div>
+
+  <div class="install-modal hidden" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportViewerTitle">
+    <div class="install-dialog report-dialog">
+      <div class="dialog-glow report-dialog-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo report-dialog-logo">▤</span><div><span class="label">RAPPORT D’OPÉRATION</span><h2 id="reportViewerTitle">Détails de l’installation</h2></div><button class="dialog-close" id="closeReportModal" aria-label="Fermer">×</button></div>
+      <div class="report-body">
+        <section class="report-hero" id="reportHero"><span id="reportHeroIcon">✓</span><div><strong id="reportHeroTitle">Opération terminée</strong><small id="reportHeroDetail">Chargement du rapport...</small></div></section>
+        <div class="report-summary-grid"><article><small>RÉUSSIES</small><strong id="reportSuccessCount">0</strong></article><article><small>À VÉRIFIER</small><strong id="reportFailedCount">0</strong></article><article><small>TOTAL</small><strong id="reportTotalCount">0</strong></article></div>
+        <div class="report-meta" id="reportMeta"></div>
+        <div class="report-section-head"><div><span class="label">RÉSULTATS</span><strong>Applications traitées</strong></div><span id="reportFileName"></span></div>
+        <div class="report-items" id="reportItems"></div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="exportTechnicalReport" type="button">Ouvrir le JSON dans le Bloc-notes</button><button class="primary-dialog-button" id="finishReport" type="button">Terminer</button></div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="notification-center hidden" id="notificationCenter" aria-label="Centre de notifications">
+    <div class="notification-center-head"><div><span class="label">ACTIVITÉ OWLSETUP</span><strong>Notifications</strong></div><button id="clearNotifications" type="button">Tout marquer comme lu</button></div>
+    <div class="notification-list" id="notificationList"><div class="notification-empty"><span>✓</span><strong>Tout est calme</strong><small>Les mises à jour et installations apparaîtront ici.</small></div></div>
+  </aside>
+
+  <section class="background-operation hidden" id="backgroundInstall" aria-live="polite">
+    <span class="background-operation-icon">↓</span>
+    <div class="background-operation-copy"><small>INSTALLATION EN ARRIÈRE-PLAN</small><strong id="backgroundInstallTitle">Préparation...</strong><span id="backgroundInstallDetail">Vous pouvez continuer à utiliser OwlSetup.</span><i><b id="backgroundInstallBar"></b></i></div>
+    <em id="backgroundInstallPercent">0%</em>
+    <button id="showInstallProgress" type="button">Afficher</button>
+  </section>
+
+  <section class="background-operation background-uninstall hidden" id="backgroundUninstall" aria-live="polite">
+    <span class="background-operation-icon">×</span>
+    <div class="background-operation-copy"><small>DÉSINSTALLATION EN ARRIÈRE-PLAN</small><strong id="backgroundUninstallTitle">Préparation...</strong><span id="backgroundUninstallDetail">Vous pouvez continuer à utiliser OwlSetup.</span><i><b id="backgroundUninstallBar"></b></i></div>
+    <em id="backgroundUninstallPercent">0%</em>
+    <button id="showUninstallProgress" type="button">Afficher</button>
+  </section>
 
   <div class="toast" id="toast" role="status"><span>✓</span><div><strong id="toastTitle">Ajouté à la sélection</strong><small id="toastText"></small></div></div>
   <script src="app.js"></script>

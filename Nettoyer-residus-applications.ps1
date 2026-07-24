@@ -1,4 +1,8 @@
 param([switch]$Integrated)
+
+if ($Integrated) {
+    throw "Le nettoyage intégré sans validation individuelle est désactivé. Utilisez la désinstallation ciblée d'OwlSetup."
+}
 # OwlSetup - Residus d'applications desinstallees
 # Les dossiers retenus sont deplaces en quarantaine, jamais supprimes directement.
 $ErrorActionPreference = "Continue"
@@ -57,7 +61,7 @@ foreach ($root in $roots) {
                 if (-not $match) {
                     Write-Host "`nCandidat ancien : $($folder.FullName)" -ForegroundColor Cyan
                     Write-Host "Derniere modification : $($folder.LastWriteTime)"
-                    $answer = if ($Integrated) { "OUI" } else { Read-Host "Deplacer en quarantaine ? Tapez OUI" }
+                    $answer = Read-Host "Deplacer en quarantaine ? Tapez OUI"
                     if ($answer -eq "OUI") {
                         New-Item -ItemType Directory -Path $quarantine -Force | Out-Null
                         $destination = Join-Path $quarantine ((Split-Path $root -Leaf) + "-" + $folder.Name)
