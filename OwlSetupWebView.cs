@@ -39,6 +39,18 @@ internal sealed class WebAppForm : Form
     readonly Dictionary<string,DateTime> cleanupSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,DateTime> uninstallSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,DateTime> batchUninstallSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string,List<ResidueCandidate>> uninstallResidueSimulations=new Dictionary<string,List<ResidueCandidate>>(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string,DateTime> uninstallResidueExpirations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
+
+    sealed class ResidueCandidate
+    {
+        public string Path;
+        public string RootType;
+        public string Name;
+        public string Display;
+        public long Bytes;
+        public long Files;
+    }
 
     public WebAppForm()
     {
@@ -68,6 +80,9 @@ internal sealed class WebAppForm : Form
             webView.CoreWebView2.Settings.AreHostObjectsAllowed = false;
             webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
             webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            webView.CoreWebView2.PermissionRequested += delegate(object s, CoreWebView2PermissionRequestedEventArgs args) {
+                args.State = CoreWebView2PermissionState.Deny;
+            };
             webView.CoreWebView2.SetVirtualHostNameToFolderMapping("pcsetup.local", appRoot, CoreWebView2HostResourceAccessKind.DenyCors);
             webView.CoreWebView2.WebMessageReceived += OnWebMessage;
             webView.CoreWebView2.NewWindowRequested += delegate(object s, CoreWebView2NewWindowRequestedEventArgs args) {
@@ -96,7 +111,7 @@ internal sealed class WebAppForm : Form
     {
         Uri uri;
         if (!Uri.TryCreate(address, UriKind.Absolute, out uri)) return;
-        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
+        if (uri.Scheme != Uri.UriSchemeHttps) return;
         Process.Start(new ProcessStartInfo { FileName=uri.AbsoluteUri, UseShellExecute=true });
     }
 
@@ -135,6 +150,7 @@ internal sealed class WebAppForm : Form
         try
         {
             if(!IsTrustedUiUri(e.Source) || !VerifyInterfaceIntegrity())throw new UnauthorizedAccessException("Commande refusee : origine ou integrite de l'interface invalide.");
+            if(String.IsNullOrEmpty(e.WebMessageAsJson) || e.WebMessageAsJson.Length>1024*1024)throw new InvalidDataException("Commande trop volumineuse ou vide.");
             var message = json.DeserializeObject(e.WebMessageAsJson) as Dictionary<string, object>;
             if (message == null || !message.ContainsKey("action")) throw new InvalidOperationException("Commande invalide.");
             string action = Convert.ToString(message["action"]);
@@ -146,9 +162,11 @@ internal sealed class WebAppForm : Form
             else if (action == "scan-health") ScanHealth();
             else if (action == "scan-updates") ScanUpdates();
             else if (action == "install") RunInstall(payload);
+            else if (action == "preflight-install") RunInstallPreflight(payload);
             else if (action == "scan-installed") ScanInstalled(payload);
             else if (action == "repair") RunRepair(payload);
             else if (action == "uninstall") RunUninstall(payload);
+            else if (action == "quarantine-uninstall-residues") QuarantineUninstallResidues(payload);
             else if (action == "simulate-uninstall") SimulateUninstall(payload);
             else if (action == "batch-uninstall") RunBatchUninstall(payload);
             else if (action == "simulate-batch-uninstall") SimulateBatchUninstall(payload);
@@ -161,6 +179,8 @@ internal sealed class WebAppForm : Form
             else if (action == "open-system-restore") OpenSystemRestore();
             else if (action == "load-history") LoadHistory();
             else if (action == "open-log") OpenLog(payload);
+            else if (action == "open-report") OpenReport(payload);
+            else if (action == "export-report") ExportReport(payload);
             else if (action == "open-log-folder") OpenLogFolder();
             else if (action == "feedback-diagnostics") SendFeedbackDiagnostics();
             else if (action == "scan-startup") ScanStartup();
@@ -180,6 +200,57 @@ internal sealed class WebAppForm : Form
         }
     }
 
+    void RunInstallPreflight(Dictionary<string,object> payload)
+    {
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(100).ToArray();
+        long requestId=payload!=null&&payload.ContainsKey("requestId")?Convert.ToInt64(payload["requestId"]):0;
+        if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide n'est sélectionné.");
+        Task.Run(delegate {
+            bool wingetReady=false,diskReady=false,systemReady=false,packagesReady=false;
+            var unavailable=new List<string>();
+            try
+            {
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="winget",state="checking",title="Contrôle de WinGet",detail="Version et disponibilité..."});
+                var wingetOutput=new StringBuilder();
+                int wingetCode=RunHiddenProcess("winget.exe","--version",wingetOutput);
+                wingetReady=wingetCode==0;
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="winget",state=wingetReady?"success":"failed",title="Contrôle de WinGet",detail=wingetReady?wingetOutput.ToString().Trim():"WinGet est indisponible"});
+
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="disk",state="checking",title="Contrôle du stockage",detail="Espace libre sur Windows..."});
+                string root=Path.GetPathRoot(Environment.SystemDirectory);
+                long freeBytes=new DriveInfo(root).AvailableFreeSpace;
+                diskReady=freeBytes>=1024L*1024L*1024L;
+                string diskState=diskReady?(freeBytes<5L*1024L*1024L*1024L?"warning":"success"):"failed";
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="disk",state=diskState,title="Contrôle du stockage",detail=FormatBytes(freeBytes)+" libres"});
+
+                systemReady=Environment.Is64BitOperatingSystem;
+                bool restart=IsRestartPending();
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="system",state=systemReady?(restart?"warning":"success"):"failed",title="Compatibilité Windows",detail=systemReady?(restart?"64 bits · redémarrage conseillé":"Windows 64 bits compatible"):"Windows 64 bits requis"});
+
+                if(wingetReady)
+                {
+                    for(int i=0;i<packages.Length;i++)
+                    {
+                        string id=packages[i];
+                        SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="packages",state="checking",title="Contrôle des paquets",detail=(i+1)+" / "+packages.Length+" · "+id});
+                        var output=new StringBuilder();
+                        int code=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",output);
+                        if(code!=0)unavailable.Add(id);
+                    }
+                }
+                else unavailable.AddRange(packages);
+                packagesReady=unavailable.Count==0;
+                SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="packages",state=packagesReady?"success":"failed",title="Contrôle terminé",detail=packagesReady?packages.Length+" paquet(s) disponible(s)":unavailable.Count+" paquet(s) introuvable(s)"});
+                bool ready=wingetReady&&diskReady&&systemReady&&packagesReady;
+                SendToWeb(new {type="install-preflight-complete",requestId=requestId,ready=ready,failedPackages=unavailable.ToArray(),message=ready?"":"Corrigez les éléments signalés ou retirez les paquets indisponibles."});
+            }
+            catch(Exception ex)
+            {
+                SendToWeb(new {type="install-preflight-complete",requestId=requestId,ready=false,failedPackages=unavailable.ToArray(),message=ex.Message});
+            }
+        });
+    }
+
     void RunInstall(Dictionary<string, object> payload)
     {
         var packages = ReadArray(payload, "packages").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9.+_-]+$")).Distinct().Take(100).ToArray();
@@ -197,8 +268,12 @@ internal sealed class WebAppForm : Form
         SendToWeb(new { type="install-start", total=packages.Length });
         Task.Run(delegate {
             int success=0, failed=0;
+            var failedPackages=new List<string>();
+            var itemResults=new List<Dictionary<string,object>>();
             var report=new StringBuilder();
-            string logName="PC-Setup-Installation-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
+            string operationId="PC-Setup-Installation-"+DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
+            string logName=operationId+".log";
+            string reportName=operationId+".json";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             try
             {
@@ -210,13 +285,15 @@ internal sealed class WebAppForm : Form
                     SendToWeb(new { type="install-progress", index=i+1, total=packages.Length, id=id });
                     report.AppendLine(); report.AppendLine("===== "+id+" =====");
                     var preflight=new StringBuilder();
-                    int showCode=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact --accept-source-agreements --disable-interactivity",preflight);
+                    int showCode=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",preflight);
                     report.AppendLine("Contrôle du manifeste et de la source : "+(showCode==0?"OK":"ÉCHEC"));
                     report.Append(preflight.ToString());
                     SendToWeb(new { type="install-security", index=i+1, total=packages.Length, id=id, success=showCode==0 });
                     if(showCode!=0)
                     {
                         failed++;
+                        failedPackages.Add(id);
+                        itemResults.Add(new Dictionary<string,object>{{"id",id},{"name",catalog.ContainsKey(id)?catalog[id]:id},{"success",false},{"code",showCode},{"stage","preflight"},{"message",ExplainWingetFailure(showCode,preflight.ToString(),"installation")}});
                         SendToWeb(new { type="install-item", index=i+1, total=packages.Length, id=id, success=false, code=showCode, errorMessage=ExplainWingetFailure(showCode,preflight.ToString(),"installation") });
                         continue;
                     }
@@ -233,7 +310,8 @@ internal sealed class WebAppForm : Form
                         SaveApplicationName(id,appName);
                         if(launchAfter && packages.Length==1)LaunchInstalledApplication(id,appName,portablePackages.Contains(id),report);
                     }
-                    if(ok)success++;else failed++;
+                    if(ok)success++;else{failed++;failedPackages.Add(id);}
+                    itemResults.Add(new Dictionary<string,object>{{"id",id},{"name",appName},{"success",ok},{"code",code},{"stage","install"},{"message",ok?"Installation réussie":ExplainWingetFailure(code,operationOutput,"installation")}});
                     report.AppendLine("Code de sortie : "+code);
                     SendToWeb(new { type="install-item", index=i+1, total=packages.Length, id=id, success=ok, code=code, errorMessage=ok?"":ExplainWingetFailure(code,operationOutput,"installation") });
                 }
@@ -246,16 +324,34 @@ internal sealed class WebAppForm : Form
             finally
             {
                 try { File.WriteAllText(logPath,report.ToString(),Encoding.UTF8); } catch { }
+                try { WriteOperationReport(reportName,"installation",success,failed,itemResults); } catch { }
                 installationRunning=false;
-                SendToWeb(new { type="install-complete", success=success, failed=failed, logName=logName });
+                SendToWeb(new { type="install-complete", success=success, failed=failed, failedPackages=failedPackages.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(), logName=logName, reportName=reportName });
             }
         });
+    }
+
+    void WriteOperationReport(string reportName,string operation,int success,int failed,List<Dictionary<string,object>> items)
+    {
+        var payload=new Dictionary<string,object>
+        {
+            {"schema","https://owlnetgeek.fr/schemas/owlsetup-operation-report-v1.json"},
+            {"schemaVersion",1},
+            {"owlSetupVersion",BuildInfo.DisplayVersion},
+            {"channel",BuildInfo.Channel},
+            {"operation",operation},
+            {"createdAtUtc",DateTime.UtcNow.ToString("o")},
+            {"environment",new Dictionary<string,object>{{"windows",Environment.OSVersion.VersionString},{"architecture",Environment.Is64BitOperatingSystem?"x64":"x86"}}},
+            {"summary",new Dictionary<string,object>{{"success",success},{"failed",failed},{"total",success+failed}}},
+            {"items",items}
+        };
+        File.WriteAllText(Path.Combine(GetDataFolder("Reports"),reportName),new JavaScriptSerializer().Serialize(payload),Encoding.UTF8);
     }
 
     int RunWinget(string packageId, StringBuilder report)
     {
         string scope=String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase)?" --scope machine":String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)?" --scope user":"";
-        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+scope+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+scope+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
         if(code!=0 && (String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase) || String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)))
         {
             report.AppendLine();
@@ -263,6 +359,11 @@ internal sealed class WebAppForm : Form
             code=InstallSignedPublisherFallback(packageId,report);
         }
         return code;
+    }
+
+    string WingetSourceArgument(string packageId)
+    {
+        return String.Equals(packageId,"9NT1R1C2HH7J",StringComparison.OrdinalIgnoreCase)?" --source msstore":" --source winget";
     }
 
     bool EnsurePortableShortcut(string packageId,StringBuilder report)
@@ -633,15 +734,17 @@ internal sealed class WebAppForm : Form
         try{if(File.Exists(alias))return alias;}catch{}
         try
         {
-            string path=Environment.GetEnvironmentVariable("PATH")??"";
-            foreach(string folder in path.Split(Path.PathSeparator))
+            string windowsApps=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"WindowsApps");
+            if(Directory.Exists(windowsApps))
             {
-                if(String.IsNullOrWhiteSpace(folder))continue;
-                string candidate=Path.Combine(folder.Trim(),"winget.exe");
-                if(File.Exists(candidate))return candidate;
+                foreach(string package in Directory.GetDirectories(windowsApps,"Microsoft.DesktopAppInstaller_*__8wekyb3d8bbwe",SearchOption.TopDirectoryOnly).OrderByDescending(Directory.GetLastWriteTimeUtc))
+                {
+                    string candidate=Path.Combine(package,"winget.exe");
+                    if(File.Exists(candidate) && !IsReparsePoint(candidate))return candidate;
+                }
             }
         }catch{}
-        return "winget.exe";
+        throw new FileNotFoundException("WinGet officiel est introuvable. Installez ou réparez App Installer depuis Microsoft Store.");
     }
 
     void ScanInstalled(Dictionary<string, object> payload)
@@ -902,7 +1005,10 @@ internal sealed class WebAppForm : Form
     void RunUninstall(Dictionary<string, object> payload)
     {
         string packageId=payload != null && payload.ContainsKey("id") ? Convert.ToString(payload["id"]) : "";
+        bool scanResidues=payload != null && payload.ContainsKey("scanResidues") && Convert.ToBoolean(payload["scanResidues"]);
         if(!Regex.IsMatch(packageId,"^[A-Za-z0-9.+_-]+$")) throw new InvalidOperationException("Logiciel invalide.");
+        string appName=payload != null && payload.ContainsKey("name") ? Convert.ToString(payload["name"]) : LoadApplicationName(packageId);
+        if(String.IsNullOrWhiteSpace(appName)||appName.Length>120)appName=LoadApplicationName(packageId);
         if(!ConsumeUninstallSimulation(packageId))throw new InvalidOperationException("La simulation de désinstallation est absente ou expirée. Relancez l'aperçu.");
         if(uninstallRunning) throw new InvalidOperationException("Une désinstallation est déjà en cours.");
         if(installationRunning || repairRunning || updateRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
@@ -914,6 +1020,8 @@ internal sealed class WebAppForm : Form
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             int code=-1;
             bool success=false;
+            var residues=new List<ResidueCandidate>();
+            string residueToken="";
             try
             {
                 report.AppendLine("OWLSETUP - RAPPORT DE DESINSTALLATION");
@@ -933,7 +1041,23 @@ internal sealed class WebAppForm : Form
                     report.AppendLine("Le logiciel n'est plus detecte malgre le code de sortie retourne.");
                     success=true;
                 }
-                if(success)RemoveManagedShortcuts(packageId,report);
+                if(success)
+                {
+                    RemoveManagedShortcuts(packageId,report);
+                    if(scanResidues)
+                    {
+                        residues=FindUninstallResidues(packageId,appName,report);
+                        if(residues.Count>0)
+                        {
+                            residueToken=Guid.NewGuid().ToString("N");
+                            lock(uninstallResidueSimulations)
+                            {
+                                uninstallResidueSimulations[residueToken]=residues;
+                                uninstallResidueExpirations[residueToken]=DateTime.UtcNow.AddMinutes(10);
+                            }
+                        }
+                    }
+                }
                 report.AppendLine();
                 report.AppendLine("Code de sortie : "+code);
             }
@@ -946,7 +1070,91 @@ internal sealed class WebAppForm : Form
             {
                 try { File.WriteAllText(logPath,report.ToString(),Encoding.UTF8); } catch { }
                 uninstallRunning=false;
-                SendToWeb(new { type="uninstall-complete", id=packageId, success=success, code=code, errorMessage=success?"":ExplainWingetFailure(code,report.ToString(),"desinstallation"), logName=logName });
+                SendToWeb(new { type="uninstall-complete", id=packageId, success=success, code=code, errorMessage=success?"":ExplainWingetFailure(code,report.ToString(),"desinstallation"), logName=logName, residueToken=residueToken, residueSize=FormatBytes(residues.Sum(item=>item.Bytes)), residues=residues.Select(item=>new {name=item.Name,display=item.Display,size=FormatBytes(item.Bytes),files=item.Files}).ToArray() });
+            }
+        });
+    }
+
+    List<ResidueCandidate> FindUninstallResidues(string packageId,string appName,StringBuilder report)
+    {
+        var targets=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach(string value in new[]{appName,packageId.Split('.').LastOrDefault()??""})
+        {
+            string normalized=NormalizeResidueName(value);
+            if(normalized.Length>=5&&!IsGenericResidueName(normalized))targets.Add(normalized);
+        }
+        var results=new List<ResidueCandidate>();
+        foreach(var rootInfo in new[]{new {Path=Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),Type="Local",Label="%LOCALAPPDATA%"},new {Path=Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),Type="Roaming",Label="%APPDATA%"}})
+        {
+            if(!Directory.Exists(rootInfo.Path)||IsReparsePoint(rootInfo.Path))continue;
+            foreach(string folder in Directory.GetDirectories(rootInfo.Path,"*",SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    if(IsReparsePoint(folder)||!targets.Contains(NormalizeResidueName(Path.GetFileName(folder))))continue;
+                    long bytes,files;MeasurePath(folder,out bytes,out files);
+                    results.Add(new ResidueCandidate{Path=folder,RootType=rootInfo.Type,Name=Path.GetFileName(folder),Display=rootInfo.Label+"\\"+Path.GetFileName(folder),Bytes=bytes,Files=files});
+                    report.AppendLine("Résidu proposé : "+rootInfo.Label+"\\"+Path.GetFileName(folder)+" ("+FormatBytes(bytes)+")");
+                }
+                catch(Exception ex){report.AppendLine("Analyse de résidu ignorée : "+ex.Message);}
+            }
+        }
+        return results.GroupBy(item=>item.Path,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).Take(20).ToList();
+    }
+
+    string NormalizeResidueName(string value)
+    {
+        return Regex.Replace((value??"").ToLowerInvariant(),"[^a-z0-9]","");
+    }
+
+    bool IsGenericResidueName(string value)
+    {
+        return new[]{"application","applications","desktop","client","runtime","launcher","setup","installer","update","windows","microsoft"}.Contains(value);
+    }
+
+    void QuarantineUninstallResidues(Dictionary<string,object> payload)
+    {
+        string token=payload!=null&&payload.ContainsKey("token")?Convert.ToString(payload["token"]):"";
+        string context=payload!=null&&payload.ContainsKey("context")?Convert.ToString(payload["context"]):"single";
+        if(context!="single"&&context!="batch")context="single";
+        if(!Regex.IsMatch(token,"^[a-f0-9]{32}$",RegexOptions.IgnoreCase))throw new InvalidOperationException("Analyse de résidus invalide.");
+        List<ResidueCandidate> candidates;
+        lock(uninstallResidueSimulations)
+        {
+            DateTime expires;
+            if(!uninstallResidueSimulations.TryGetValue(token,out candidates)||!uninstallResidueExpirations.TryGetValue(token,out expires)||expires<DateTime.UtcNow)throw new InvalidOperationException("L'analyse des résidus a expiré. Relancez la désinstallation.");
+            uninstallResidueSimulations.Remove(token);uninstallResidueExpirations.Remove(token);
+        }
+        Task.Run(delegate {
+            int moved=0,failed=0;
+            string batchName="PC-Setup-Quarantaine-"+DateTime.Now.ToString("yyyy-MM-dd-HHmmss");
+            string batchPath=Path.Combine(GetDataFolder("Quarantine"),batchName);
+            string logName="PC-Setup-Residus-"+DateTime.Now.ToString("yyyy-MM-dd-HHmmss")+".log";
+            var report=new StringBuilder();
+            try
+            {
+                Directory.CreateDirectory(batchPath);
+                foreach(var candidate in candidates)
+                {
+                    try
+                    {
+                        string allowedRoot=candidate.RootType=="Local"?Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData):Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        if(!String.Equals(Path.GetDirectoryName(Path.GetFullPath(candidate.Path)),Path.GetFullPath(allowedRoot),StringComparison.OrdinalIgnoreCase))throw new UnauthorizedAccessException("Seuls les dossiers AppData directs sont autorisés.");
+                        EnsureNoReparsePoints(candidate.Path,allowedRoot);
+                        string destination=Path.Combine(batchPath,candidate.RootType+"-"+candidate.Name);
+                        if(Directory.Exists(destination))destination+="-"+Guid.NewGuid().ToString("N").Substring(0,6);
+                        Directory.Move(candidate.Path,destination);moved++;
+                        report.AppendLine("Mis en quarantaine : "+candidate.Display);
+                    }
+                    catch(Exception ex){failed++;report.AppendLine("Échec : "+candidate.Display+" · "+ex.Message);}
+                }
+                if(Directory.Exists(batchPath)&&!Directory.EnumerateFileSystemEntries(batchPath).Any())Directory.Delete(batchPath);
+            }
+            catch(Exception ex){failed++;report.AppendLine("ERREUR : "+ex.Message);}
+            finally
+            {
+                try{File.WriteAllText(Path.Combine(GetDataFolder("Logs"),logName),report.ToString(),Encoding.UTF8);}catch{}
+                SendToWeb(new {type="uninstall-residues-complete",context=context,moved=moved,failed=failed,logName=logName});
             }
         });
     }
@@ -1005,7 +1213,7 @@ internal sealed class WebAppForm : Form
                     report.AppendLine();
                     report.AppendLine("La réparation native n'est pas disponible. Tentative de réinstallation réparatrice sans désinstallation...");
                     SendToWeb(new { type="repair-fallback", id=packageId, nativeCode=nativeCode });
-                    code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+                    code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+" --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
                 }
                 if(IsManagedPortable(packageId) && EnsurePortableShortcut(packageId,report))code=0;
                 success=code==0;
@@ -1031,6 +1239,8 @@ internal sealed class WebAppForm : Form
     void RunBatchUninstall(Dictionary<string,object> payload)
     {
         var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
+        var catalog=ReadCatalog(payload);
+        bool scanResidues=payload!=null&&payload.ContainsKey("scanResidues")&&Convert.ToBoolean(payload["scanResidues"]);
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide à désinstaller.");
         string simulationKey=String.Join("|",packages.OrderBy(value=>value,StringComparer.OrdinalIgnoreCase));
         lock(batchUninstallSimulations)
@@ -1044,6 +1254,7 @@ internal sealed class WebAppForm : Form
         SendToWeb(new { type="batch-uninstall-start",total=packages.Length });
         Task.Run(delegate {
             var report=new StringBuilder();int success=0,failed=0;
+            var residues=new List<ResidueCandidate>();
             string logName="PC-Setup-Desinstallation-Groupee-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
             try
@@ -1065,7 +1276,14 @@ internal sealed class WebAppForm : Form
                         ok=!IsPackageStillInstalled(id,report);
                     }
                     else if(!IsPackageStillInstalled(id,report))ok=true;
-                    if(ok){success++;RemoveManagedShortcuts(id,report);}else failed++;
+                    if(ok)
+                    {
+                        success++;
+                        string appName=catalog.ContainsKey(id)?catalog[id]:LoadApplicationName(id);
+                        RemoveManagedShortcuts(id,report);
+                        if(scanResidues)residues.AddRange(FindUninstallResidues(id,appName,report));
+                    }
+                    else failed++;
                     SendToWeb(new { type="batch-uninstall-item",id=id,success=ok,index=i+1,total=packages.Length,code=code,errorMessage=ok?"":ExplainWingetFailure(code,itemOutput,"desinstallation") });
                 }
             }
@@ -1073,8 +1291,19 @@ internal sealed class WebAppForm : Form
             finally
             {
                 try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
+                residues=residues.GroupBy(item=>item.Path,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).Take(50).ToList();
+                string residueToken="";
+                if(residues.Count>0)
+                {
+                    residueToken=Guid.NewGuid().ToString("N");
+                    lock(uninstallResidueSimulations)
+                    {
+                        uninstallResidueSimulations[residueToken]=residues;
+                        uninstallResidueExpirations[residueToken]=DateTime.UtcNow.AddMinutes(10);
+                    }
+                }
                 uninstallRunning=false;
-                SendToWeb(new { type="batch-uninstall-complete",success=success,failed=failed,logName=logName });
+                SendToWeb(new { type="batch-uninstall-complete",success=success,failed=failed,logName=logName,residueToken=residueToken,residueSize=FormatBytes(residues.Sum(item=>item.Bytes)),residues=residues.Select(item=>new {name=item.Name,display=item.Display,size=FormatBytes(item.Bytes),files=item.Files}).ToArray() });
             }
         });
     }
@@ -1187,9 +1416,29 @@ internal sealed class WebAppForm : Form
         try
         {
             string folder=GetDataFolder("Logs");
-            var items=Directory.GetFiles(folder,"PC-Setup-*.log",SearchOption.TopDirectoryOnly)
-                .Select(path=>new FileInfo(path)).OrderByDescending(file=>file.LastWriteTime).Take(80)
-                .Select(file=>new { name=file.Name,date=file.LastWriteTime.ToString("dd/MM/yyyy HH:mm"),size=FormatBytes(file.Length),type=HistoryType(file.Name) }).ToArray();
+            string reportFolder=GetDataFolder("Reports");
+            var items=new List<object>();
+            foreach(var file in Directory.GetFiles(folder,"PC-Setup-*.log",SearchOption.TopDirectoryOnly).Select(path=>new FileInfo(path)).OrderByDescending(value=>value.LastWriteTime).Take(80))
+            {
+                string reportName=Path.GetFileNameWithoutExtension(file.Name)+".json";
+                string reportPath=Path.Combine(reportFolder,reportName);
+                string title=HistoryType(file.Name),summary="",result="";
+                if(File.Exists(reportPath))
+                {
+                    try
+                    {
+                        var root=new JavaScriptSerializer().DeserializeObject(File.ReadAllText(reportPath,Encoding.UTF8)) as Dictionary<string,object>;
+                        var values=root!=null&&root.ContainsKey("summary")?root["summary"] as Dictionary<string,object>:null;
+                        int ok=values!=null&&values.ContainsKey("success")?Convert.ToInt32(values["success"]):0;
+                        int failed=values!=null&&values.ContainsKey("failed")?Convert.ToInt32(values["failed"]):0;
+                        summary=ok+" réussi(s) · "+failed+" échec(s)";
+                        result=failed==0?"success":"failed";
+                    }
+                    catch{reportName="";}
+                }
+                else reportName="";
+                items.Add(new {name=file.Name,date=file.LastWriteTime.ToString("dd/MM/yyyy HH:mm"),size=FormatBytes(file.Length),type=HistoryType(file.Name),title=title,summary=summary,result=result,reportName=reportName});
+            }
             SendToWeb(new { type="history-state",items=items });
         }
         catch(Exception ex){SendToWeb(new { type="history-error",message=ex.Message });}
@@ -1201,6 +1450,7 @@ internal sealed class WebAppForm : Form
         if(name.IndexOf("Desinstallation",StringComparison.OrdinalIgnoreCase)>=0)return "Désinstallation";
         if(name.IndexOf("Reparation",StringComparison.OrdinalIgnoreCase)>=0)return "Réparation";
         if(name.IndexOf("Nettoyage",StringComparison.OrdinalIgnoreCase)>=0)return "Nettoyage";
+        if(name.IndexOf("Residus",StringComparison.OrdinalIgnoreCase)>=0)return "Résidus";
         if(name.IndexOf("Mise-a-jour",StringComparison.OrdinalIgnoreCase)>=0)return "Mise à jour";
         return "Opération";
     }
@@ -1211,7 +1461,41 @@ internal sealed class WebAppForm : Form
         if(Path.GetFileName(name)!=name || !name.StartsWith("PC-Setup-",StringComparison.OrdinalIgnoreCase) || !name.EndsWith(".log",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Journal invalide.");
         string path=Path.Combine(GetDataFolder("Logs"),name);
         if(!File.Exists(path))throw new FileNotFoundException("Journal introuvable.");
-        Process.Start(new ProcessStartInfo{FileName=path,UseShellExecute=true});
+        OpenTechnicalTextFile(path);
+    }
+
+    void OpenReport(Dictionary<string,object> payload)
+    {
+        string name=payload!=null&&payload.ContainsKey("name")?Convert.ToString(payload["name"]):"";
+        if(Path.GetFileName(name)!=name || !name.StartsWith("PC-Setup-",StringComparison.OrdinalIgnoreCase) || !name.EndsWith(".json",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Rapport JSON invalide.");
+        string path=Path.Combine(GetDataFolder("Reports"),name);
+        if(!File.Exists(path))throw new FileNotFoundException("Rapport JSON introuvable.");
+        var info=new FileInfo(path);
+        if(info.Length>1024*1024)throw new InvalidDataException("Le rapport est trop volumineux pour être affiché.");
+        string content=File.ReadAllText(path,Encoding.UTF8);
+        object report=json.DeserializeObject(content);
+        if(report==null)throw new InvalidDataException("Le rapport est illisible.");
+        SendToWeb(new {type="report-data",name=name,report=report});
+    }
+
+    void ExportReport(Dictionary<string,object> payload)
+    {
+        string name=payload!=null&&payload.ContainsKey("name")?Convert.ToString(payload["name"]):"";
+        if(Path.GetFileName(name)!=name || !name.StartsWith("PC-Setup-",StringComparison.OrdinalIgnoreCase) || !name.EndsWith(".json",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Rapport JSON invalide.");
+        string path=Path.Combine(GetDataFolder("Reports"),name);
+        if(!File.Exists(path))throw new FileNotFoundException("Rapport JSON introuvable.");
+        OpenTechnicalTextFile(path);
+    }
+
+    void OpenTechnicalTextFile(string path)
+    {
+        if(String.IsNullOrWhiteSpace(path) || !File.Exists(path))throw new FileNotFoundException("Fichier technique introuvable.");
+        Process.Start(new ProcessStartInfo
+        {
+            FileName="notepad.exe",
+            Arguments="\""+path+"\"",
+            UseShellExecute=false
+        });
     }
 
     void OpenLogFolder()
@@ -1680,6 +1964,8 @@ internal sealed class WebAppForm : Form
 
     void InstallAppUpdate()
     {
+        throw new InvalidOperationException("La mise à jour automatique est désactivée tant qu’OwlSetup ne possède pas une signature de code reconnue. Utilisez uniquement la Release GitHub officielle et vérifiez son empreinte SHA-256.");
+#pragma warning disable 162
         if(BuildInfo.IsBeta)throw new InvalidOperationException("La mise à jour automatique est désactivée dans la version bêta locale.");
         if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de OwlSetup est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
@@ -1743,6 +2029,7 @@ internal sealed class WebAppForm : Form
                 SendToWeb(new { type="app-update-state", status="error", current=CurrentVersionText(), message=ex.Message });
             }
         });
+#pragma warning restore 162
     }
 
     void ExportConfiguration(Dictionary<string, object> payload)
@@ -1802,6 +2089,8 @@ internal sealed class WebAppForm : Form
         }
         try
         {
+            var sourceInfo=new FileInfo(source);
+            if(sourceInfo.Length>1024*1024)throw new InvalidDataException("Le fichier de configuration dépasse la taille maximale autorisée de 1 Mo.");
             var root=json.DeserializeObject(File.ReadAllText(source,Encoding.UTF8)) as Dictionary<string,object>;
             if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")throw new InvalidDataException("Ce fichier n'est pas une configuration OwlSetup valide.");
             var packages=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
