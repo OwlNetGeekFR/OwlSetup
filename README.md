@@ -10,7 +10,7 @@
   [![Licence MIT](https://img.shields.io/github/license/OwlNetGeekFR/OwlSetup)](LICENSE)
   [![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-1473e6)](#configuration-requise)
 
-  [Télécharger](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest) · [Site officiel](https://owlnetgeekfr.github.io/OwlSetup-Website/) · [Signaler un problème](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) · [Confidentialité](PRIVACY.md)
+  [Télécharger](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest) · [Site officiel](https://owlsetup.owlnetgeek.fr/) · [Signaler un problème](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) · [Confidentialité](PRIVACY.md)
 </div>
 
 ---
