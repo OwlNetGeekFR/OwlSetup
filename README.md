@@ -36,7 +36,7 @@ OwlSetup est une application Windows open source qui centralise l’installation
 | Sécurité | Simulation et confirmation des actions sensibles, quarantaine restaurable, contrôles de chemins |
 | Diagnostic | WinGet, point de restauration, démarrage Windows, occupation du disque et rapports locaux |
 
-Les journaux et données de travail restent sur l’ordinateur, dans `%LOCALAPPDATA%\PCSetup`. OwlSetup ne contient ni publicité ni télémétrie.
+Les journaux et données de travail restent sur l’ordinateur, dans `%LOCALAPPDATA%\PCSetup`. OwlSetup ne contient aucune publicité. L’envoi d’un diagnostic minimal est facultatif, désactivé par défaut et contrôlé par l’utilisateur dans les Paramètres.
 
 ## Configuration requise
 
@@ -52,19 +52,19 @@ Prérequis : Windows PowerShell, .NET Framework et [Inno Setup 6](https://jrsoft
 
 ```powershell
 ./build.ps1
-./build-installer.ps1 -Version 3.6.0
+./build-installer.ps1 -Version 3.7.0
 ```
 
 Pour préparer tous les fichiers d’une version stable sans les publier :
 
 ```powershell
-./build-stable.ps1 -Version 3.6.0
+./build-stable.ps1 -Version 3.7.0
 ```
 
 Pour produire une bêta locale clairement identifiée :
 
 ```powershell
-./build-beta.ps1 -Version "3.6.1-beta.1"
+./build-beta.ps1 -Version "3.7.1-beta.1"
 ```
 
 Les constructions locales sont placées dans `artifacts/` et ne sont pas suivies par Git.

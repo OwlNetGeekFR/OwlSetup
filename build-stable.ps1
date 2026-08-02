@@ -1,12 +1,12 @@
 param(
-    [string]$Version = "3.6.0"
+    [string]$Version = "3.7.0"
 )
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 
 if ($Version -notmatch '^\d+\.\d+\.\d+$') {
-    throw "La version stable doit utiliser le format majeur.mineur.correctif, par exemple 3.5.0."
+    throw "La version stable doit utiliser le format majeur.mineur.correctif, par exemple 3.7.0."
 }
 
 & (Join-Path $root "build-installer.ps1") -Version $Version
@@ -14,8 +14,9 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 $application = Join-Path $root "OwlSetup.exe"
 $installer = Join-Path $root "artifacts\installer\OwlSetup-Setup.exe"
 $releaseFolder = Join-Path $root ("artifacts\stable\" + $Version)
-$portableOutput = Join-Path $releaseFolder ("OwlSetup-" + $Version + ".exe")
-$installerOutput = Join-Path $releaseFolder ("OwlSetup-Setup-" + $Version + ".exe")
+$portableOutput = Join-Path $releaseFolder "OwlSetup.exe"
+$legacyOutput = Join-Path $releaseFolder "PC-Setup.exe"
+$installerOutput = Join-Path $releaseFolder "OwlSetup-Setup.exe"
 $checksumOutput = Join-Path $releaseFolder "SHA256.txt"
 $infoOutput = Join-Path $releaseFolder "STABLE-INFO.txt"
 $releaseNotesSource = Join-Path $root ("RELEASE-NOTES-" + $Version + ".md")
@@ -26,16 +27,26 @@ if (-not (Test-Path -LiteralPath $application) -or -not (Test-Path -LiteralPath 
 }
 
 New-Item -ItemType Directory -Force -Path $releaseFolder | Out-Null
+$obsoleteOutputs = @(
+    (Join-Path $releaseFolder ("OwlSetup-" + $Version + ".exe")),
+    (Join-Path $releaseFolder ("OwlSetup-Setup-" + $Version + ".exe"))
+)
+$obsoleteOutputs | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object {
+    Remove-Item -LiteralPath $_ -Force
+}
 Copy-Item -LiteralPath $application -Destination $portableOutput -Force
+Copy-Item -LiteralPath $application -Destination $legacyOutput -Force
 Copy-Item -LiteralPath $installer -Destination $installerOutput -Force
 if (Test-Path -LiteralPath $releaseNotesSource) {
     Copy-Item -LiteralPath $releaseNotesSource -Destination $releaseNotesOutput -Force
 }
 
 $portableHash = (Get-FileHash -LiteralPath $portableOutput -Algorithm SHA256).Hash
+$legacyHash = (Get-FileHash -LiteralPath $legacyOutput -Algorithm SHA256).Hash
 $installerHash = (Get-FileHash -LiteralPath $installerOutput -Algorithm SHA256).Hash
 @(
     "$portableHash  $(Split-Path $portableOutput -Leaf)"
+    "$legacyHash  $(Split-Path $legacyOutput -Leaf)"
     "$installerHash  $(Split-Path $installerOutput -Leaf)"
 ) | Set-Content -LiteralPath $checksumOutput -Encoding ascii
 
@@ -43,8 +54,11 @@ $portableInfo = Get-Item -LiteralPath $portableOutput
 if ($portableInfo.VersionInfo.ProductVersion -ne $Version) {
     throw "La version du binaire est incorrecte : $($portableInfo.VersionInfo.ProductVersion)."
 }
-if ($portableInfo.Length -lt 1MB -or (Get-Item -LiteralPath $installerOutput).Length -lt 1MB) {
+if ($portableInfo.Length -lt 1MB -or (Get-Item -LiteralPath $legacyOutput).Length -lt 1MB -or (Get-Item -LiteralPath $installerOutput).Length -lt 1MB) {
     throw "Un fichier stable généré est anormalement petit."
+}
+if ($portableHash -ne $legacyHash) {
+    throw "L'alias PC-Setup.exe ne correspond pas exactement à OwlSetup.exe."
 }
 
 @(
@@ -53,6 +67,8 @@ if ($portableInfo.Length -lt 1MB -or (Get-Item -LiteralPath $installerOutput).Le
     "Compilation : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')"
     "Application : $(Split-Path $portableOutput -Leaf)"
     "SHA-256 application : $portableHash"
+    "Alias historique : $(Split-Path $legacyOutput -Leaf)"
+    "SHA-256 alias : $legacyHash"
     "Installateur : $(Split-Path $installerOutput -Leaf)"
     "SHA-256 installateur : $installerHash"
 ) | Set-Content -LiteralPath $infoOutput -Encoding UTF8

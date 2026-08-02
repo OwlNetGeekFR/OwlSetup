@@ -1,6 +1,6 @@
 param(
     [string]$Output = "OwlSetup.exe",
-    [string]$AppVersion = "3.5.0",
+    [string]$AppVersion = "3.7.0",
     [ValidateSet("stable", "beta")]
     [string]$Channel = "stable",
     [string]$PrereleaseLabel = ""
@@ -65,8 +65,9 @@ $arguments = @(
     "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
     "/reference:System.Windows.Forms.dll", "/reference:System.Drawing.dll",
     "/reference:System.Core.dll", "/reference:System.Web.Extensions.dll",
+    "/reference:System.IO.Compression.dll", "/reference:System.IO.Compression.FileSystem.dll",
     "/reference:$core", "/reference:$forms",
-    "/resource:index.html,index.html", "/resource:app.js,app.js", "/resource:styles.css,styles.css",
+    "/resource:index.html,index.html", "/resource:i18n.js,i18n.js", "/resource:app.js,app.js", "/resource:styles.css,styles.css",
     "/resource:Mettre-a-jour-mon-PC.ps1,Mettre-a-jour-mon-PC.ps1",
     "/resource:Liberer-espace-disque.ps1,Liberer-espace-disque.ps1",
     "/resource:Nettoyer-residus-applications.ps1,Nettoyer-residus-applications.ps1",

@@ -17,8 +17,8 @@ $packages = @(
     [pscustomobject]@{ Id = 'Comfy.ComfyUI-Desktop'; Source = 'winget'; Logo = 'comfyui.svg'; Name = 'ComfyUI Desktop' }
 )
 $guidedAndWebLogos = @(
-    'gemini.svg', 'copilot.svg', 'perplexity.svg', 'mistral.svg', 'anythingllm.svg',
-    'gpt4all.svg', 'pinokio.svg', 'nvidia.svg', 'stabilitymatrix.svg'
+    'gemini.svg', 'copilot.png', 'perplexity.svg', 'mistral.svg', 'anythingllm.svg',
+    'gpt4all.svg', 'pinokio.svg', 'nvidia.svg', 'stabilitymatrix.png'
 )
 
 if ($Package) {
