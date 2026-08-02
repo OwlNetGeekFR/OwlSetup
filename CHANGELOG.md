@@ -1,6 +1,345 @@
 # Historique des versions
 
+## [3.7.0-beta.57] - 2026-08-02
+
+### Désinstallation vérifiée après installation
+
+- Corrige le bouton « Désinstaller la sélection » lorsque la sortie de `winget list` ne respecte pas exactement la mise en colonnes attendue.
+- Affiche « Vérification WinGet… » pendant le contrôle, bloque les doubles clics et rétablit automatiquement le bouton en cas d’échec ou de délai dépassé.
+- Écarte explicitement les applications qui ne sont plus installées ou qui ne sont pas confirmées comme gérables par WinGet.
+- Ajoute une vérification rapide à la fin d’une installation et affiche les applications effectivement détectées.
+- Permet de lancer immédiatement leur désinstallation individuelle depuis le résultat d’installation, avec la simulation et la confirmation de sécurité habituelles.
+- Actualise automatiquement la liste des applications installées après la fin de l’opération.
+
+## [3.7.0] - 2026-08-02
+
+### Version stable prête à publier
+
+- Regroupe les correctifs et améliorations validés des bêta 1 à 57 dans le canal stable.
+- Ajoute la configuration initiale, le choix de la langue et du thème, ainsi qu’une navigation responsive avec menus regroupés.
+- Améliore l’installation, la mise à jour et la désinstallation avec suivi en arrière-plan, réconciliation des résultats WinGet et gestion confirmée des processus bloquants.
+- Ajoute le centre des opérations, l’historique local, la visionneuse de journaux et les diagnostics facultatifs anonymisés.
+- Renforce les contrôles de chemins, la quarantaine réversible, la protection facultative par point de restauration et la reconnaissance des protections Windows ou tierces.
+- Valide le catalogue de 93 applications, leurs sites officiels et leurs logos en couleur.
+- Permet d’ouvrir les dossiers volumineux dans l’Explorateur et limite le nettoyage direct au cache `.cache`, toujours placé en quarantaine après confirmation.
+- Prépare des exécutables stables sans signature numérique, accompagnés de leurs empreintes SHA-256.
+
+## [3.7.0-beta.56] - 2026-08-02
+
+### Gestion prudente du stockage
+
+- Ajoute un bouton « Ouvrir » sur chaque dossier volumineux détecté afin de l'afficher directement dans l'Explorateur Windows.
+- Propose « Nettoyer » uniquement pour le cache `.cache` explicitement reconnu comme sûr, jamais pour Documents, Nextcloud ou les dossiers de travail.
+- Place le cache en quarantaine réversible après confirmation au lieu de le supprimer définitivement.
+- Verrouille les actions natives sur les chemins issus de la dernière analyse, limités aux dossiers directs du profil et sans lien de réanalyse.
+- Actualise automatiquement l'analyse du disque et la quarantaine après l'opération.
+
+## [3.7.0-beta.55] - 2026-08-02
+
+### Icônes des outils système
+
+- Remplace les caractères génériques par quatre pictogrammes SVG explicites et homogènes.
+- Distingue visuellement le diagnostic WinGet, la restauration, le démarrage et l’occupation du disque.
+- Renforce la lisibilité grâce à des contours, dégradés et contrastes propres à chaque outil.
+
+## [3.7.0-beta.54] - 2026-08-02
+
+### Catalogue contrôlé
+
+- Retire l’option avancée permettant d’ajouter librement un identifiant WinGet.
+- Supprime automatiquement les anciens paquets personnalisés mémorisés localement.
+- Empêche les profils de recréer des applications absentes du catalogue OwlSetup.
+- Conserve les profils de sélection uniquement pour les logiciels vérifiés du catalogue.
+
+## [3.7.0-beta.53] - 2026-08-02
+
+### Détection des paquets personnalisés
+
+- Un complément ou module Windows portant un nom proche n’est plus confondu avec l’application personnalisée exacte.
+- Microsoft Teams Meeting Add-in n’est notamment plus présenté comme l’application Microsoft Teams installée.
+- La carte affiche désormais « Composant associé » avec une explication lorsque seul un élément apparenté est trouvé.
+- Les paquets personnalisés ne deviennent désinstallables qu’après confirmation de leur identifiant exact par WinGet.
+
+## [3.7.0-beta.52] - 2026-08-02
+
+### Corrigé
+
+- Les paquets ajoutés manuellement acceptent désormais un identifiant seul ou une commande WinGet complète collée dans le champ.
+- La désinstallation résout l’identifiant réellement installé par WinGet avant toute suppression, avec une correspondance exacte et unique.
+- Les doublons personnalisés comme `Teams` et `Microsoft.Teams` sont fusionnés lorsque l’unique paquet installé est confirmé.
+- La désinstallation groupée écarte les paquets non confirmés au lieu de lancer une suppression ambiguë.
+
+## [3.7.0-beta.51] - 2026-08-02
+
+### Apparence claire et automatique
+- Ajoute les thèmes « Selon Windows », « Sombre » et « Clair » dans Paramètres.
+- Propose le choix du thème dès le guide de première configuration, sans l’imposer.
+- Applique le thème clair à toute l’interface, aux menus, formulaires, fenêtres d’opération et écrans du guide.
+- Conserve le choix localement et l’inclut dans l’export et la restauration des réglages.
+
+### Logo OwlSetup embarqué
+- Corrige le chemin du logo principal utilisé dans la barre latérale de l’application.
+- Aligne toutes les vues sur le nom réellement extrait depuis les ressources de l’exécutable.
+- Ajoute un contrôle automatique empêchant la création d’une bêta dont le logo de marque ne peut pas être chargé.
+
+## [3.7.0-beta.50] - 2026-08-02
+
+### Audit complet des logos
+- Contrôle les 93 associations entre applications et fichiers de logo.
+- Corrige les icônes identiques de CrystalDiskInfo et CrystalDiskMark avec les fichiers des dépôts officiels.
+- Remplace Microsoft Copilot et Stability Matrix par leurs visuels colorés.
+- Rétablit les couleurs de marque de Malwarebytes, TeamViewer, Tor Browser, Opera GX, Waterfox et Visual C++.
+- Ajoute un test automatique qui bloque une bêta si un logo est absent, vide ou possède une fausse extension PNG.
+
+## [3.7.0-beta.49] - 2026-08-02
+
+### Logos restants et contraste
+- Utilise les icônes officielles de GitHub Desktop et DBeaver Community.
+- Ajoute un support clair neutre aux logos officiellement sombres (Tailscale, EA app, Rustup et Ollama).
+- Conserve les couleurs et les proportions originales dans le catalogue, les mises à jour et les rapports.
+
+## [3.7.0-beta.48] - 2026-08-02
+
+### Logos officiels en couleur
+- Remplace 52 pictogrammes monochromes par leurs variantes en couleur.
+- Conserve les couleurs originales sans filtre CSS ni recoloration automatique.
+- Maintient un fond neutre et des dimensions homogènes dans tout le catalogue.
+
+## [3.7.0-beta.47] - 2026-08-02
+
+### Couleurs officielles des applications
+- Retire toute modification de saturation, de contraste ou de couleur appliquée aux logos.
+- Utilise un fond neutre commun afin d’afficher fidèlement les fichiers officiels.
+- Conserve uniquement une taille, un alignement et un espacement homogènes.
+
+## [3.7.0-beta.46] - 2026-08-02
+
+### Note de maintenance et logos
+- Remplace l’ancien cercle décoratif fixe par un anneau strictement proportionnel à la note sur 100.
+- Synchronise immédiatement la longueur et la couleur de l’anneau après chaque analyse.
+- Uniformise le cadre, la taille, le contraste et l’ombre des logos du catalogue sans remplacer leurs couleurs officielles.
+- Applique le même traitement aux mises à jour, rapports et aperçus de sélection.
+
+## [3.7.0-beta.45] - 2026-08-02
+
+### Protection Windows et lisibilité
+- Détecte l’état agrégé des antivirus enregistrés auprès du Centre de sécurité Windows, y compris les solutions tierces.
+- Détecte de la même façon les pare-feu Windows ou tiers sans modifier leur configuration.
+- Conserve un contrôle de secours local lorsque le Centre de sécurité Windows est indisponible.
+- Remplace les libellés spécifiques à Defender et au pare-feu Windows par des intitulés génériques et explicites.
+- Simplifie la carte système avec « Redémarrage : Nécessaire » afin d’éviter la répétition « PC à redémarrer ».
+
+## [3.7.0-preparation.1] - 2026-08-01
+
+### Version stable préparée
+- Finalise la nouvelle navigation, la configuration guidée et l’interface adaptative.
+- Améliore l’installation, la désinstallation, le nettoyage et les mises à jour en arrière-plan.
+- Corrige les fausses alertes WinGet, les opérations fantômes et les notifications répétées.
+- Ajoute l’historique local, le centre des opérations et les diagnostics facultatifs anonymisés.
+- Renforce la sécurité, la protection de restauration facultative et les explications utilisateur.
+- Précise explicitement lorsqu’un redémarrage complet du PC est nécessaire.
+- Valide le catalogue de 93 applications, 93 sites officiels et 89 logos sans avertissement.
+
+## [3.7.0-rc.5] - 2026-08-01
+
+### Confidentialité et assistance
+- Conserve l’onglet « Aide et dépannage » pour le diagnostic manuel, le signalement et le suivi des réponses.
+- Ajoute des rapports d’erreurs facultatifs avec trois choix : aucun envoi, confirmation préalable ou diagnostic minimal automatique.
+- Désactive tout envoi par défaut et présente le choix pendant la première configuration ainsi que dans les Paramètres.
+- Exclut les journaux complets, chemins de fichiers, noms d’utilisateur, listes de logiciels, documents et adresses IP du contenu enregistré.
+- Ajoute au dashboard privé une vue « Diagnostics » regroupée par empreinte technique, version et opération.
+- Protège la réception par validation stricte, limite de taille, limitation de débit et stockage privé existant du dashboard.
+
+## [3.7.0-rc.4] - 2026-08-01
+
+### Prise en main et opérations
+- Corrige l’icône principale absente dans l’étape « Entretien » du parcours de première utilisation.
+- Replie automatiquement les mises à jour dans un suivi compact en bas à droite après leur lancement.
+- Laisse l’interface visible et utilisable pendant la mise à jour, avec réouverture du détail en un clic.
+- Synchronise dans le suivi compact le titre, l’étape, le pourcentage et le résultat final de l’opération.
+
+## [3.7.0-rc.3] - 2026-08-01
+
+### Prise en main
+- Présente la création automatique des points de restauration comme un choix facultatif, avec « Pas maintenant » sélectionné par défaut.
+- Remplace les caractères génériques du parcours animé par des icônes SVG cohérentes avec l’identité visuelle d’OwlSetup.
+- Précise dans l’étape Sécurité que le point de restauration reste facultatif.
+
+## [3.7.0-rc.2] - 2026-08-01
+
+### Stabilité et ergonomie
+- Remplace le message ambigu lié aux points de restauration par une aide guidée et sans modification silencieuse de Windows.
+- Distingue une demande administrateur annulée d’une protection du système désactivée.
+- Ajoute un accès direct au panneau officiel « Protection du système » et un choix explicite pour désactiver l’automatisation.
+- Corrige l’alignement des Paramètres lorsque la fenêtre est réduite ou que l’espace utile devient insuffisant.
+- Modernise les icônes du guide d’installation avec une iconographie vectorielle cohérente.
+
+## [3.7.0-beta.36] - 2026-08-01
+
+### Interface
+- Applique un véritable thème sombre au menu de tri des applications installées.
+- Réorganise les cartes installées sur deux lignes afin que le nom et le logo restent toujours visibles.
+- Les catégories deviennent des badges compacts et les actions passent automatiquement sous la fiche lorsque l'espace diminue.
+
+## [3.7.0-beta.35] - 2026-08-01
+
+### Corrigé
+- La notification « Rufus est prêt » n'est plus affichée à chaque démarrage.
+- Une application portable ne déclenche désormais cette notification que lorsqu'un raccourci absent vient réellement d'être recréé.
+
+## [3.7.0-beta.34] - 2026-08-01
+
+### Interface
+- Améliore l'espacement et le thème sombre du sélecteur de conservation des journaux.
+- Agrandit la jauge de sécurité et rend l'action « Voir le calcul » visible en permanence.
+- Renforce le contraste des boutons d'aide contextuelle avec une couleur ambre identifiable.
+
+## [3.7.0-beta.33] - 2026-08-01
+
+### Corrigé
+- Aligne les filtres et les actions de l'historique sur une même ligne et une même hauteur.
+- Remplace la barre de titre Windows claire par une barre sombre assortie à OwlSetup, avec bordure et texte harmonisés.
+
+## [3.7.0-beta.32] - 2026-08-01
+
+### Historique et aide contextuelle
+
+- La durée de conservation est synchronisée entre Outils système et Centre de sécurité.
+- L’application distingue maintenant la suppression des anciens rapports et l’effacement complet de l’historique.
+- Une confirmation dédiée protège l’effacement définitif des journaux et rapports.
+- Des boutons d’aide contextuelle expliquent les durées et le stockage local des journaux.
+
+## [3.7.0-beta.31] - 2026-08-01
+
+### Anglais enrichi
+
+- Les pages Applications, Mises à jour, Maintenance, Nettoyage, Quarantaine, Outils, Sécurité, Assistance et Paramètres disposent de traductions anglaises supplémentaires.
+- Les textes ajoutés dynamiquement et les libellés contenant des quantités sont maintenant traduits à leur apparition.
+- Plusieurs formulations anglaises ont été réécrites pour être plus naturelles et cohérentes.
+
+## [3.7.0-beta.30] - 2026-08-01
+
+### Illustration des applications installées
+
+- Le symbole carré de la page Applications installées est remplacé par une icône SVG d'application validée.
+- Le cadre, la lumière et les couleurs de l'illustration sont harmonisés avec les autres pages d'OwlSetup.
+
+## [3.7.0-beta.29] - 2026-08-01
+
+### Barre de navigation et illustrations
+
+- Le lien Ko-fi rejoint la barre de navigation horizontale avec une icône tasse et coeur.
+- Les illustrations des pages Catalogue, Mises à jour, Nettoyage, Quarantaine et Dépannage utilisent maintenant des SVG homogènes.
+- La carte Windows et les catégories de nettoyage abandonnent les anciens caractères typographiques.
+- Les séparateurs utilisent le même bleu sombre dans toute l'interface.
+
+## [3.7.0-beta.28] - 2026-08-01
+
+### Iconographie de l'accueil
+
+- Les symboles typographiques de l'accueil sont remplacés par des icônes SVG homogènes.
+- Les indicateurs système, les quatre outils principaux et les garanties locales utilisent le même style que les menus.
+- Les contours, couleurs et effets au survol ont été harmonisés.
+
+## [3.7.0-beta.27] - 2026-08-01
+
+### Interface adaptative dans une fenêtre réduite
+
+- La page Paramètres passe automatiquement sur une colonne lorsque la largeur disponible diminue.
+- Les commandes de langue, de prise en main et d'accessibilité se réorganisent sans chevauchement.
+- La barre de navigation masque correctement le contenu qui défile dessous.
+- Les espacements et la largeur des cartes s'adaptent progressivement aux petites fenêtres.
+
+## [3.7.0-beta.26] — 2026-08-01
+
+### Configuration guidée au premier démarrage
+
+- Après le choix de la langue, une page de configuration initiale présente les préférences essentielles.
+- L'utilisateur choisit la taille du texte, le contraste, les animations et la protection par point de restauration.
+- La validation ouvre automatiquement le guide interactif des fonctions principales.
+- Le guide reste facultatif et tout le parcours peut être relancé ou modifié depuis Paramètres.
+- Les choix sont enregistrés uniquement pour l'utilisateur Windows courant.
+
+## [3.7.0-beta.25] — 2026-08-01
+
+### Suppression d'une fausse alerte WinGet
+
+- Le code WinGet `0x8A15002B` est désormais interprété correctement comme « aucune mise à jour applicable ».
+- Un logiciel déjà à jour n'est plus présenté comme une mise à jour en échec.
+- Les anciennes opérations enregistrées avec ce code sont automatiquement reclassées comme résolues au démarrage.
+
+## [3.7.0-beta.24] — 2026-08-01
+
+### Alias des paquets dans l'historique
+
+- Les identifiants abrégés enregistrés par certaines anciennes opérations sont rapprochés de leur identifiant WinGet officiel.
+- `OBSStudio`, `OBS Studio` et `OBSProject.OBSStudio` désignent désormais la même application lors de la résolution automatique.
+- Une ancienne erreur de mise à jour OBS ne reste donc plus active après une nouvelle tentative réussie.
+
+## [3.7.0-beta.23] — 2026-08-01
+
+### Résolution automatique des anciennes alertes
+
+- Une mise à jour réussie clôt désormais automatiquement les erreurs antérieures concernant les mêmes paquets.
+- Les anciennes erreurs restent consultables avec l'état « Résolu automatiquement » au lieu d'être supprimées.
+- Les compteurs « À vérifier », les badges Maintenance et les notifications actives sont recalculés sans intervention manuelle.
+- Le rapprochement s'applique aussi rétroactivement à l'historique local déjà présent au démarrage.
+
+## [3.7.0-beta.22] — 2026-08-01
+
+### Mise à jour silencieuse d'OBS
+
+- OwlSetup recherche désormais les processus tiers qui chargent un module OBS ou OBS Virtual Camera.
+- Le nom réel du verrou est présenté à l'utilisateur ; sur le poste de test, Brave chargeait `obs-virtualcam-module64.dll`.
+- Le bouton ferme l'application détectée après consentement, attend la libération des fichiers puis relance silencieusement uniquement OBS.
+- Les processus partageant le même exécutable sont regroupés afin de fermer proprement les applications multiprocessus comme les navigateurs.
+
+## [3.7.0-beta.21] — 2026-08-01
+
+### Action directe après un blocage WinGet
+
+- Le résultat de mise à jour affiche désormais un bouton « Fermer [application] » lorsque WinGet détecte des fichiers utilisés.
+- La fermeture normale est tentée directement depuis la fenêtre de résultat.
+- Une fermeture forcée, accompagnée d'un avertissement, n'apparaît que si le processus résiste.
+- Après la fermeture, le même emplacement propose de relancer uniquement la mise à jour en échec.
+
+## [3.7.0-beta.20] — 2026-08-01
+
+### Fermeture sécurisée des applications bloquantes
+
+- Le centre des opérations recherche les processus connus associés au paquet WinGet en échec.
+- L'utilisateur peut demander une fermeture normale, fermer lui-même le logiciel ou confirmer séparément une fermeture forcée.
+- Les processus critiques de Windows et OwlSetup sont systématiquement protégés.
+- Après fermeture, seule la mise à jour concernée est présélectionnée et la confirmation reste obligatoire.
+- Les titres et identifiants des processus sont affichés avant toute action afin d'éviter les fermetures surprises.
+
+## [3.7.0-beta.19] — 2026-08-01
+
+### Correctif WinGet
+
+- Reconnaissance explicite du code WinGet `0x8A150111` lorsqu'une application ou ses fichiers sont encore utilisés.
+- Le centre des opérations propose une relance ciblée du seul logiciel en échec au lieu de réparer inutilement les sources WinGet.
+- Aucun processus utilisateur n'est fermé automatiquement : OwlSetup indique l'application à fermer avant la nouvelle tentative.
+- Les rapports WinGet sont lus en UTF-8 pour éviter les caractères illisibles et fiabiliser l'analyse des erreurs en français.
+- Les résultats conservent le paquet, la catégorie d'erreur et le code technique nécessaires au dépannage.
+
 Les changements importants de OwlSetup sont regroupés dans ce fichier. Le projet suit une numérotation de version de type `MAJEUR.MINEUR.CORRECTIF`.
+
+## [3.7.0-beta.18] — 2026-08-01
+
+### Ergonomie
+
+- Catalogue allégé grâce à une section repliable pour les sauvegardes, profils et identifiants WinGet personnalisés.
+- Boutons « Réparer » et « Désinstaller » explicitement nommés dans la liste des applications installées.
+- Actions de dépannage renforcées visuellement et ouverture des sous-menus accélérée.
+- Commandes « Tout sélectionner » et « Tout désélectionner » ajoutées aux mises à jour disponibles.
+
+### Compréhension et aide
+
+- Explication interactive du calcul du score de sécurité.
+- Guide enrichi avec les vérifications à effectuer en cas d’échec.
+- Notifications lues supprimables et automatiquement purgées après quatorze jours.
+- Notifications temporaires des applications portables dédupliquées pendant la session.
 
 ## [3.6.0] — 2026-07-24
 
@@ -154,3 +493,113 @@ Les anciennes versions `3.0.0` à `3.4.1`, publiées initialement sous les noms 
 [3.5.1]: https://github.com/OwlNetGeekFR/OwlSetup/releases/tag/v3.5.1
 [3.5.0]: https://github.com/OwlNetGeekFR/OwlSetup/releases/tag/v3.5.0
 [3.6.0]: https://github.com/OwlNetGeekFR/OwlSetup/releases/tag/v3.6.0
+# 3.7.0-beta.13 — 2026-07-31
+
+- Diagnostic intelligent des journaux avec suggestions et relance ciblée des installations en échec.
+- Aperçu de confidentialité obligatoire avant l’ouverture d’un signalement GitHub.
+- Suivi local des signalements et consultation de leur état public sans jeton GitHub.
+- Export ZIP d’assistance anonymisé, sans journal complet ni fichier personnel automatique.
+- Filtres et durée de conservation configurable pour l’historique local.
+- Point de restauration automatique facultatif avant maintenance sensible.
+- Réglages d’accessibilité : taille du texte, contraste renforcé et animations réduites.
+- Autodiagnostic interne de l’intégrité, WinGet, WebView2, du stockage et des permissions.
+- Signalement direct depuis les résultats d’installation et de mise à jour en avertissement.
+
+# 3.7.0-beta.14 — 2026-07-31
+
+- Centre des opérations avec résultats, erreurs et reprise contrôlée après interruption.
+- Vérification réelle de la présence d’une application après installation WinGet.
+- Détection des applications ouvertes avant une installation et messages d’erreur plus explicites.
+- Analyse locale de la santé des applications installées.
+- Sauvegarde complète des profils, préférences, accessibilité et réglages OwlSetup.
+- Mode expert facultatif affichant les commandes préparées avant leur exécution.
+- Correction guidée de WinGet depuis une opération en échec.
+- Contrôle automatique de la structure du catalogue, des liens HTTPS et des logos via GitHub Actions.
+
+# 3.7.0-beta.15 — 2026-07-31
+
+- Nouveau score de sécurité local sur 100 avec explication de chaque contrôle.
+- Cartes détaillées pour l’intégrité, l’origine WebView2, la signature, WinGet, WebView2 et les privilèges.
+- Lecture seule de l’état apparent de Microsoft Defender et des profils du pare-feu Windows.
+- Distinction claire entre bêta locale non signée, exécutable non signé et signature invalide.
+- Actions recommandées contextualisées sans transformer OwlSetup en antivirus.
+- Export JSON anonymisé du diagnostic de sécurité, sans compte, document ni contenu de journal.
+- Conservation configurable des journaux de sécurité sur 7, 30 ou 90 jours.
+# 3.7.0-beta.16 — 2026-08-01
+
+- Détection des applications installées consolidée à partir de WinGet, du registre Windows, des paquets MSIX et des applications portables gérées par OwlSetup.
+- Distinction claire entre une application installée et une application réellement gérable par WinGet.
+- Les installations reconnues par Windows mais non associées à WinGet ne sont plus présentées comme absentes ou défectueuses.
+- Ajout d’un état « Détectée via Windows/MSIX » et d’un accès sûr à la page Applications installées de Windows.
+- Les actions groupées, la réparation et la désinstallation WinGet sont réservées aux paquets dont l’identifiant a été vérifié.
+- Amélioration des correspondances pour Battle.net, Brave, GitHub Desktop, Node.js, Python et qBittorrent.
+# 3.7.0-beta.17 — 2026-08-01
+
+- Réorganisation visuelle légère de la page Paramètres.
+- Ajout d’un résumé local, privé et réversible en tête de page.
+- Icônes harmonisées avec la navigation OwlSetup et états de sécurité mieux différenciés.
+- Cartes, espacements et comportements adaptatifs améliorés.
+- Correction de l’affichage de la version longue dans la carte À propos.
+## [3.7.0-beta.37] - 2026-08-01
+
+- fonctionnement hors ligne complet : suppression de la police distante Google Fonts ;
+- erreurs natives affichées dans une carte non bloquante avec copie du diagnostic et accès au dépannage ;
+- catalogue plus compact au retour, filtres adaptatifs et suppression du défilement horizontal ;
+- navigation adaptée aux fenêtres plus étroites et taille minimale réduite sans casser la mise en page ;
+- traduction anglaise étendue aux catégories et descriptions du catalogue ;
+- ancien moteur de mise à jour automatique maintenu désactivé tant que l'application ne peut pas être signée ;
+- export du script personnalisé renommé `OwlSetup-Installer.ps1`.
+
+## [3.7.0-beta.38] - 2026-08-01
+
+- choix entre l’emplacement automatique recommandé et un dossier d’installation personnalisé ;
+- sélecteur Windows natif et validation des chemins locaux protégés ;
+- création d’un sous-dossier distinct pour chaque application sélectionnée ;
+- contrôle de l’espace disponible sur le disque réellement choisi ;
+- transmission de l’emplacement à WinGet avec avertissement lorsque l’installateur de l’éditeur l’ignore ;
+- mémorisation du dossier des applications portables pour conserver des raccourcis fonctionnels.
+
+## [3.7.0-beta.39] - 2026-08-01
+
+- fenêtre d’installation replacée au centre de l’écran ;
+- largeur augmentée et défilement interne conservé sur les petits écrans ;
+- titres, diagnostics, champs, explications et boutons agrandis pour une meilleure lisibilité.
+
+## [3.7.0-beta.40] - 2026-08-01
+
+- blocage des doubles demandes d’installation pendant qu’une première opération continue ;
+- une nouvelle demande reçue par le moteur natif devient une information et non une erreur ;
+- vérification différée et répétée de la présence réelle du logiciel dans Windows ;
+- correction automatique d’un code WinGet trompeur lorsque l’application est finalement bien installée.
+
+## [3.7.0-beta.41] - 2026-08-01
+
+- typographie harmonisée dans l’ensemble de l’interface avec une police Windows locale unique ;
+- boutons, champs, listes, titres, cartes, notifications et fenêtres alignés sur la même famille ;
+- police technique distincte conservée uniquement pour les commandes, codes et journaux ;
+- aucun téléchargement de police requis : le rendu reste cohérent hors ligne.
+
+## [3.7.0-beta.42] - 2026-08-01
+
+- seconde vérification exacte des applications détectées par Windows ou MSIX lorsque l’export WinGet ne suffit pas ;
+- activation de la désinstallation uniquement lorsque WinGet confirme précisément l’identifiant du paquet installé ;
+- conservation du bouton « Gérer dans Windows » lorsque la correspondance reste incertaine ;
+- aucune commande de désinstallation issue du registre n’est exécutée sans validation par le gestionnaire officiel Microsoft.
+
+## [3.7.0-beta.43] - 2026-08-01
+
+- suppression automatique des faux compteurs « En cours » lorsque plus aucune tâche OwlSetup n’existe ;
+- récupération du dernier suivi actif lorsqu’un message de fin arrive sans référence locale ;
+- anciennes tâches fantômes classées comme interrompues avec une explication claire ;
+- badge du Centre des opérations limité aux opérations réellement actives ou aux erreurs à corriger.
+# 3.7.0-rc.1 - stabilisation locale
+
+- Gel des nouvelles fonctionnalités avant la prochaine version stable.
+- Ajout d'un contrôle global de préparation à la release : syntaxe, catalogue, sécurité, interface et tests de régression.
+- Ajout d'une compilation Release Candidate séparée des bêtas et des versions stables.
+- Ajout d'une checklist obligatoire pour les essais réels sur le PC secondaire.
+- La Release Candidate reste locale et ne sera pas publiée comme stable avant validation complète.
+## [3.7.0-beta.44] - 2026-08-02
+
+- Le statut sans signature reste visible comme information, sans badge d'action permanent.
+- Les neuf contrôles du Centre de sécurité utilisent désormais des pictogrammes SVG cohérents et accessibles.

@@ -1,0 +1,728 @@
+(() => {
+  "use strict";
+
+  const storageKey = "owlsetup-language-v1";
+  const supported = new Set(["fr", "en"]);
+  const translations = {
+    en: {
+      "Accueil": "Home",
+      "Installer des logiciels": "Install software",
+      "Applications installées": "Installed applications",
+      "Applications": "Applications",
+      "Maintenance": "Maintenance",
+      "Sécurité": "Security",
+      "Aide": "Help",
+      "Paramètres": "Settings",
+      "PRÉFÉRENCES OWLSETUP": "OWLSETUP PREFERENCES",
+      "Personnalisez l’interface et retrouvez les options locales de l’application.": "Customize the interface and manage the application’s local options.",
+      "Langue et région": "Language and region",
+      "Choisissez la langue utilisée dans toute l’interface.": "Choose the language used throughout the interface.",
+      "Apparence": "Appearance",
+      "Adaptez OwlSetup à votre environnement Windows.": "Match OwlSetup to your Windows environment.",
+      "Thème de l’application": "Application theme",
+      "Le choix est appliqué immédiatement et reste enregistré sur ce PC.": "The choice is applied immediately and saved on this PC.",
+      "Thème": "Theme",
+      "Selon Windows": "Use Windows setting",
+      "Sombre": "Dark",
+      "Clair": "Light",
+      "Prise en main": "Getting started",
+      "Relancez le parcours animé quand vous le souhaitez.": "Replay the guided tour whenever you want.",
+      "Revoir les fonctions principales": "Review the main features",
+      "Le catalogue, les mises à jour, le nettoyage et les protections.": "Catalog, updates, cleanup and protection features.",
+      "Données conservées localement": "Locally stored data",
+      "Vos préférences, votre sélection et vos notifications restent uniquement sur ce PC.": "Your preferences, selection and notifications remain on this PC only.",
+      "✓ Aucun compte OwlSetup nécessaire": "✓ No OwlSetup account required",
+      "✓ Aucun historique envoyé automatiquement": "✓ No history sent automatically",
+      "✓ Paramètres propres à chaque utilisateur Windows": "✓ Settings are specific to each Windows user",
+      "À propos d’OwlSetup": "About OwlSetup",
+      "Application open source de maintenance et d’installation pour Windows.": "Open-source maintenance and installation application for Windows.",
+      "Version installée": "Installed version",
+      "Chargement…": "Loading…",
+      "Voir le projet GitHub ↗": "View the GitHub project ↗",
+      "GESTION DES APPLICATIONS": "APPLICATION MANAGEMENT",
+      "Catalogue officiel et profils rapides": "Official catalog and quick profiles",
+      "Réparer ou désinstaller proprement": "Repair or uninstall cleanly",
+      "Préparer une installation groupée": "Prepare a batch installation",
+      "ENTRETIEN DU PC": "PC MAINTENANCE",
+      "Logiciels, Windows et pilotes": "Software, Windows and drivers",
+      "Fichiers temporaires et résidus": "Temporary files and leftovers",
+      "Diagnostic, démarrage et stockage": "Diagnostics, startup and storage",
+      "PROTECTION ET ASSISTANCE": "PROTECTION AND SUPPORT",
+      "Contrôles et recommandations locales": "Local checks and recommendations",
+      "Éléments isolés et récupérables": "Isolated and recoverable items",
+      "Diagnostic et signalement d'un problème": "Diagnostics and issue reporting",
+      "AIDE OWLSETUP": "OWLSETUP HELP",
+      "Comprendre chaque étape en sécurité": "Understand every step safely",
+      "Site officiel": "Official website",
+      "Guides, téléchargements et actualités": "Guides, downloads and news",
+      "Analyse du PC…": "Analyzing PC…",
+      "Détection de Windows": "Detecting Windows",
+      "Vérification…": "Checking…",
+      "Redémarrage": "Restart",
+      "Analyse…": "Analyzing…",
+      "Diagnostic en cours": "Diagnostic in progress",
+      "Actualiser": "Refresh",
+      "Version non renseignée": "Version unavailable",
+      "Indisponible": "Unavailable",
+      "Nécessaire": "Required",
+      "Non requis": "Not required",
+      "WinGet à vérifier": "Check WinGet",
+      "Redémarrage conseillé": "Restart recommended",
+      "PC prêt à configurer": "PC ready to configure",
+      "Maintenance Windows en attente": "Windows maintenance pending",
+      "Windows Update en attente": "Windows Update pending",
+      "Remplacement de fichiers en attente": "File replacement pending",
+      "Tout mettre à jour": "Update everything",
+      "Libérer de l'espace": "Free up space",
+      "Quarantaine": "Quarantine",
+      "Outils système": "System tools",
+      "Centre de sécurité": "Security center",
+      "Dépannage": "Troubleshooting",
+      "Aide et dépannage": "Help and troubleshooting",
+      "Diagnostic, signalement et suivi": "Diagnostics, reporting and follow-up",
+      "Rapports d’erreurs facultatifs": "Optional error reports",
+      "Aidez à corriger les pannes sans envoyer de données personnelles.": "Help fix failures without sending personal data.",
+      "Ne rien envoyer": "Send nothing",
+      "Choix par défaut. Tout reste sur ce PC.": "Default choice. Everything stays on this PC.",
+      "Me demander": "Ask me",
+      "Proposer un aperçu après une erreur.": "Offer a preview after an error.",
+      "Envoi automatique minimal": "Minimal automatic sending",
+      "Diagnostic technique anonymisé uniquement.": "Anonymized technical diagnostics only.",
+      "Voir exactement les données envoyées": "See exactly what is sent",
+      "Le refus n’empêche aucune fonction. Vous pourrez modifier ce choix dans Paramètres.": "Refusing does not disable any feature. You can change this choice in Settings.",
+      "Minimal automatique": "Automatic minimal report",
+      "Ma sélection": "My selection",
+      "Guide d'installation": "Installation guide",
+      "Soutenir": "Support",
+      "Sources vérifiées": "Verified sources",
+      "Un PC propre,": "A clean PC,",
+      "à jour et prêt.": "updated and ready.",
+      "Installez vos logiciels, mettez votre système à jour et récupérez de l'espace depuis une seule application.": "Install software, update your system and reclaim disk space from one application.",
+      "Commencer la configuration": "Start setup",
+      "Mettre OwlSetup à jour": "Update OwlSetup",
+      "Santé du PC": "PC health",
+      "État de maintenance": "Maintenance status",
+      "Comprendre le score": "Understand the score",
+      "Score actuel": "Current score",
+      "Indicateur local d’entretien, sans mesure des performances matérielles.": "Local maintenance indicator; it does not measure hardware performance.",
+      "Ce score reste uniquement sur ce PC. Il évolue après une nouvelle analyse d’OwlSetup.": "This score stays on this PC and changes after a new OwlSetup scan.",
+      "Actualiser l’analyse": "Refresh scan",
+      "Analyse en cours...": "Scanning...",
+      "MISES À JOUR": "UPDATES",
+      "ESPACE DISQUE C:": "DISK SPACE C:",
+      "REDÉMARRAGE": "RESTART",
+      "OUTILS DISPONIBLES": "AVAILABLE TOOLS",
+      "Que voulez-vous faire ?": "What would you like to do?",
+      "100 % local": "100% local",
+      "Installer des logiciels": "Install software",
+      "Choisissez parmi le catalogue ou utilisez un profil prêt à l'emploi.": "Choose from the catalog or use a ready-made profile.",
+      "Tout mettre à jour": "Update everything",
+      "Applications, composants Windows et pilotes certifiés Microsoft.": "Applications, Windows components and Microsoft-certified drivers.",
+      "Mise à jour groupée": "Batch update",
+      "Libérer de l'espace": "Free up space",
+      "Nettoyez les fichiers temporaires, caches et anciens composants.": "Clean temporary files, caches and old components.",
+      "Nettoyage personnalisable": "Customizable cleanup",
+      "Supprimer les résidus": "Remove leftovers",
+      "Repérez les dossiers laissés par les applications désinstallées.": "Find folders left behind by uninstalled applications.",
+      "Quarantaine réversible": "Reversible quarantine",
+      "Sources officielles": "Official sources",
+      "Installation via winget": "Installation through WinGet",
+      "Actions contrôlées": "Controlled actions",
+      "Confirmation avant suppression": "Confirmation before deletion",
+      "Aucune donnée envoyée": "No data sent",
+      "Tout reste sur votre ordinateur": "Everything stays on your computer",
+      "Rapports détaillés": "Detailed reports",
+      "Journaux rangés dans OwlSetup": "Logs stored in OwlSetup",
+      "NOUVELLE CONFIGURATION": "NEW SETUP",
+      "Votre PC, prêt": "Your PC, ready",
+      "en quelques clics.": "in just a few clicks.",
+      "Sélectionnez vos logiciels et composants. OwlSetup prépare une installation groupée, propre et sans publicités.": "Select your software and components. OwlSetup prepares a clean, ad-free batch installation.",
+      "DÉMARRAGE RAPIDE": "QUICK START",
+      "Choisissez un profil": "Choose a profile",
+      "Tout désélectionner": "Clear all",
+      "L'essentiel": "Essentials",
+      "Gaming": "Gaming",
+      "Développeur": "Developer",
+      "Rechercher un logiciel...": "Search for software...",
+      "Cliquez sur une carte pour l'ajouter": "Click a card to add it",
+      "MODE D'EMPLOI": "USER GUIDE",
+      "Installer en toute sécurité": "Install safely",
+      "Le script utilise uniquement winget et les fonctions Windows intégrées.": "The script only uses WinGet and built-in Windows features.",
+      "Composez votre sélection": "Build your selection",
+      "Choisissez un profil ou ajoutez les applications une à une depuis le catalogue.": "Choose a profile or add applications individually from the catalog.",
+      "Vérifiez la simulation": "Review the simulation",
+      "OwlSetup présente les éléments concernés avant toute suppression ou opération de nettoyage.": "OwlSetup shows the affected items before any removal or cleanup operation.",
+      "Confirmez l’opération": "Confirm the operation",
+      "L’autorisation administrateur Windows apparaît uniquement lorsqu’une fonction système en a réellement besoin.": "Windows administrator approval only appears when a system feature truly requires it.",
+      "Consultez le résultat": "Review the result",
+      "La progression reste visible dans l’application et un rapport local est enregistré pour chaque opération.": "Progress remains visible in the application and a local report is saved for every operation.",
+      "Avant de commencer": "Before you begin",
+      "Créez un point de restauration et fermez vos applications. Certains composants peuvent demander un redémarrage.": "Create a restore point and close your applications. Some components may require a restart.",
+      "Besoin de revoir les bases ?": "Need to review the basics?",
+      "Relancez à tout moment la prise en main animée d’OwlSetup.": "Replay the animated OwlSetup introduction at any time.",
+      "Revoir la prise en main": "Replay introduction",
+      "Langue de l’application": "Application language",
+      "Le changement est immédiat et conservé sur ce PC.": "The change is immediate and saved on this PC.",
+      "Langue": "Language",
+      "Utilisez le thème de Windows ou choisissez une interface sombre ou claire.": "Use the Windows theme or choose a dark or light interface.",
+      "Ignorer": "Skip",
+      "BIENVENUE": "WELCOME",
+      "Votre PC, simplement.": "Your PC, made simple.",
+      "OwlSetup réunit l’installation, les mises à jour, le nettoyage et la maintenance Windows dans une seule application.": "OwlSetup brings software installation, updates, cleanup and Windows maintenance into one application.",
+      "Actions confirmées": "Confirmed actions",
+      "Fonctionnement local": "Local operation",
+      "INSTALLER": "INSTALL",
+      "Composez votre sélection.": "Build your selection.",
+      "Choisissez un profil ou recherchez une application. OwlSetup prépare ensuite une installation groupée et silencieuse via WinGet.": "Choose a profile or search for an application. OwlSetup then prepares a silent batch installation through WinGet.",
+      "Cliquez sur les cartes": "Click the cards",
+      "Retrouvez votre liste dans « Ma sélection » avant de confirmer.": "Review your list in “My selection” before confirming.",
+      "GÉRER": "MANAGE",
+      "Retrouvez vos applications.": "Find your applications.",
+      "La page « Applications installées » permet de rechercher, réparer ou sélectionner plusieurs logiciels à désinstaller.": "The “Installed applications” page lets you search, repair or select several programs to uninstall.",
+      "Simulation obligatoire": "Mandatory simulation",
+      "Vous voyez toujours la liste concernée avant une désinstallation.": "You always see the affected list before uninstalling.",
+      "ENTRETENIR": "MAINTAIN",
+      "Mettez à jour et nettoyez.": "Update and clean up.",
+      "Recherchez les nouvelles versions, contrôlez Windows Update et récupérez de l’espace sans toucher à vos documents personnels.": "Find new versions, check Windows Update and reclaim space without touching personal documents.",
+      "Repères colorés": "Color indicators",
+      "Vert recommandé, orange à vérifier, violet avancé et bleu réversible.": "Green recommended, orange review, purple advanced and blue reversible.",
+      "SÉCURITÉ": "SECURITY",
+      "Vous gardez le contrôle.": "You stay in control.",
+      "Les outils sensibles affichent une simulation, demandent une confirmation et enregistrent leurs rapports dans le dossier local OwlSetup.": "Sensitive tools show a simulation, ask for confirmation and save reports in the local OwlSetup folder.",
+      "Point de restauration": "Restore point",
+      "Rapports locaux": "Local reports",
+      "Précédent": "Previous",
+      "Commencer": "Start",
+      "Suivant": "Next",
+      "Découvrir OwlSetup": "Discover OwlSetup",
+      "Annuler": "Cancel",
+      "Terminer": "Finish",
+      "Fermer": "Close",
+      "Enregistrer": "Save",
+      "Actualiser": "Refresh",
+      "Afficher": "Show",
+      "Tout marquer comme lu": "Mark all as read",
+      "Notifications": "Notifications",
+      "Tout est calme": "All quiet",
+      "Les mises à jour et installations apparaîtront ici.": "Updates and installations will appear here.",
+      "PREMIER DÉMARRAGE": "FIRST START",
+      "Choisissez votre langue": "Choose your language",
+      "Vous pourrez la modifier plus tard depuis le guide d’installation.": "You can change it later from the installation guide.",
+      "Langue complète": "Complete language",
+      "Choix enregistré uniquement sur ce PC": "Choice saved only on this PC",
+      "Aucune information de langue n’est envoyée en ligne.": "No language information is sent online.",
+      "CONFIGURATION INITIALE": "INITIAL SETUP",
+      "ÉTAPE 2 SUR 3": "STEP 2 OF 3",
+      "Configurez votre expérience": "Configure your experience",
+      "Choisissez quelques préférences avant de découvrir les fonctions principales.": "Choose a few preferences before discovering the main features.",
+      "Taille du texte": "Text size",
+      "Adaptez immédiatement la lisibilité de toute l’interface.": "Immediately adjust the readability of the entire interface.",
+      "Contraste renforcé": "Enhanced contrast",
+      "Accentue les bordures et les informations importantes.": "Emphasizes borders and important information.",
+      "Réduire les animations": "Reduce animations",
+      "Limite les mouvements si vous préférez une interface plus calme.": "Limits movement if you prefer a calmer interface.",
+      "Point de restauration automatique": "Automatic restore point",
+      "Demande votre confirmation avant une maintenance importante.": "Requests your confirmation before important maintenance.",
+      "Configuration privée et locale": "Private local configuration",
+      "Ces choix restent associés uniquement à votre session Windows et pourront être modifiés dans Paramètres.": "These choices remain associated only with your Windows session and can be changed in Settings.",
+      "Enregistrer et voir le guide": "Save and view the guide"
+    }
+  };
+
+  // Complementary vocabulary used by pages and dialogs created dynamically.
+  // Keeping it here lets the MutationObserver translate new content as soon as it appears.
+  Object.assign(translations.en, {
+    "Centre des opérations": "Operations center",
+    "Suivi, reprise et corrections": "Tracking, recovery and fixes",
+    "CENTRE DE MAINTENANCE WINDOWS": "WINDOWS MAINTENANCE CENTER",
+    "Interrogation de WinGet": "Checking WinGet",
+    "Calcul de l'espace libre": "Calculating free space",
+    "État des opérations Windows": "Windows operations status",
+    "Éléments récupérables": "Recoverable items",
+    "logiciels disponibles": "applications available",
+    "Navigateur, outils & médias": "Browser, tools & media",
+    "Launchers, chat & utilitaires": "Launchers, chat & utilities",
+    "Code, Git & runtimes": "Code, Git & runtimes",
+    "OPTIONS AVANCÉES": "ADVANCED OPTIONS",
+    "Transférer ou personnaliser votre configuration": "Transfer or customize your setup",
+    "Sauvegardes, profils et identifiants WinGet": "Backups, profiles and WinGet package IDs",
+    "SAUVEGARDE DU PC": "PC BACKUP",
+    "Conservez votre liste de logiciels": "Keep your software list",
+    "Exportez la configuration actuelle ou rechargez-la sur un autre ordinateur.": "Export the current setup or restore it on another computer.",
+    "↥ Restaurer": "↥ Restore",
+    "↓ Sauvegarder": "↓ Back up",
+    "PAQUET PERSONNALISÉ": "CUSTOM PACKAGE",
+    "Installer un identifiant WinGet": "Install a WinGet package ID",
+    "Ajouter": "Add",
+    "OPTION FACULTATIVE": "OPTIONAL",
+    "Profils de sélection": "Selection profiles",
+    "Un profil mémorise votre sélection pour la réutiliser plus tard ou préparer un autre PC. Il n’est pas nécessaire pour installer des logiciels maintenant.": "A profile saves your selection for later use or for setting up another PC. You do not need one to install software now.",
+    "Choisir un profil": "Choose a profile",
+    "Charger": "Load",
+    "Tout sélectionner": "Select all",
+    "Effacer": "Clear",
+    "× Désinstaller la sélection": "× Uninstall selection",
+    "Dossier d’installation": "Installation folder",
+    "Automatique — recommandé": "Automatic — recommended",
+    "Choisir un dossier personnalisé": "Choose a custom folder",
+    "Aucun dossier sélectionné": "No folder selected",
+    "Parcourir…": "Browse…",
+    "WinGet ou l’éditeur choisit l’emplacement le plus compatible.": "WinGet or the publisher chooses the most compatible location.",
+    "OwlSetup crée un sous-dossier par application. Certains installateurs imposent toutefois leur propre emplacement.": "OwlSetup creates one subfolder per application. Some installers may still enforce their own location.",
+    "Emplacement du raccourci": "Shortcut location",
+    "Menu Démarrer — recommandé": "Start menu — recommended",
+    "Bureau": "Desktop",
+    "Menu Démarrer et Bureau": "Start menu and Desktop",
+    "Aucun raccourci supplémentaire": "No additional shortcut",
+    "Lancer l’application après l’installation": "Launch the application after installation",
+    "Aucun logiciel trouvé": "No software found",
+    "Essayez un autre mot-clé ou une autre catégorie.": "Try another keyword or category.",
+    "GESTION DES LOGICIELS": "SOFTWARE MANAGEMENT",
+    "Recherchez, réparez ou désinstallez les logiciels reconnus sur ce PC. Sélectionnez plusieurs cartes pour une désinstallation groupée.": "Search, repair or uninstall software detected on this PC. Select multiple cards for a batch uninstall.",
+    "DÉTECTÉES SUR CE PC": "DETECTED ON THIS PC",
+    "↻ Actualiser la détection": "↻ Refresh detection",
+    "Santé des applications": "Application health",
+    "Vérifiez les installations reconnues et les raccourcis gérés par OwlSetup.": "Check detected installations and shortcuts managed by OwlSetup.",
+    "Analyser": "Analyze",
+    "Trier par nom": "Sort by name",
+    "Trier par catégorie": "Sort by category",
+    "Sélectionnées en premier": "Selected first",
+    "Cliquez sur une carte pour l’ajouter ou la retirer de la sélection.": "Click a card to add or remove it from the selection.",
+    "Aucune application reconnue": "No applications detected",
+    "Actualisez la détection ou vérifiez que WinGet fonctionne dans les outils système.": "Refresh detection or check WinGet in System tools.",
+    "Ouvrir les outils système": "Open system tools",
+    "Logiciels installés": "Installed software",
+    "Applications reconnues par winget, y compris les versions inconnues": "Applications detected by WinGet, including unknown versions",
+    "INCLUS": "INCLUDED",
+    "Composants Windows": "Windows components",
+    "Mises à jour de sécurité et de qualité via Windows Update": "Security and quality updates through Windows Update",
+    "Pilotes certifiés": "Certified drivers",
+    "Pilotes distribués par Microsoft pour votre matériel": "Drivers distributed by Microsoft for your hardware",
+    "APERÇU DES VERSIONS": "VERSION PREVIEW",
+    "Mises à jour disponibles": "Available updates",
+    "↻ Rechercher": "↻ Check now",
+    "Recherche des mises à jour": "Checking for updates",
+    "OwlSetup interroge le catalogue WinGet...": "OwlSetup is checking the WinGet catalog...",
+    "Vos applications sont à jour": "Your applications are up to date",
+    "Aucune nouvelle version détectée dans le catalogue.": "No newer versions were found in the catalog.",
+    "Les versions seront affichées avant toute installation.": "Versions will be shown before anything is installed.",
+    "Mettre à jour la sélection": "Update selection",
+    "Conseils avant la mise à jour": "Before updating",
+    "Branchez un PC portable au secteur, sauvegardez vos documents et fermez les logiciels ouverts. Un redémarrage pourra être nécessaire.": "Plug in your laptop, save your documents and close open applications. A restart may be required.",
+    "DÉROULEMENT": "WORKFLOW",
+    "Ce que fera l'outil": "What the tool will do",
+    "Contrôle administrateur": "Administrator check",
+    "Relance automatique avec les droits nécessaires.": "Restarts automatically with the required permissions.",
+    "Mise à jour des applications": "Application updates",
+    "Installation silencieuse des nouvelles versions disponibles.": "Silent installation of available updates.",
+    "Recherche des composants et pilotes applicables.": "Checks for applicable components and drivers.",
+    "Rapport final": "Final report",
+    "Journal conservé dans le dossier local de OwlSetup.": "Report saved in OwlSetup's local folder.",
+    "SUIVI OWLSETUP": "OWLSETUP ACTIVITY",
+    "Retrouvez les tâches en cours, interrompues ou terminées et appliquez les corrections proposées.": "Review running, interrupted or completed tasks and apply suggested fixes.",
+    "Une opération a été interrompue": "An operation was interrupted",
+    "OwlSetup a retrouvé une tâche inachevée.": "OwlSetup found an unfinished task.",
+    "Reprendre": "Resume",
+    "EN COURS": "RUNNING",
+    "À VÉRIFIER": "REVIEW NEEDED",
+    "TERMINÉES": "COMPLETED",
+    "Aucune opération récente.": "No recent operations.",
+    "Correction disponible": "Fix available",
+    "Corriger automatiquement": "Fix automatically",
+    "APPLICATIONS EN COURS": "RUNNING APPLICATIONS",
+    "Vérification des processus…": "Checking processes…",
+    "Je les ferme moi-même": "I will close them myself",
+    "Fermeture forcée": "Force close",
+    "Les modifications non enregistrées peuvent être perdues. Utilisez cette option uniquement après avoir vérifié les applications affichées.": "Unsaved changes may be lost. Use this option only after reviewing the listed applications.",
+    "Forcer la fermeture": "Force close",
+    "Fermer proprement et réessayer": "Close safely and retry",
+    "STOCKAGE WINDOWS": "WINDOWS STORAGE",
+    "Supprimez les fichiers temporaires et optimisez Windows sans toucher à vos documents personnels.": "Remove temporary files and optimize Windows without touching personal documents.",
+    "ÉLÉMENTS À NETTOYER": "ITEMS TO CLEAN",
+    "Choisissez les catégories": "Choose categories",
+    "Sélection recommandée": "Recommended selection",
+    "Fichiers temporaires utilisateur": "User temporary files",
+    "Fichiers créés provisoirement par vos applications": "Temporary files created by your applications",
+    "Recommandé": "Recommended",
+    "Fichiers temporaires Windows": "Windows temporary files",
+    "Résidus système inutilisés et fichiers verrouillés ignorés": "Unused system leftovers; locked files are skipped",
+    "Corbeille": "Recycle Bin",
+    "Fichiers que vous avez précédemment supprimés": "Files you previously deleted",
+    "À vérifier": "Review",
+    "Cache d'optimisation de livraison": "Delivery Optimization cache",
+    "Copies locales utilisées pour distribuer les mises à jour": "Local copies used to distribute updates",
+    "Anciens composants Windows": "Old Windows components",
+    "Nettoyage DISM du magasin de composants remplacés": "DISM cleanup of superseded components",
+    "Avancé": "Advanced",
+    "Résidus d'applications désinstallées": "Uninstalled application leftovers",
+    "Recherche les anciens dossiers AppData et demande votre accord pour chacun": "Finds old AppData folders and asks before handling each one",
+    "Réversible": "Reversible",
+    "NETTOYAGE SÉCURISÉ": "SAFE CLEANUP",
+    "✓ Aucun document personnel": "✓ No personal documents",
+    "✓ Confirmation avant suppression": "✓ Confirmation before deletion",
+    "✓ Résidus placés en quarantaine": "✓ Leftovers moved to quarantine",
+    "✓ Aucun fichier ajouté au Bureau": "✓ No files added to the Desktop",
+    "Analyser avant nettoyage": "Analyze before cleanup",
+    "L'espace récupéré dépend du contenu actuel de votre ordinateur.": "Recovered space depends on your computer's current contents.",
+    "La Corbeille ne pourra pas être restaurée": "Recycle Bin contents cannot be restored",
+    "RÉCUPÉRATION SÉCURISÉE": "SAFE RECOVERY",
+    "Restaurez les anciens dossiers déplacés par OwlSetup ou supprimez-les définitivement après vérification.": "Restore old folders moved by OwlSetup or permanently delete them after review.",
+    "La quarantaine est vide": "Quarantine is empty",
+    "Aucun ancien dossier n'attend votre décision.": "No old folders are awaiting review.",
+    "CENTRE D'OUTILS": "TOOLS CENTER",
+    "Diagnostic et maintenance": "Diagnostics and maintenance",
+    "Vérifiez le gestionnaire et ses sources.": "Check the package manager and its sources.",
+    "Diagnostiquer": "Run diagnostics",
+    "Réparer WinGet": "Repair WinGet",
+    "Créer maintenant": "Create now",
+    "Restaurer mon PC": "Restore my PC",
+    "Applications au démarrage": "Startup applications",
+    "Gérer dans Windows": "Manage in Windows",
+    "Occupation du disque": "Disk usage",
+    "Analyse en lecture seule des principaux dossiers de votre profil.": "Read-only analysis of the main folders in your profile.",
+    "Analyser le disque": "Analyze disk",
+    "HISTORIQUE LOCAL": "LOCAL HISTORY",
+    "Dernières opérations": "Recent operations",
+    "Toutes les opérations": "All operations",
+    "Toutes les opérations": "All operations",
+    "Réparation": "Repair",
+    "Tous les résultats": "All results",
+    "Réussies": "Successful",
+    "Conserver": "Keep",
+    "Nettoyer l’historique": "Clear history",
+    "PROTECTION LOCALE": "LOCAL PROTECTION",
+    "Exporter le diagnostic": "Export diagnostics",
+    "Vérifier maintenant": "Check now",
+    "Voir le calcul": "View calculation",
+    "ÉTAT GLOBAL": "OVERALL STATUS",
+    "ÉLÉVATION": "ELEVATION",
+    "À la demande": "On demand",
+    "L’interface reste en droits standards.": "The interface runs with standard permissions.",
+    "Empreinte des ressources intégrées": "Embedded resource fingerprint",
+    "ORIGINE WEBVIEW2": "WEBVIEW2 ORIGIN",
+    "Commandes limitées à pcsetup.local": "Commands restricted to pcsetup.local",
+    "SIGNATURE": "SIGNATURE",
+    "Identité de l’éditeur": "Publisher identity",
+    "Gestionnaire de paquets Microsoft": "Microsoft package manager",
+    "Moteur d’interface Evergreen": "Evergreen interface engine",
+    "WORKER PROTÉGÉ": "PROTECTED WORKER",
+    "Actions système élevées uniquement": "Elevated system actions only",
+    "ACTIONS RECOMMANDÉES": "RECOMMENDED ACTIONS",
+    "À faire sur ce PC": "Actions for this PC",
+    "TRAÇABILITÉ LOCALE": "LOCAL AUDIT TRAIL",
+    "Journaux de sécurité et d’activité": "Security and activity logs",
+    "Consulter": "View",
+    "ASSISTANCE ET RETOUR": "SUPPORT AND FEEDBACK",
+    "Signaler un problème": "Report an issue",
+    "Aucune information n'est envoyée automatiquement.": "Nothing is sent automatically.",
+    "Type de problème": "Issue type",
+    "Affichage ou interface": "Display or interface",
+    "Autre": "Other",
+    "Que s'est-il passé ?": "What happened?",
+    "Étapes pour reproduire": "Steps to reproduce",
+    "⎘ Copier le rapport": "⎘ Copy report",
+    "↗ Ouvrir sur GitHub": "↗ Open on GitHub",
+    "Aperçu de confidentialité": "Privacy preview",
+    "Prévisualiser avant l’envoi →": "Preview before sending →",
+    "Diagnostic automatique": "Automatic diagnostics",
+    "Lancer le diagnostic →": "Run diagnostics →",
+    "Suivi de mes signalements": "My issue reports",
+    "Voir tous mes signalements →": "View all my reports →",
+    "Archive d’assistance anonymisée": "Anonymized support archive",
+    "Créer l’archive →": "Create archive →",
+    "Protégez vos informations": "Protect your information",
+    "INSTALLATION GROUPÉE": "BATCH INSTALLATION",
+    "Vérifiez les éléments avant de générer votre installateur.": "Review the items before starting installation.",
+    "RÉCAPITULATIF": "SUMMARY",
+    "Téléchargement": "Download",
+    "Automatique": "Automatic",
+    "Interaction": "Interaction",
+    "Silencieuse": "Silent",
+    "Installer maintenant": "Install now",
+    "EN CAS DE PROBLÈME": "IF SOMETHING GOES WRONG",
+    "Ouvrir le dépannage →": "Open troubleshooting →",
+    "Contrôlez WinGet": "Check WinGet",
+    "Consultez le journal visuel": "Review the visual log",
+    "Accessibilité": "Accessibility",
+    "Agrandissez l’interface et adaptez les animations à votre confort.": "Enlarge the interface and adjust animations for your comfort.",
+    "Normale": "Normal",
+    "Grande": "Large",
+    "Très grande": "Extra large",
+    "Protection avant maintenance": "Protection before maintenance",
+    "Créer automatiquement un point": "Create a restore point automatically",
+    "Autodiagnostic OwlSetup": "OwlSetup self-diagnostics",
+    "Lancer les tests": "Run tests",
+    "Aucun test lancé.": "No tests run yet.",
+    "Mode expert": "Expert mode",
+    "Afficher les détails techniques": "Show technical details",
+    "Sauvegarde complète": "Full backup",
+    "Exporter mes réglages": "Export my settings",
+    "Restaurer une sauvegarde": "Restore a backup",
+    "English (Beta)": "English",
+    "Beta translation": "Expanded translation",
+    "Durée de conservation": "Retention period",
+    "Appliquer la conservation": "Apply retention",
+    "Effacer tout": "Clear all",
+    "Effacer tout l’historique ?": "Clear all history?",
+    "Effacer définitivement": "Delete permanently",
+    "Journaux locaux": "Local logs",
+    "Conservation automatique": "Automatic retention"
+    ,"Identifiant WinGet": "WinGet package ID"
+    ,"Cette option avancée installe un paquet absent du catalogue OwlSetup. Saisissez uniquement l’identifiant exact indiqué par la commande WinGet search.": "This advanced option installs a package not listed in the OwlSetup catalog. Enter only the exact ID returned by WinGet search."
+    ,"Santé des applications": "Application health"
+    ,"L’analyse compare les logiciels connus avec WinGet, Windows et les raccourcis OwlSetup. Elle ne modifie et ne désinstalle rien.": "The scan compares known applications against WinGet, Windows and OwlSetup shortcuts. It does not change or uninstall anything."
+    ,"Nettoyage contrôlé": "Controlled cleanup"
+    ,"OwlSetup analyse d’abord les zones sélectionnées. Aucun fichier n’est supprimé pendant la simulation et vos dossiers personnels restent protégés.": "OwlSetup analyzes selected areas first. No files are deleted during simulation and personal folders remain protected."
+    ,"Point de restauration automatique": "Automatic restore point"
+    ,"Avant une opération importante, OwlSetup demande à Windows de créer un point de restauration. Vos documents personnels ne sont pas copiés par cette fonction.": "Before an important operation, OwlSetup asks Windows to create a restore point. This feature does not copy personal documents."
+    ,"Avant une opération importante, OwlSetup demande à Windows de créer un point de restauration. La protection du système doit être activée sur le lecteur Windows (généralement C:). Vos documents personnels ne sont pas copiés par cette fonction.": "Before an important operation, OwlSetup asks Windows to create a restore point. System Protection must be enabled on the Windows drive (usually C:). This feature does not copy personal documents."
+    ,"PROTECTION AVANT MAINTENANCE": "PROTECTION BEFORE MAINTENANCE"
+    ,"Le point de restauration n’a pas été créé": "The restore point was not created"
+    ,"La protection du système Windows semble désactivée sur le lecteur système.": "Windows System Protection appears to be disabled on the system drive."
+    ,"Ouvrez la protection du système Windows.": "Open Windows System Protection."
+    ,"Sélectionnez le lecteur C:, puis cliquez sur « Configurer »." : "Select drive C:, then click Configure."
+    ,"Activez la protection du système et réessayez.": "Enable System Protection and try again."
+    ,"Vous pouvez aussi désactiver cette automatisation. OwlSetup ne modifiera jamais ce réglage Windows sans votre accord.": "You can also disable this automation. OwlSetup never changes this Windows setting without your consent."
+    ,"Désactiver l’automatisation": "Disable automation"
+    ,"Ouvrir la protection Windows": "Open Windows protection"
+    ,"Choix facultatif. Vous pourrez le modifier à tout moment dans Paramètres.": "Optional choice. You can change it at any time in Settings."
+    ,"Pas maintenant": "Not now"
+    ,"Activer": "Enable"
+    ,"Création automatique d’un point de restauration": "Automatic restore point creation"
+    ,"Point de restauration facultatif": "Optional restore point"
+    ,"Mode expert": "Expert mode"
+    ,"Affiche les commandes et détails techniques en lecture seule. Ce mode n’ajoute aucun droit administrateur et n’enregistre aucun mot de passe.": "Shows commands and technical details in read-only mode. It does not add administrator rights or store passwords."
+    ,"Les journaux et rapports OwlSetup seront supprimés définitivement de ce PC. Vos applications, documents et réglages ne seront pas modifiés.": "OwlSetup logs and reports will be permanently deleted from this PC. Applications, documents and settings will not be changed."
+  });
+
+  Object.assign(translations.en, {
+    "Tout": "All", "Installés": "Installed", "Navigateurs": "Browsers", "Utilitaires": "Utilities",
+    "Multimédia": "Multimedia", "Bureautique": "Office", "Communication": "Communication",
+    "Développement": "Development", "Composants": "Components", "Sécurité": "Security",
+    "Internet": "Internet", "Création": "Creative", "Virtualisation": "Virtualization",
+    "Intelligence artificielle": "Artificial intelligence", "Personnalisé": "Custom",
+    "Navigateur rapide et sécurisé": "Fast and secure browser",
+    "Navigateur libre et respectueux": "Open and privacy-friendly browser",
+    "Navigation privée avec bloqueur intégré": "Private browsing with built-in ad blocking",
+    "Navigateur personnalisable avec outils intégrés": "Customizable browser with built-in tools",
+    "Navigateur moderne avec VPN et outils intégrés": "Modern browser with VPN and built-in tools",
+    "Navigateur conçu pour le gaming et le contrôle des ressources": "Browser designed for gaming and resource control",
+    "Version renforcée de Firefox orientée confidentialité": "Privacy-hardened Firefox-based browser",
+    "Navigateur Firefox personnalisable et respectueux de la vie privée": "Customizable, privacy-friendly Firefox browser",
+    "Navigation privée via le réseau Tor": "Private browsing through the Tor network",
+    "Navigateur indépendant basé sur Firefox": "Independent Firefox-based browser",
+    "Compression et extraction de fichiers": "File compression and extraction",
+    "Lecteur audio et vidéo universel": "Universal audio and video player",
+    "Éditeur de texte rapide et léger": "Fast and lightweight text editor",
+    "Lecteur PDF simple et très rapide": "Simple and very fast PDF reader",
+    "Suite bureautique complète et libre": "Complete open-source office suite",
+    "Recherche instantanée de fichiers": "Instant file search",
+    "Outils avancés pour Windows": "Advanced tools for Windows",
+    "Messages, appels et communautés": "Messages, calls and communities",
+    "Bibliothèque et plateforme de jeux": "Game library and platform",
+    "Launcher et boutique Epic Games": "Epic Games launcher and store",
+    "Bibliothèque de jeux sans DRM": "DRM-free game library",
+    "Launcher des jeux Ubisoft": "Ubisoft game launcher",
+    "Enregistrement et streaming vidéo": "Video recording and streaming",
+    "Éditeur de code extensible": "Extensible code editor",
+    "Gestion de versions distribuée": "Distributed version control",
+    "Runtime JavaScript longue durée": "Long-term support JavaScript runtime",
+    "Langage et environnement Python": "Python language and environment",
+    "Composant pour applications .NET": "Runtime component for .NET applications",
+    "Bibliothèques requises par de nombreux logiciels": "Libraries required by many applications",
+    "Conteneurs et environnements isolés": "Containers and isolated environments",
+    "Conception et test d'API": "API design and testing",
+    "Terminal moderne pour Windows": "Modern terminal for Windows",
+    "Musique, podcasts et playlists": "Music, podcasts and playlists",
+    "Réunions et visioconférences": "Meetings and video conferencing",
+    "Gestionnaire de mots de passe": "Password manager",
+    "Analyse et suppression de menaces": "Threat scanning and removal",
+    "Accès à distance simple et sécurisé": "Simple and secure remote access",
+    "Gestion d'archives compressées": "Compressed archive management",
+    "Client BitTorrent libre et sans publicité": "Open-source, ad-free BitTorrent client",
+    "Création de clés USB démarrables · application portable": "Bootable USB creation · portable application",
+    "Santé et température des disques": "Drive health and temperature",
+    "Mesure des performances des disques": "Drive performance benchmark",
+    "Captures d'écran et outils de partage": "Screenshots and sharing tools",
+    "Gestion moderne des archives Windows": "Modern archive management for Windows",
+    "Analyse visuelle de l'espace disque": "Visual disk space analysis",
+    "Désinstallation avancée et groupée": "Advanced and batch uninstallation",
+    "Gestionnaire de mots de passe local": "Local password manager",
+    "Retouche et création d'images": "Image editing and creation",
+    "Dessin et peinture numérique": "Digital drawing and painting",
+    "Enregistrement et montage audio": "Audio recording and editing",
+    "Conversion et compression vidéo": "Video conversion and compression",
+    "Montage vidéo libre et complet": "Complete open-source video editor",
+    "Création 3D, animation et rendu": "3D creation, animation and rendering",
+    "Bibliothèque et conversion de livres numériques": "E-book library and conversion",
+    "Messagerie électronique libre": "Open-source email client",
+    "Synchronisation avec un cloud personnel": "Personal cloud synchronization",
+    "Réseau privé simple basé sur WireGuard": "Simple private network based on WireGuard",
+    "Client VPN moderne et léger": "Modern lightweight VPN client",
+    "Contrôle à distance libre · installation guidée": "Open-source remote control · guided installation",
+    "Assistance et contrôle à distance": "Remote support and control",
+    "Client graphique officiel pour GitHub": "Official graphical client for GitHub",
+    "Gestion universelle de bases de données": "Universal database management",
+    "Gestionnaire des outils JetBrains": "JetBrains tools manager",
+    "Transfert sécurisé de fichiers SFTP": "Secure SFTP file transfer",
+    "Client SSH et terminal distant": "SSH client and remote terminal",
+    "Transfert de fichiers FTP et SFTP · installation guidée": "FTP and SFTP file transfer · guided installation",
+    "Environnement Java libre et maintenu": "Maintained open-source Java environment",
+    "Langage Go et ses outils": "Go language and toolchain",
+    "Installation et gestion du langage Rust": "Rust language installation and management",
+    "Bibliothèque et jeux Electronic Arts": "Electronic Arts game library",
+    "Lanceur des jeux Blizzard": "Blizzard game launcher",
+    "Bibliothèque unifiée de jeux vidéo": "Unified video game library",
+    "Lanceur libre pour Epic et GOG": "Open-source launcher for Epic and GOG",
+    "Lanceur de jeux Amazon": "Amazon game launcher",
+    "Gestion des mods de jeux": "Game mod management",
+    "Machines virtuelles multiplateformes": "Cross-platform virtual machines",
+    "Compte Broadcom gratuit requis · installation guidée": "Free Broadcom account required · guided installation",
+    "Environnement Linux intégré à Windows": "Linux environment integrated into Windows",
+    "Application officielle OpenAI · compte en ligne requis": "Official OpenAI application · online account required",
+    "Assistant IA officiel d’Anthropic · compte en ligne requis": "Official Anthropic AI assistant · online account required",
+    "Exécute des modèles d’IA localement sur votre PC": "Run AI models locally on your PC",
+    "Télécharge et utilise des modèles d’IA locaux avec une interface graphique": "Download and use local AI models through a graphical interface",
+    "Assistant IA local et open source respectueux de la vie privée": "Privacy-friendly local open-source AI assistant",
+    "Assistant IA de Google · service Web": "Google AI assistant · web service",
+    "Assistant IA de Microsoft · service Web": "Microsoft AI assistant · web service",
+    "Moteur de réponse et de recherche assisté par IA · service Web": "AI-assisted answer and search engine · web service",
+    "Assistant conversationnel de Mistral AI · service Web": "Mistral AI conversational assistant · web service",
+    "Espace de travail IA local avec documents et agents · installation guidée": "Local AI workspace with documents and agents · guided installation",
+    "Assistant privé utilisant des modèles locaux · installation guidée": "Private assistant using local models · guided installation",
+    "Installe et lance des projets IA locaux · installation guidée": "Install and run local AI projects · guided installation",
+    "Assistant local optimisé pour les cartes NVIDIA RTX · compatibilité à vérifier": "Local assistant optimized for NVIDIA RTX GPUs · check compatibility",
+    "Gestionnaire d’outils de génération d’images locale · installation guidée": "Local image-generation tools manager · guided installation",
+    "Création d’images par IA avec workflows visuels": "AI image creation with visual workflows",
+    "Paquet ajouté manuellement par identifiant WinGet": "Package manually added by WinGet ID"
+  });
+
+  Object.assign(translations.en, {
+    "Ouvrir": "Open",
+    "Nettoyer": "Clean",
+    "Nettoyer ce cache ?": "Clean this cache?",
+    "Placer en quarantaine": "Move to quarantine",
+    "Ce dossier sera placé en quarantaine. Il pourra être restauré depuis OwlSetup et aucun autre dossier ne sera touché.": "This folder will be moved to quarantine. It can be restored from OwlSetup and no other folder will be changed.",
+    "Ouvrir ce dossier dans l'Explorateur": "Open this folder in File Explorer",
+    "Placer ce cache en quarantaine réversible": "Move this cache to reversible quarantine",
+    "Cache mis en quarantaine": "Cache moved to quarantine"
+  });
+
+  const englishPatterns = [
+    [/^(\d+) logiciel(?:s)? sélectionné(?:s)?$/, "$1 application(s) selected"],
+    [/^(\d+) application(?:s)? sélectionnée(?:s)?$/, "$1 application(s) selected"],
+    [/^(\d+) élément(?:s)?$/, "$1 item(s)"],
+    [/^(\d+) logiciel(?:s)?$/, "$1 application(s)"],
+    [/^(\d+) zone(?:s)?$/, "$1 area(s)"],
+    [/^(\d+) disponible(?:s)?$/, "$1 available"],
+    [/^(\d+) réussi(?:s)? · (\d+) à vérifier$/, "$1 successful · $2 to review"],
+    [/^Réparer (.+)$/, "Repair $1"],
+    [/^Désinstaller (.+)$/, "Uninstall $1"],
+    [/^Gérer (.+) dans les paramètres Windows$/, "Manage $1 in Windows Settings"],
+    [/^Site officiel de (.+)$/, "$1 official website"],
+    [/^Étape (\d+)$/, "Step $1"]
+  ];
+
+  function translateValue(source) {
+    if (currentLanguage === "fr") return source;
+    const exact = translations[currentLanguage]?.[source];
+    if (exact) return exact;
+    for (const [pattern, replacement] of englishPatterns) {
+      if (pattern.test(source)) return source.replace(pattern, replacement);
+    }
+    return source;
+  }
+
+  const originalText = new WeakMap();
+  const originalAttributes = new WeakMap();
+  let currentLanguage = supported.has(localStorage.getItem(storageKey)) ? localStorage.getItem(storageKey) : "fr";
+  let observer;
+
+  function preserveSpacing(source, replacement) {
+    const leading = source.match(/^\s*/)?.[0] || "";
+    const trailing = source.match(/\s*$/)?.[0] || "";
+    return `${leading}${replacement}${trailing}`;
+  }
+
+  function translateTextNode(node) {
+    if (!node.parentElement || node.parentElement.closest("script,style,pre,code")) return;
+    const existing = originalText.get(node);
+    if (!existing || node.nodeValue !== existing.rendered) originalText.set(node, { source: node.nodeValue, rendered: node.nodeValue });
+    const record = originalText.get(node);
+    const key = record.source.trim();
+    if (!key) return;
+    const replacement = translateValue(key);
+    const rendered = preserveSpacing(record.source, replacement);
+    record.rendered = rendered;
+    if (node.nodeValue !== rendered) node.nodeValue = rendered;
+  }
+
+  function translateAttribute(element, attribute) {
+    let values = originalAttributes.get(element);
+    if (!values) { values = {}; originalAttributes.set(element, values); }
+    const current = element.getAttribute(attribute);
+    if (current == null) return;
+    if (!values[attribute] || current !== values[attribute].rendered) values[attribute] = { source: current, rendered: current };
+    const record = values[attribute];
+    const rendered = translateValue(record.source);
+    record.rendered = rendered;
+    if (current !== rendered) element.setAttribute(attribute, rendered);
+  }
+
+  function applyTo(root = document.body) {
+    if (!root) return;
+    if (root.nodeType === Node.TEXT_NODE) translateTextNode(root);
+    else {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) translateTextNode(walker.currentNode);
+      if (root.nodeType === Node.ELEMENT_NODE) ["placeholder", "title", "aria-label"].forEach(attribute => translateAttribute(root, attribute));
+      root.querySelectorAll?.("[placeholder],[title],[aria-label]").forEach(element => ["placeholder", "title", "aria-label"].forEach(attribute => translateAttribute(element, attribute)));
+    }
+  }
+
+  function setLanguage(language, persist = true) {
+    currentLanguage = supported.has(language) ? language : "fr";
+    if (persist) localStorage.setItem(storageKey, currentLanguage);
+    document.documentElement.lang = currentLanguage;
+    observer?.disconnect();
+    applyTo(document.body);
+    observer?.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "title", "aria-label"] });
+    const selector = document.getElementById("appLanguage");
+    if (selector) selector.value = currentLanguage;
+  }
+
+  function closeLanguageDialog(language) {
+    setLanguage(language, true);
+    document.getElementById("languageOverlay")?.classList.add("hidden");
+    document.body.classList.remove("language-open");
+    window.dispatchEvent(new CustomEvent("owlsetup:language-selected", { detail: { language: currentLanguage } }));
+  }
+
+  function initialize() {
+    observer = new MutationObserver(mutations => mutations.forEach(mutation => {
+      if (mutation.type === "characterData") translateTextNode(mutation.target);
+      else if (mutation.type === "attributes") translateAttribute(mutation.target, mutation.attributeName);
+      else mutation.addedNodes.forEach(node => applyTo(node));
+    }));
+
+    document.querySelectorAll("[data-language]").forEach(button => button.addEventListener("click", () => closeLanguageDialog(button.dataset.language)));
+    document.getElementById("appLanguage")?.addEventListener("change", event => setLanguage(event.target.value, true));
+    setLanguage(currentLanguage, false);
+
+    if (!localStorage.getItem(storageKey)) {
+      document.getElementById("languageOverlay")?.classList.remove("hidden");
+      document.body.classList.add("language-open");
+      window.setTimeout(() => document.querySelector("[data-language='fr']")?.focus(), 80);
+    }
+  }
+
+  window.owlI18n = {
+    setLanguage,
+    getLanguage: () => currentLanguage,
+    hasSelection: () => supported.has(localStorage.getItem(storageKey)),
+    translate: translateValue
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  else initialize();
+})();

@@ -3,22 +3,22 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $script = Get-Content -LiteralPath (Join-Path $root "app.js") -Raw
 
-$required = @(
-    'owlsetup-custom-packages-v1',
-    'function addCustomAppDefinition',
-    'storedCustomPackages.filter(isValidPackageId)',
-    'profilePackages.filter(id=>!apps.some',
-    'forEach(id=>addCustomAppDefinition(id))'
-)
-
-foreach ($value in $required) {
-    if (-not $script.Contains($value)) {
-        throw "Persistance des paquets personnalisés incomplète : $value"
+foreach ($required in @(
+    'function saveProfile()',
+    'function loadProfile()',
+    'profilePackages.map(id=>apps.find',
+    '.filter(Boolean)',
+    'localStorage.removeItem(customPackagesStorageKey)'
+)) {
+    if (-not $script.Contains($required)) {
+        throw "Controle des profils de catalogue incomplet : $required"
     }
 }
 
-if ($script -notmatch 'profilePackages=Array\.isArray\(profiles\[name\]\).*?filter\(isValidPackageId\).*?slice\(0,100\)') {
-    throw "Les identifiants restaurés depuis un profil ne sont pas suffisamment contrôlés."
+foreach ($removed in @('forEach(id=>addCustomAppDefinition(id))','customPackagesStorageKey,onboardingStorageKey')) {
+    if ($script.Contains($removed)) {
+        throw "Un profil ou une sauvegarde peut encore restaurer un paquet libre : $removed"
+    }
 }
 
-Write-Host "Persistance des paquets personnalisés et profils : contrôle réussi." -ForegroundColor Green
+Write-Host "Profils limites aux applications du catalogue OwlSetup : controle reussi." -ForegroundColor Green

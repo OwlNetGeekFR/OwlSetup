@@ -3,13 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';" />
+  <meta name="color-scheme" content="dark light" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src https://owlsetup-dashboard-owlnetgeekfr.onrender.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';" />
   <title>OwlSetup — Installateur Windows</title>
   <link rel="icon" href="assets/branding/owlsetup-logo.png" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=3.7.0-beta.57" />
 </head>
 <body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="nav-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></symbol>
+    <symbol id="nav-apps" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="nav-maintenance" viewBox="0 0 24 24"><path d="M20 7h-5V2"/><path d="M20 7a9 9 0 1 0 1 8"/></symbol>
+    <symbol id="nav-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="nav-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.2 2.3c-.7.3-1 1-1 1.7M12 17h.01"/></symbol>
+    <symbol id="nav-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.7-1.7.9-1.9-2.1-2.1-1.9.9-1.7-.7-.7-2h-3l-.7 2-1.7.7-1.9-.9-2.1 2.1.9 1.9-.7 1.7-2 .7v3l2 .7.7 1.7-.9 1.9 2.1 2.1 1.9-.9 1.7.7.7 2h3l.7-2 1.7-.7 1.9.9 2.1-2.1-.9-1.9.7-1.7z"/></symbol>
+    <symbol id="nav-theme" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/><path d="M12 8a4 4 0 0 0 0 8z"/></symbol>
+    <symbol id="nav-install" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 19h14"/></symbol>
+    <symbol id="nav-installed" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4m-3-10 2 2 4-4"/></symbol>
+    <symbol id="nav-selection" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 4.5m-4 7.5 1.5 1.5L7 10.5m-4 7.5 1.5 1.5L7 16.5"/></symbol>
+    <symbol id="nav-update" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-5L3 9"/><path d="M3 4v5h5M4 13a8 8 0 0 0 14 5l3-3"/><path d="M21 20v-5h-5"/></symbol>
+    <symbol id="nav-cleanup" viewBox="0 0 24 24"><path d="m4 20 6-6m1-1 6-6"/><path d="m15 3 .7 2.3L18 6l-2.3.7L15 9l-.7-2.3L12 6l2.3-.7zM6 8l.6 1.7 1.7.6-1.7.6L6 13l-.6-2.1-1.7-.6 1.7-.6zM18 14l.7 2.3 2.3.7-2.3.7L18 20l-.7-2.3-2.3-.7 2.3-.7z"/></symbol>
+    <symbol id="nav-residue" viewBox="0 0 24 24"><path d="M4 7h16v13H4zM7 7V4h10v3"/><path d="m9 11 6 6m0-6-6 6"/></symbol>
+    <symbol id="nav-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.6L16.5 9"/></symbol>
+    <symbol id="nav-windows" viewBox="0 0 24 24"><path d="M3 4.5 10.5 3v8H3zM12.5 2.7 21 1v10h-8.5zM3 13h7.5v8L3 19.5zM12.5 13H21v10l-8.5-1.7z"/></symbol>
+    <symbol id="nav-support" viewBox="0 0 24 24"><path d="M4 7h12v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 9h2a3 3 0 0 1 0 6h-2M3 21h15"/><path d="M8.1 10.3c.8-.9 2.2-.3 2.2.7 0-1 1.4-1.6 2.2-.7.8.9.3 2.2-2.2 3.8-2.5-1.6-3-2.9-2.2-3.8z"/></symbol>
+    <symbol id="security-integrity" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="security-origin" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18M8 6h.01M11 6h.01"/><rect x="9" y="11" width="6" height="5" rx="1"/><path d="M10.5 11V9.8a1.5 1.5 0 0 1 3 0V11"/></symbol>
+    <symbol id="security-signature" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM15 3v4h4"/><path d="m9 11 1.5 1.5L14 9"/><circle cx="14.5" cy="15.5" r="2.5"/><path d="m13 17.5-.5 3 2-1 2 1-.5-3"/></symbol>
+    <symbol id="security-package" viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10M8 5l8 4"/></symbol>
+    <symbol id="security-webview" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="15" rx="2"/><path d="M3 8h18M7 6h.01M10 6h.01M8 13h8m-4-4v8"/></symbol>
+    <symbol id="security-worker" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="M9 12h6M12 9v6"/></symbol>
+    <symbol id="security-defender" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="M12 3v18M4 10h16"/></symbol>
+    <symbol id="security-firewall" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 10h18M3 15h18M8 5v5m8-5v5m-5 0v5m8-5v5M7 15v4m9-4v4"/></symbol>
+    <symbol id="security-privileges" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a5 5 0 0 1 10 0v2"/><rect x="14" y="12" width="7" height="7" rx="1"/><path d="M16 12v-1a1.5 1.5 0 0 1 3 0v1"/></symbol>
+    <symbol id="nav-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 20h16"/></symbol>
+    <symbol id="nav-tools" viewBox="0 0 24 24"><path d="M14.5 6.5a4 4 0 0 0-5-5l2.2 2.2-2 2-2.2-2.2a4 4 0 0 0 5 5L20 16l-4 4-7.5-7.5"/><path d="m5 19-1-1 3-3 1 1z"/></symbol>
+    <symbol id="tool-winget-diagnostic" viewBox="0 0 24 24"><path d="M4 5h10v10H4z"/><path d="M7.3 8h3.4v3.4H7.3z"/><circle cx="16.5" cy="16.5" r="3.5"/><path d="m19 19 2 2"/></symbol>
+    <symbol id="tool-restore-point" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6M12 7v5l3 2"/></symbol>
+    <symbol id="tool-startup-apps" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18M7 6h.01M10 6h.01"/><path d="M12 17V11m-3 3 3-3 3 3"/></symbol>
+    <symbol id="tool-disk-usage" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="tool-open-folder" viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/><path d="M3 7V5h7l2 2"/><path d="m13 15 5-5m-1 0h1v1"/></symbol>
+    <symbol id="tool-safe-clean" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="m8.5 13 2 2 5-6"/></symbol>
+    <symbol id="nav-quarantine" viewBox="0 0 24 24"><path d="M4 7h16v13H4zM3 3h18v4H3z"/><path d="M9 12h6m-3-3v6"/></symbol>
+    <symbol id="nav-troubleshoot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="m5.6 5.6 4.3 4.3m4.2 4.2 4.3 4.3m0-12.8-4.3 4.3m-4.2 4.2-4.3 4.3"/></symbol>
+    <symbol id="nav-guide" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4zM20 4h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4z"/></symbol>
+    <symbol id="nav-external" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-9 9"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></symbol>
+    <symbol id="guide-select" viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+    <symbol id="guide-review" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/><path d="m20.2 18.2 1.8 1.8"/></symbol>
+    <symbol id="guide-confirm" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="guide-report" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 11h6M9 15h6"/></symbol>
+    <symbol id="guide-close-app" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m9 10 6 6m0-6-6 6"/></symbol>
+    <symbol id="guide-source" viewBox="0 0 24 24"><path d="M4 7h16M7 4v6M17 4v6M6 13h12v7H6z"/><path d="m9 16 2 2 4-4"/></symbol>
+    <symbol id="guide-admin" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6z"/><path d="M12 8v5m0 3h.01"/></symbol>
+    <symbol id="guide-log" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="guide-welcome" viewBox="0 0 24 24"><path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3m-.4 6.4 2.1-2.1M12 18v3m6.4-2.6-2.1-2.1M18 12h3m-2.6-6.4-2.1 2.1"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="guide-maintenance" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-5L3 9"/><path d="M3 4v5h5M4 13a8 8 0 0 0 14 5l3-3"/><path d="M21 20v-5h-5"/><path d="M12 8v4l3 2"/></symbol>
+  </svg>
   <div class="ambient ambient-one"></div>
   <div class="ambient ambient-two"></div>
 
@@ -19,25 +68,14 @@
       <span><strong>OwlSetup <b class="build-badge hidden" id="buildBadge">BÊTA</b></strong><small id="buildSubtitle">Windows installer</small></span>
     </a>
 
-    <nav aria-label="Navigation">
-      <button class="nav-item" data-view="home"><span>⌂</span> Accueil</button>
-      <button class="nav-item active" data-view="catalog"><span>▦</span> Installer des logiciels</button>
-      <button class="nav-item" data-view="installed"><span>▣</span> Applications installées <b id="installedNavCount">0</b></button>
-      <button class="nav-item" data-view="updates"><span>↥</span> Tout mettre à jour <b class="new-badge hidden" id="updatesNavBadge">0</b></button>
-      <button class="nav-item" data-view="cleanup"><span>◇</span> Libérer de l'espace</button>
-      <button class="nav-item" data-view="quarantine"><span>♲</span> Quarantaine <b id="quarantineNavCount">0</b></button>
-      <button class="nav-item" data-view="tools"><span>⚙</span> Outils système <b class="new-badge hidden" id="toolsNavBadge">!</b></button>
-      <button class="nav-item" data-view="security"><span>♢</span> Centre de sécurité <b class="new-badge hidden" id="securityNavBadge">0</b></button>
-      <button class="nav-item" data-view="troubleshooting"><span>?</span> Dépannage <b class="new-badge hidden" id="troubleshootingNavBadge">0</b></button>
-      <button class="nav-item" data-view="queue"><span>↓</span> Ma sélection <b id="navCount">0</b></button>
-      <button class="nav-item" data-view="history"><span>↻</span> Guide d'installation</button>
-    </nav>
-
     <div class="system-card">
-      <div class="system-title"><span class="windows-icon">⊞</span><div><strong>Windows 10 / 11</strong><small>Compatible winget</small></div></div>
-      <div class="system-row"><span>Gestionnaire</span><b>winget</b></div>
-      <div class="system-row"><span>Architecture</span><b>x64 / ARM64</b></div>
-      <div class="status-pill"><i></i> Prêt à configurer</div>
+      <div class="system-title"><span class="windows-icon"><svg aria-hidden="true"><use href="#nav-windows"/></svg></span><div><strong id="systemOsName">Analyse du PC…</strong><small id="systemOsBuild">Détection de Windows</small></div></div>
+      <div class="system-row"><span>WinGet</span><b id="systemWinget">Vérification…</b></div>
+      <div class="system-row"><span>Architecture</span><b id="systemArchitecture">—</b></div>
+      <div class="system-row"><span>Redémarrage</span><b id="systemRestart">Analyse…</b></div>
+      <div class="status-pill" id="systemReadiness"><i></i><span>Diagnostic en cours</span></div>
+      <p class="system-restart-reason hidden" id="systemRestartReason"></p>
+      <button class="system-refresh" id="refreshSystemSummary" type="button"><span><svg aria-hidden="true"><use href="#nav-update"/></svg></span> Actualiser</button>
     </div>
 
     <p class="side-note">Les logiciels sont téléchargés depuis leurs éditeurs via le gestionnaire officiel Microsoft.</p>
@@ -48,11 +86,52 @@
       <button class="mobile-menu" id="mobileMenu" aria-label="Ouvrir le menu">☰</button>
       <div class="breadcrumb">OwlSetup <span>/</span> <b id="currentView">Installer des logiciels</b></div>
       <div class="topbar-actions">
-        <a class="top-support" href="https://ko-fi.com/owlsetup" target="_blank" rel="noopener" aria-label="Soutenir OwlSetup sur Ko-fi" title="Don facultatif sur Ko-fi"><span>♡</span><strong>Soutenir</strong></a>
         <button class="update-notification" id="appUpdateNotification" aria-label="Ouvrir les notifications" title="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i><b id="notificationCount" class="hidden">0</b></button>
         <div class="secure"><span>✓</span> Sources vérifiées</div>
       </div>
     </header>
+
+    <nav class="horizontal-nav" aria-label="Navigation principale">
+      <button class="top-nav-item" data-view="home"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-home"/></svg></span> Accueil</button>
+      <div class="top-nav-group">
+        <button class="top-nav-toggle active" type="button" aria-expanded="false"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-apps"/></svg></span> Applications <i>⌄</i></button>
+        <div class="top-nav-menu">
+          <span class="top-nav-menu-title">GESTION DES APPLICATIONS</span>
+          <button class="nav-item active" data-view="catalog"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-install"/></svg></span><span class="nav-menu-copy"><strong>Installer des logiciels</strong><small>Catalogue officiel et profils rapides</small></span></button>
+          <button class="nav-item" data-view="installed"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-installed"/></svg></span><span class="nav-menu-copy"><strong>Applications installées</strong><small>Réparer ou désinstaller proprement</small></span><b id="installedNavCount">0</b></button>
+          <button class="nav-item" data-view="queue"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-selection"/></svg></span><span class="nav-menu-copy"><strong>Ma sélection</strong><small>Préparer une installation groupée</small></span><b id="navCount">0</b></button>
+        </div>
+      </div>
+      <div class="top-nav-group">
+        <button class="top-nav-toggle" type="button" aria-expanded="false"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span> Maintenance <b class="top-menu-alert hidden" id="maintenanceGroupBadge">0</b><i>⌄</i></button>
+        <div class="top-nav-menu">
+          <span class="top-nav-menu-title">ENTRETIEN DU PC</span>
+          <button class="nav-item" data-view="updates"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><span class="nav-menu-copy"><strong>Tout mettre à jour</strong><small>Logiciels, Windows et pilotes</small></span><b class="new-badge hidden" id="updatesNavBadge">0</b></button>
+          <button class="nav-item" data-view="cleanup"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span><span class="nav-menu-copy"><strong>Libérer de l'espace</strong><small>Fichiers temporaires et résidus</small></span></button>
+          <button class="nav-item" data-view="tools"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><span class="nav-menu-copy"><strong>Outils système</strong><small>Diagnostic, démarrage et stockage</small></span><b class="new-badge hidden" id="toolsNavBadge">!</b></button>
+          <button class="nav-item" data-view="operations"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-guide"/></svg></span><span class="nav-menu-copy"><strong>Centre des opérations</strong><small>Suivi, reprise et corrections</small></span><b class="new-badge hidden" id="operationsNavBadge">0</b></button>
+        </div>
+      </div>
+      <div class="top-nav-group">
+        <button class="top-nav-toggle" type="button" aria-expanded="false"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span> Sécurité <b class="top-menu-alert hidden" id="securityGroupBadge">0</b><i>⌄</i></button>
+        <div class="top-nav-menu">
+          <span class="top-nav-menu-title">PROTECTION ET ASSISTANCE</span>
+          <button class="nav-item" data-view="security"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><span class="nav-menu-copy"><strong>Centre de sécurité</strong><small>Contrôles et recommandations locales</small></span><b class="new-badge hidden" id="securityNavBadge">0</b></button>
+          <button class="nav-item" data-view="quarantine"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-quarantine"/></svg></span><span class="nav-menu-copy"><strong>Quarantaine</strong><small>Éléments isolés et récupérables</small></span><b id="quarantineNavCount">0</b></button>
+          <button class="nav-item" data-view="troubleshooting"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-troubleshoot"/></svg></span><span class="nav-menu-copy"><strong>Aide et dépannage</strong><small>Diagnostic, signalement et suivi</small></span><b class="new-badge hidden" id="troubleshootingNavBadge">0</b></button>
+        </div>
+      </div>
+      <div class="top-nav-group">
+        <button class="top-nav-toggle" type="button" aria-expanded="false"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-help"/></svg></span> Aide <i>⌄</i></button>
+        <div class="top-nav-menu">
+          <span class="top-nav-menu-title">AIDE OWLSETUP</span>
+          <button class="nav-item" data-view="history"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-guide"/></svg></span><span class="nav-menu-copy"><strong>Guide d'installation</strong><small>Comprendre chaque étape en sécurité</small></span></button>
+          <a class="nav-item nav-external" href="https://owlsetup.owlnetgeek.fr/" target="_blank" rel="noopener"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-external"/></svg></span><span class="nav-menu-copy"><strong>Site officiel</strong><small>Guides, téléchargements et actualités</small></span></a>
+        </div>
+      </div>
+      <a class="top-support nav-support" href="https://ko-fi.com/owlsetup" target="_blank" rel="noopener" aria-label="Soutenir OwlSetup sur Ko-fi" title="Don facultatif sur Ko-fi"><span><svg aria-hidden="true"><use href="#nav-support"/></svg></span><strong>Soutenir sur Ko-fi</strong></a>
+      <button class="top-nav-item settings-tab" data-view="settings"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span> Paramètres</button>
+    </nav>
 
     <section class="view" id="home">
       <div class="home-hero">
@@ -64,43 +143,44 @@
         </div>
         <div class="health-widget">
           <div class="health-ring" id="healthRing"><div><strong id="healthScore">—</strong><small>/ 100</small></div></div>
-          <span>Santé du PC</span><b id="healthStatus">Analyse en cours...</b>
+          <span>État de maintenance</span><b id="healthStatus">Analyse en cours...</b>
+          <button class="health-details-button" id="healthDetails" type="button">Voir le calcul</button>
         </div>
       </div>
 
       <div class="health-dashboard">
-        <article><span class="health-metric-icon blue">↥</span><div><small>MISES À JOUR</small><strong id="healthUpdates">Analyse...</strong><em id="healthUpdatesDetail">Interrogation de WinGet</em></div></article>
-        <article><span class="health-metric-icon cyan">◇</span><div><small>ESPACE DISQUE C:</small><strong id="healthDisk">Analyse...</strong><em id="healthDiskDetail">Calcul de l'espace libre</em></div></article>
-        <article><span class="health-metric-icon violet">↻</span><div><small>REDÉMARRAGE</small><strong id="healthRestart">Analyse...</strong><em>État des opérations Windows</em></div></article>
-        <article data-view="quarantine"><span class="health-metric-icon green">♲</span><div><small>QUARANTAINE</small><strong id="healthQuarantine">Analyse...</strong><em>Éléments récupérables</em></div></article>
-        <button class="health-refresh" id="refreshHealth" title="Actualiser le diagnostic">↻</button>
+        <article><span class="health-metric-icon blue"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><div><small>MISES À JOUR</small><strong id="healthUpdates">Analyse...</strong><em id="healthUpdatesDetail">Interrogation de WinGet</em></div></article>
+        <article><span class="health-metric-icon cyan"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span><div><small>ESPACE DISQUE C:</small><strong id="healthDisk">Analyse...</strong><em id="healthDiskDetail">Calcul de l'espace libre</em></div></article>
+        <article><span class="health-metric-icon violet"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span><div><small>REDÉMARRAGE</small><strong id="healthRestart">Analyse...</strong><em>État des opérations Windows</em></div></article>
+        <article data-view="quarantine"><span class="health-metric-icon green"><svg aria-hidden="true"><use href="#nav-quarantine"/></svg></span><div><small>QUARANTAINE</small><strong id="healthQuarantine">Analyse...</strong><em>Éléments récupérables</em></div></article>
+        <button class="health-refresh" id="refreshHealth" title="Actualiser le diagnostic" aria-label="Actualiser le diagnostic"><svg aria-hidden="true"><use href="#nav-update"/></svg></button>
       </div>
 
       <div class="home-section-heading"><div><span class="label">OUTILS DISPONIBLES</span><h2>Que voulez-vous faire ?</h2></div><span class="local-pill">● 100 % local</span></div>
       <div class="feature-grid">
         <button class="feature-card install-feature" data-view="catalog">
-          <span class="feature-number">01</span><span class="feature-icon">↓</span>
+          <span class="feature-number">01</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-install"/></svg></span>
           <span class="feature-copy"><strong>Installer des logiciels</strong><small>Choisissez parmi le catalogue ou utilisez un profil prêt à l'emploi.</small><em><span id="homeCatalogCount">93</span> logiciels disponibles <b>→</b></em></span>
         </button>
         <button class="feature-card update-feature" data-view="updates">
-          <span class="feature-number">02</span><span class="feature-icon">↥</span>
+          <span class="feature-number">02</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span>
           <span class="feature-copy"><strong>Tout mettre à jour</strong><small>Applications, composants Windows et pilotes certifiés Microsoft.</small><em>Mise à jour groupée <b>→</b></em></span>
         </button>
         <button class="feature-card cleanup-feature" data-view="cleanup">
-          <span class="feature-number">03</span><span class="feature-icon">◇</span>
+          <span class="feature-number">03</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span>
           <span class="feature-copy"><strong>Libérer de l'espace</strong><small>Nettoyez les fichiers temporaires, caches et anciens composants.</small><em>Nettoyage personnalisable <b>→</b></em></span>
         </button>
         <button class="feature-card residue-feature" data-view="cleanup" data-focus-cleanup="app-leftovers">
-          <span class="feature-number">04</span><span class="feature-icon">⌫</span>
+          <span class="feature-number">04</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-residue"/></svg></span>
           <span class="feature-copy"><strong>Supprimer les résidus</strong><small>Repérez les dossiers laissés par les applications désinstallées.</small><em>Quarantaine réversible <b>→</b></em></span>
         </button>
       </div>
 
       <div class="home-trust">
-        <div><span>✓</span><p><strong>Sources officielles</strong><small>Installation via winget</small></p></div>
-        <div><span>✓</span><p><strong>Actions contrôlées</strong><small>Confirmation avant suppression</small></p></div>
-        <div><span>✓</span><p><strong>Aucune donnée envoyée</strong><small>Tout reste sur votre ordinateur</small></p></div>
-        <div><span>✓</span><p><strong>Rapports détaillés</strong><small>Journaux rangés dans OwlSetup</small></p></div>
+        <div><span><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><p><strong>Sources officielles</strong><small>Installation via winget</small></p></div>
+        <div><span><svg aria-hidden="true"><use href="#nav-check"/></svg></span><p><strong>Actions contrôlées</strong><small>Confirmation avant suppression</small></p></div>
+        <div><span><svg aria-hidden="true"><use href="#nav-home"/></svg></span><p><strong>Aucune donnée envoyée</strong><small>Tout reste sur votre ordinateur</small></p></div>
+        <div><span><svg aria-hidden="true"><use href="#nav-guide"/></svg></span><p><strong>Rapports détaillés</strong><small>Journaux rangés dans OwlSetup</small></p></div>
       </div>
     </section>
 
@@ -111,7 +191,7 @@
           <h1>Votre PC, prêt<br><em>en quelques clics.</em></h1>
           <p>Sélectionnez vos logiciels et composants. OwlSetup prépare une installation groupée, propre et sans publicités.</p>
         </div>
-        <div class="hero-orbit" aria-hidden="true"><span>⊞</span><i class="orbit-dot dot-a"></i><i class="orbit-dot dot-b"></i></div>
+        <div class="hero-orbit" aria-hidden="true"><span><svg><use href="#nav-windows"/></svg></span><i class="orbit-dot dot-a"></i><i class="orbit-dot dot-b"></i></div>
       </div>
 
       <section class="preset-section">
@@ -124,18 +204,22 @@
       </section>
 
       <section class="catalog-section">
+        <details class="catalog-advanced">
+          <summary><span><small>OPTIONS AVANCÉES</small><strong>Transférer ou réutiliser votre configuration</strong><em>Sauvegardes et profils de sélection</em></span><b>Afficher</b></summary>
+          <div class="catalog-advanced-body">
         <div class="config-toolbar">
           <div><span class="label">SAUVEGARDE DU PC</span><strong>Conservez votre liste de logiciels</strong><small>Exportez la configuration actuelle ou rechargez-la sur un autre ordinateur.</small></div>
           <div><button class="secondary-dialog-button" id="importConfig">↥ Restaurer</button><button class="primary-dialog-button" id="exportConfig">↓ Sauvegarder</button></div>
         </div>
         <div class="custom-tools">
-          <div class="custom-install"><div><span class="label">PAQUET PERSONNALISÉ</span><strong>Installer un identifiant WinGet</strong></div><input id="customPackageId" placeholder="Exemple : Microsoft.PowerToys" spellcheck="false"><button class="primary-dialog-button" id="installCustomPackage">Ajouter</button></div>
           <details class="profile-panel">
             <summary><span><small>OPTION FACULTATIVE</small><strong>Profils de sélection</strong></span><b>Afficher</b></summary>
             <p>Un profil mémorise votre sélection pour la réutiliser plus tard ou préparer un autre PC. Il n’est pas nécessaire pour installer des logiciels maintenant.</p>
             <div class="profile-tools"><input id="profileName" placeholder="Exemple : Nouveau PC"><button class="secondary-dialog-button" id="saveProfile">Enregistrer</button><select id="savedProfiles" aria-label="Profils enregistrés"><option value="">Choisir un profil</option></select><button class="secondary-dialog-button" id="loadProfile">Charger</button></div>
           </details>
         </div>
+          </div>
+        </details>
         <div class="installed-manager hidden" id="installedManager"><div><strong id="managedCount">0 logiciel sélectionné</strong><small>Ouvrez le filtre « Installés », puis cliquez sur les cartes à désinstaller.</small></div><div class="installed-manager-actions"><button class="secondary-dialog-button" id="selectAllInstalled">Tout sélectionner</button><button class="secondary-dialog-button" id="clearInstalledSelection" disabled>Effacer</button><button class="danger-dialog-button" id="batchUninstallBtn" disabled>× Désinstaller la sélection</button></div></div>
         <div class="catalog-tools">
           <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Rechercher un logiciel..." autocomplete="off" /></div>
@@ -150,12 +234,14 @@
     <section class="view" id="installed">
       <div class="page-intro installed-intro">
         <div><span class="label">GESTION DES LOGICIELS</span><h1>Applications installées</h1><p>Recherchez, réparez ou désinstallez les logiciels reconnus sur ce PC. Sélectionnez plusieurs cartes pour une désinstallation groupée.</p></div>
-        <div class="installed-hero-icon" aria-hidden="true">▣</div>
+        <div class="installed-hero-icon" aria-hidden="true"><svg><use href="#nav-installed"/></svg></div>
       </div>
       <div class="installed-overview">
         <div><span class="installed-overview-icon">✓</span><p><small>DÉTECTÉES SUR CE PC</small><strong id="installedPageCount">Analyse en cours...</strong></p></div>
         <button class="secondary-dialog-button" id="refreshInstalledApps">↻ Actualiser la détection</button>
       </div>
+      <div class="app-health-panel"><div><span>♡</span><p><strong>Santé des applications <button class="help-hint" type="button" data-help-title="Santé des applications" data-help-text="L’analyse compare les logiciels connus avec WinGet, Windows et les raccourcis OwlSetup. Elle ne modifie et ne désinstalle rien.">?</button></strong><small id="appHealthSummary">Vérifiez les installations reconnues et les raccourcis gérés par OwlSetup.</small></p></div><button class="secondary-dialog-button" id="scanAppHealth">Analyser</button></div>
+      <div class="app-health-results hidden" id="appHealthResults"></div>
       <div class="installed-page-tools">
         <div class="search"><span>⌕</span><input id="installedSearchInput" type="search" placeholder="Rechercher dans les applications installées..." autocomplete="off" /></div>
         <select id="installedSort" aria-label="Trier les applications installées"><option value="name">Trier par nom</option><option value="category">Trier par catégorie</option><option value="selected">Sélectionnées en premier</option></select>
@@ -171,15 +257,15 @@
     <section class="view" id="updates">
       <div class="page-intro update-intro">
         <div><span class="label">MAINTENANCE WINDOWS</span><h1>Tout mettre à jour</h1><p>Applications, composants Windows et pilotes proposés par Microsoft Update, en une seule opération.</p></div>
-        <div class="update-shield" aria-hidden="true">↥</div>
+        <div class="update-shield" aria-hidden="true"><svg><use href="#nav-update"/></svg></div>
       </div>
       <div class="update-grid">
-        <article class="update-card"><span class="update-card-icon blue">▦</span><div><strong>Logiciels installés</strong><small>Applications reconnues par winget, y compris les versions inconnues</small></div><span class="included">INCLUS</span></article>
-        <article class="update-card"><span class="update-card-icon cyan">⊞</span><div><strong>Composants Windows</strong><small>Mises à jour de sécurité et de qualité via Windows Update</small></div><span class="included">INCLUS</span></article>
-        <article class="update-card"><span class="update-card-icon violet">⚙</span><div><strong>Pilotes certifiés</strong><small>Pilotes distribués par Microsoft pour votre matériel</small></div><span class="included">INCLUS</span></article>
+        <article class="update-card"><span class="update-card-icon blue"><svg aria-hidden="true"><use href="#nav-apps"/></svg></span><div><strong>Logiciels installés</strong><small>Applications reconnues par winget, y compris les versions inconnues</small></div><span class="included">INCLUS</span></article>
+        <article class="update-card"><span class="update-card-icon cyan"><svg aria-hidden="true"><use href="#nav-windows"/></svg></span><div><strong>Composants Windows</strong><small>Mises à jour de sécurité et de qualité via Windows Update</small></div><span class="included">INCLUS</span></article>
+        <article class="update-card"><span class="update-card-icon violet"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span><div><strong>Pilotes certifiés</strong><small>Pilotes distribués par Microsoft pour votre matériel</small></div><span class="included">INCLUS</span></article>
       </div>
       <div class="update-preview-panel">
-        <div class="section-heading"><div><span class="label">APERÇU DES VERSIONS</span><h2>Mises à jour disponibles</h2></div><button class="text-button" id="scanUpdatesBtn">↻ Rechercher</button></div>
+        <div class="section-heading"><div><span class="label">APERÇU DES VERSIONS</span><h2>Mises à jour disponibles</h2></div><div class="update-list-actions"><button class="text-button hidden" id="selectAllUpdates" type="button">Tout sélectionner</button><button class="text-button hidden" id="clearUpdates" type="button">Tout désélectionner</button><button class="text-button" id="scanUpdatesBtn">↻ Rechercher</button></div></div>
         <div class="update-scan-state" id="updateScanState"><span class="scan-spinner">↻</span><div><strong>Recherche des mises à jour</strong><small>OwlSetup interroge le catalogue WinGet...</small></div></div>
         <div class="available-updates hidden" id="availableUpdates"></div>
         <div class="no-updates hidden" id="noUpdates"><span>✓</span><div><strong>Vos applications sont à jour</strong><small>Aucune nouvelle version détectée dans le catalogue.</small></div></div>
@@ -200,44 +286,60 @@
       </div>
     </section>
 
+    <section class="view" id="operations">
+      <div class="page-intro operations-intro"><div><span class="label">SUIVI OWLSETUP</span><h1>Centre des opérations</h1><p>Retrouvez les tâches en cours, interrompues ou terminées et appliquez les corrections proposées.</p></div><button class="secondary-dialog-button" id="refreshOperations">↻ Actualiser</button></div>
+      <div class="operation-recovery hidden" id="operationRecovery"><span>↻</span><div><strong>Une opération a été interrompue</strong><small id="operationRecoveryDetail">OwlSetup a retrouvé une tâche inachevée.</small></div><button class="primary-dialog-button" id="resumeOperation">Reprendre</button><button class="secondary-dialog-button" id="dismissOperation">Ignorer</button></div>
+      <div class="operations-summary"><article><small>EN COURS</small><strong id="operationsRunning">0</strong></article><article><small>À VÉRIFIER</small><strong id="operationsFailed">0</strong></article><article><small>TERMINÉES</small><strong id="operationsSuccess">0</strong></article></div>
+      <div class="operations-list" id="operationsList"><p class="tool-empty">Aucune opération récente.</p></div>
+      <div class="operation-fix hidden" id="operationFixPanel">
+        <div class="operation-fix-summary"><span>✦</span><p><strong id="operationFixTitle">Correction disponible</strong><small id="operationFixDetail"></small></p><button class="primary-dialog-button" id="operationAutoFix">Corriger automatiquement</button></div>
+        <div class="operation-process-panel hidden" id="operationProcessPanel" aria-live="polite">
+          <div class="operation-process-heading"><div><span class="label">APPLICATIONS EN COURS</span><strong id="operationProcessTitle">Vérification des processus…</strong></div><button class="text-button" id="operationProcessManual" type="button">Je les ferme moi-même</button></div>
+          <div class="operation-process-list" id="operationProcessList"></div>
+          <div class="operation-process-warning hidden" id="operationProcessWarning"><span>!</span><p><strong>Fermeture forcée</strong><small>Les modifications non enregistrées peuvent être perdues. Utilisez cette option uniquement après avoir vérifié les applications affichées.</small></p></div>
+          <div class="operation-process-actions"><button class="secondary-dialog-button hidden" id="operationForceClose" type="button">Forcer la fermeture</button><button class="primary-dialog-button" id="operationGracefulClose" type="button">Fermer proprement et réessayer</button></div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="cleanup">
       <div class="page-intro cleanup-intro">
         <div><span class="label">STOCKAGE WINDOWS</span><h1>Libérer de l'espace</h1><p>Supprimez les fichiers temporaires et optimisez Windows sans toucher à vos documents personnels.</p></div>
-        <div class="cleanup-drive" aria-hidden="true"><span>◇</span><i></i></div>
+        <div class="cleanup-drive" aria-hidden="true"><span><svg><use href="#nav-cleanup"/></svg></span><i></i></div>
       </div>
 
       <div class="cleanup-layout">
         <div>
-          <div class="section-heading cleanup-heading"><div><span class="label">ÉLÉMENTS À NETTOYER</span><h2>Choisissez les catégories</h2></div><button class="text-button" id="recommendedCleanup">Sélection recommandée</button></div>
+          <div class="section-heading cleanup-heading"><div><span class="label">ÉLÉMENTS À NETTOYER</span><h2>Choisissez les catégories <button class="help-hint" type="button" data-help-title="Nettoyage contrôlé" data-help-text="OwlSetup analyse d’abord les zones sélectionnées. Aucun fichier n’est supprimé pendant la simulation et vos dossiers personnels restent protégés.">?</button></h2></div><button class="text-button" id="recommendedCleanup">Sélection recommandée</button></div>
           <div class="cleanup-options">
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="user-temp" checked />
-              <span class="check-ui">✓</span><span class="cleanup-icon blue">⌁</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon blue"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span>
               <span class="cleanup-copy"><strong>Fichiers temporaires utilisateur</strong><small>Fichiers créés provisoirement par vos applications</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="windows-temp" checked />
-              <span class="check-ui">✓</span><span class="cleanup-icon cyan">⊞</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon cyan"><svg aria-hidden="true"><use href="#nav-windows"/></svg></span>
               <span class="cleanup-copy"><strong>Fichiers temporaires Windows</strong><small>Résidus système inutilisés et fichiers verrouillés ignorés</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="recycle-bin" checked />
-              <span class="check-ui">✓</span><span class="cleanup-icon violet">♲</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon violet"><svg aria-hidden="true"><use href="#nav-quarantine"/></svg></span>
               <span class="cleanup-copy"><strong>Corbeille</strong><small>Fichiers que vous avez précédemment supprimés</small></span><em class="cleanup-review">À vérifier</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="delivery" checked />
-              <span class="check-ui">✓</span><span class="cleanup-icon green">⇣</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon green"><svg aria-hidden="true"><use href="#nav-download"/></svg></span>
               <span class="cleanup-copy"><strong>Cache d'optimisation de livraison</strong><small>Copies locales utilisées pour distribuer les mises à jour</small></span><em class="cleanup-recommended">Recommandé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="components" />
-              <span class="check-ui">✓</span><span class="cleanup-icon orange">⚙</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon orange"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span>
               <span class="cleanup-copy"><strong>Anciens composants Windows</strong><small>Nettoyage DISM du magasin de composants remplacés</small></span><em class="cleanup-advanced">Avancé</em>
             </label>
             <label class="cleanup-option">
               <input type="checkbox" data-cleanup="app-leftovers" />
-              <span class="check-ui">✓</span><span class="cleanup-icon red">⌫</span>
+              <span class="check-ui">✓</span><span class="cleanup-icon red"><svg aria-hidden="true"><use href="#nav-residue"/></svg></span>
               <span class="cleanup-copy"><strong>Résidus d'applications désinstallées</strong><small>Recherche les anciens dossiers AppData et demande votre accord pour chacun</small></span><em class="cleanup-reversible">Réversible</em>
             </label>
           </div>
@@ -258,7 +360,7 @@
     <section class="view" id="quarantine">
       <div class="page-intro quarantine-intro">
         <div><span class="label">RÉCUPÉRATION SÉCURISÉE</span><h1>Quarantaine</h1><p>Restaurez les anciens dossiers déplacés par OwlSetup ou supprimez-les définitivement après vérification.</p></div>
-        <div class="quarantine-shield" aria-hidden="true">♲</div>
+        <div class="quarantine-shield" aria-hidden="true"><svg><use href="#nav-quarantine"/></svg></div>
       </div>
       <div class="quarantine-toolbar"><div><strong id="quarantineCount">0 élément</strong><small>Les éléments sont conservés dans le dossier local sécurisé de OwlSetup.</small></div><button class="text-button" id="refreshQuarantine">↻ Actualiser</button></div>
       <div class="quarantine-list" id="quarantineList"><div class="quarantine-loading"><span>↻</span> Analyse de la quarantaine...</div></div>
@@ -269,10 +371,10 @@
     <section class="view" id="tools">
       <div class="page-intro"><span class="label">CENTRE D'OUTILS</span><h1>Diagnostic et maintenance</h1><p>Contrôlez WinGet, créez un point de restauration et examinez le système avant toute modification.</p></div>
       <div class="tools-grid">
-        <article class="tool-panel"><span class="tool-icon blue">W</span><div><h3>Diagnostic WinGet</h3><p id="wingetDiagnosticText">Vérifiez le gestionnaire et ses sources.</p><div class="tool-progress hidden" id="wingetToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="diagnoseWinget">Diagnostiquer</button><button class="primary-dialog-button" id="repairWinget">Réparer WinGet</button></div></div></article>
-        <article class="tool-panel"><span class="tool-icon green">↶</span><div><h3>Point de restauration</h3><p id="restorePointText">Créez un point avant une opération importante.</p><p class="tool-help">Pour revenir à un point existant, ouvrez l’assistant Windows, choisissez le point « OwlSetup », puis vérifiez les programmes concernés avant de confirmer.</p><div class="tool-progress hidden" id="restoreToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="createRestorePoint">Créer maintenant</button><button class="secondary-dialog-button" id="openSystemRestore">Restaurer mon PC</button></div></div></article>
-        <article class="tool-panel"><span class="tool-icon violet">↥</span><div><h3>Applications au démarrage</h3><p>Consultez les programmes détectés puis gérez-les dans la page officielle de Windows.</p><div class="tool-progress hidden" id="startupToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="scanStartup">Analyser</button><button class="primary-dialog-button" id="openStartupSettings">Gérer dans Windows</button></div></div></article>
-        <article class="tool-panel"><span class="tool-icon orange">◇</span><div><h3>Occupation du disque</h3><p>Analyse en lecture seule des principaux dossiers de votre profil.</p><div class="tool-progress hidden" id="diskToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="scanDisk">Analyser le disque</button></div></div></article>
+        <article class="tool-panel"><span class="tool-icon blue"><svg aria-hidden="true"><use href="#tool-winget-diagnostic"/></svg></span><div><h3>Diagnostic WinGet</h3><p id="wingetDiagnosticText">Vérifiez le gestionnaire et ses sources.</p><div class="tool-progress hidden" id="wingetToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="diagnoseWinget">Diagnostiquer</button><button class="primary-dialog-button" id="repairWinget">Réparer WinGet</button></div></div></article>
+        <article class="tool-panel"><span class="tool-icon green"><svg aria-hidden="true"><use href="#tool-restore-point"/></svg></span><div><h3>Point de restauration</h3><p id="restorePointText">Créez un point avant une opération importante.</p><p class="tool-help">Pour revenir à un point existant, ouvrez l’assistant Windows, choisissez le point « OwlSetup », puis vérifiez les programmes concernés avant de confirmer.</p><div class="tool-progress hidden" id="restoreToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="createRestorePoint">Créer maintenant</button><button class="secondary-dialog-button" id="openSystemRestore">Restaurer mon PC</button></div></div></article>
+        <article class="tool-panel"><span class="tool-icon violet"><svg aria-hidden="true"><use href="#tool-startup-apps"/></svg></span><div><h3>Applications au démarrage</h3><p>Consultez les programmes détectés puis gérez-les dans la page officielle de Windows.</p><div class="tool-progress hidden" id="startupToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="secondary-dialog-button" id="scanStartup">Analyser</button><button class="primary-dialog-button" id="openStartupSettings">Gérer dans Windows</button></div></div></article>
+        <article class="tool-panel"><span class="tool-icon orange"><svg aria-hidden="true"><use href="#tool-disk-usage"/></svg></span><div><h3>Occupation du disque</h3><p>Analyse en lecture seule des principaux dossiers de votre profil.</p><div class="tool-progress hidden" id="diskToolProgress"><div><i></i></div><b>0%</b></div><div class="tool-actions"><button class="primary-dialog-button" id="scanDisk">Analyser le disque</button></div></div></article>
       </div>
       <div class="tool-results">
         <section><div class="section-heading"><div><span class="label">DÉMARRAGE</span><h2>Éléments détectés</h2></div></div><div class="system-list" id="startupList"><p class="tool-empty">Lancez une analyse.</p></div></section>
@@ -280,30 +382,37 @@
       </div>
       <div class="history-panel">
         <div class="section-heading"><div><span class="label">HISTORIQUE LOCAL</span><h2>Dernières opérations</h2></div><button class="text-button" id="refreshHistory">↻ Actualiser</button></div>
+        <div class="history-toolbar"><label>Type<select id="historyTypeFilter"><option value="all">Toutes les opérations</option><option>Installation</option><option>Désinstallation</option><option>Mise à jour</option><option>Nettoyage</option><option>Réparation</option></select></label><label>Résultat<select id="historyResultFilter"><option value="all">Tous les résultats</option><option value="success">Réussies</option><option value="failed">À vérifier</option></select></label><label><span class="field-label">Conserver <button class="help-hint" type="button" data-help-title="Durée de conservation" data-help-text="OwlSetup conserve les rapports récents et supprime uniquement ceux qui dépassent cette durée. Ce réglage est commun au Centre de sécurité.">?</button></span><select id="historyRetention"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option><option value="365">1 an</option></select></label><button class="secondary-dialog-button" id="pruneHistory" type="button">Appliquer la conservation</button><button class="danger-outline-button" id="clearAllHistory" type="button">Effacer tout</button></div>
         <div class="system-list" id="operationHistory"><p class="tool-empty">Chargement de l'historique...</p></div>
       </div>
     </section>
 
     <section class="view" id="security">
-      <div class="page-intro security-intro"><div><span class="label">PROTECTION LOCALE</span><h1>Centre de sécurité</h1><p>Contrôlez l’intégrité de OwlSetup, ses droits et ses composants avant une opération sensible.</p></div><button class="primary-dialog-button" id="refreshSecurity">↻ Actualiser</button></div>
-      <div class="security-overview"><div class="security-score"><span>♢</span><div><strong id="securityHeadline">Analyse en cours...</strong><small id="securityVersion">OwlSetup</small></div></div><div class="security-mode"><span>ÉLÉVATION</span><strong id="securityElevation">À la demande</strong><small>L’interface reste en droits standards.</small></div></div>
+      <div class="page-intro security-intro"><div><span class="label">PROTECTION LOCALE</span><h1>Centre de sécurité</h1><p>Contrôlez l’intégrité de OwlSetup et consultez l’état de la protection Windows sans modifier ses réglages.</p></div><div class="security-header-actions"><button class="secondary-dialog-button" id="exportSecurity" type="button">Exporter le diagnostic</button><button class="primary-dialog-button" id="refreshSecurity" type="button">Vérifier maintenant</button></div></div>
+      <div class="security-overview"><button class="security-gauge" id="securityGauge" type="button" aria-label="Comprendre le calcul du score de sécurité"><strong id="securityScore">—</strong><small>/ 100</small><em>Voir le calcul</em></button><div class="security-score"><div><span class="label">ÉTAT GLOBAL</span><strong id="securityHeadline">Analyse en cours...</strong><small id="securityVersion">OwlSetup</small></div></div><div class="security-mode"><span>ÉLÉVATION</span><strong id="securityElevation">À la demande</strong><small>L’interface reste en droits standards.</small></div></div>
       <div class="security-grid">
-        <article><span class="security-icon green">✓</span><div><small>INTERFACE</small><strong id="securityIntegrity">Vérification...</strong><em>Empreinte des ressources intégrées</em></div></article>
-        <article><span class="security-icon blue">◎</span><div><small>ORIGINE WEBVIEW2</small><strong id="securityOrigin">Vérification...</strong><em>Commandes limitées à pcsetup.local</em></div></article>
-        <article><span class="security-icon violet">♙</span><div><small>SIGNATURE</small><strong id="securitySignature">Vérification...</strong><em id="securitySigner">Identité de l’éditeur</em></div></article>
-        <article><span class="security-icon cyan">W</span><div><small>WINGET</small><strong id="securityWinget">Vérification...</strong><em>Gestionnaire de paquets Microsoft</em></div></article>
-        <article><span class="security-icon orange">◇</span><div><small>WEBVIEW2</small><strong id="securityWebView">Vérification...</strong><em>Moteur d’interface Evergreen</em></div></article>
-        <article><span class="security-icon green">▣</span><div><small>WORKER PROTÉGÉ</small><strong id="securityWorker">Vérification...</strong><em>Actions système élevées uniquement</em></div></article>
+        <button class="security-card" type="button" data-security-detail="integrity"><span class="security-icon green"><svg aria-hidden="true"><use href="#security-integrity"/></svg></span><span><small>INTERFACE</small><strong id="securityIntegrity">Vérification...</strong><em>Empreinte des ressources intégrées</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="origin"><span class="security-icon blue"><svg aria-hidden="true"><use href="#security-origin"/></svg></span><span><small>ORIGINE WEBVIEW2</small><strong id="securityOrigin">Vérification...</strong><em>Commandes limitées à pcsetup.local</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="signature"><span class="security-icon violet"><svg aria-hidden="true"><use href="#security-signature"/></svg></span><span><small>SIGNATURE</small><strong id="securitySignature">Vérification...</strong><em id="securitySigner">Identité de l’éditeur</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="winget"><span class="security-icon cyan"><svg aria-hidden="true"><use href="#security-package"/></svg></span><span><small>WINGET</small><strong id="securityWinget">Vérification...</strong><em>Gestionnaire de paquets Microsoft</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="webview"><span class="security-icon orange"><svg aria-hidden="true"><use href="#security-webview"/></svg></span><span><small>WEBVIEW2</small><strong id="securityWebView">Vérification...</strong><em>Moteur d’interface Evergreen</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="runtime"><span class="security-icon green"><svg aria-hidden="true"><use href="#security-worker"/></svg></span><span><small>WORKER PROTÉGÉ</small><strong id="securityWorker">Vérification...</strong><em>Actions système élevées uniquement</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="defender"><span class="security-icon blue"><svg aria-hidden="true"><use href="#security-defender"/></svg></span><span><small>PROTECTION ANTIVIRUS</small><strong id="securityDefender">Vérification...</strong><em id="securityAntivirusProvider">Centre de sécurité Windows</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="firewall"><span class="security-icon green"><svg aria-hidden="true"><use href="#security-firewall"/></svg></span><span><small>PROTECTION PARE-FEU</small><strong id="securityFirewall">Vérification...</strong><em id="securityFirewallProvider">Centre de sécurité Windows</em></span><b>›</b></button>
+        <button class="security-card" type="button" data-security-detail="privileges"><span class="security-icon violet"><svg aria-hidden="true"><use href="#security-privileges"/></svg></span><span><small>DROITS DE L’INTERFACE</small><strong id="securityPrivileges">Vérification...</strong><em>Élévation uniquement à la demande</em></span><b>›</b></button>
       </div>
-      <div class="security-log-panel"><div><span class="label">TRAÇABILITÉ LOCALE</span><h2>Journaux de sécurité et d’activité</h2><p id="securityLogs">Chargement...</p></div><button class="secondary-dialog-button" data-view="tools">Consulter l’historique</button></div>
+      <div class="security-detail-panel hidden" id="securityDetailPanel"><div><span class="label">DÉTAIL DU CONTRÔLE</span><h2 id="securityDetailTitle">Contrôle</h2><p id="securityDetailText"></p></div><button class="secondary-dialog-button hidden" id="securityDetailAction" type="button">Ouvrir</button></div>
+      <div class="security-recommendations"><div class="section-heading"><div><span class="label">ACTIONS RECOMMANDÉES</span><h2>À faire sur ce PC</h2></div><span class="security-recommendation-count" id="securityRecommendationCount">Analyse...</span></div><div class="security-recommendation-list" id="securityRecommendations"><p class="tool-empty">Contrôle en cours...</p></div></div>
+      <div class="security-log-panel"><div><span class="label">TRAÇABILITÉ LOCALE</span><h2>Journaux de sécurité et d’activité <button class="help-hint" type="button" data-help-title="Journaux locaux" data-help-text="Ces fichiers restent sur votre PC. Ils servent à comprendre une installation, une mise à jour ou un nettoyage. Aucun contenu n’est envoyé automatiquement.">?</button></h2><p id="securityLogs">Chargement...</p></div><div class="security-log-actions"><label><span class="field-label">Conserver <button class="help-hint" type="button" data-help-title="Conservation automatique" data-help-text="Les rapports plus anciens que la durée choisie seront supprimés. Les rapports récents restent consultables dans Outils système.">?</button></span><select id="securityLogRetention"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option><option value="365">1 an</option></select></label><button class="secondary-dialog-button" id="applySecurityRetention" type="button">Appliquer</button><button class="secondary-dialog-button" data-view="tools">Consulter</button></div></div>
       <div class="notice"><span>i</span><div><strong>Les opérations restent sous votre contrôle</strong><p>Une simulation est obligatoire avant le nettoyage ou la désinstallation. Une autorisation UAC séparée est demandée uniquement lorsque Windows exige les droits administrateur.</p></div></div>
     </section>
 
     <section class="view" id="troubleshooting">
-      <div class="page-intro troubleshooting-intro"><div><span class="label">ASSISTANCE ET RETOUR</span><h1>Dépannage</h1><p>Décrivez le problème rencontré. OwlSetup prépare un commentaire que vous pourrez relire avant de l'envoyer sur GitHub.</p></div><span class="beta-support-badge">ASSISTANCE</span></div>
+      <div class="page-intro troubleshooting-intro"><div><span class="label">AIDE ET ASSISTANCE</span><h1>Aide et dépannage</h1><p>Diagnostiquez OwlSetup, signalez volontairement un problème et retrouvez les réponses reçues, sans transmettre vos journaux complets.</p></div><span class="beta-support-badge"><svg aria-hidden="true"><use href="#nav-troubleshoot"/></svg> ASSISTANCE</span></div>
+      <div class="support-paths" aria-label="Parcours d'assistance"><article><b>1</b><span><strong>Diagnostiquer</strong><small>Contrôles locaux sans envoi</small></span></article><article><b>2</b><span><strong>Prévisualiser</strong><small>Données masquées avant partage</small></span></article><article><b>3</b><span><strong>Suivre</strong><small>Réponses mémorisées sur ce PC</small></span></article></div>
       <div class="troubleshooting-layout">
         <form class="feedback-form" id="feedbackForm">
-          <div class="feedback-heading"><span>?</span><div><strong>Signaler un problème</strong><small>Aucune information n'est envoyée automatiquement.</small></div></div>
+          <div class="feedback-heading"><span>?</span><div><strong>Signaler un problème</strong><small>Vous gardez toujours le contrôle sur le contenu partagé.</small></div></div>
           <div class="feedback-fields">
             <label><span>Type de problème</span><select id="feedbackCategory"><option>Mise à jour d'une application</option><option>Installation</option><option>Désinstallation</option><option>Nettoyage du disque</option><option>Affichage ou interface</option><option>Autre</option></select></label>
             <label><span>Titre</span><input id="feedbackTitle" maxlength="120" placeholder="Exemple : Edge reste proposé après la mise à jour" required></label>
@@ -313,7 +422,10 @@
           <div class="feedback-actions"><button class="secondary-dialog-button" type="button" id="copyFeedback">⎘ Copier le rapport</button><button class="primary-dialog-button" type="button" id="openGitHubFeedback">↗ Ouvrir sur GitHub</button></div>
         </form>
         <aside class="troubleshooting-help">
+          <article class="privacy-preview-card"><span>◉</span><div><strong>Aperçu de confidentialité</strong><p>Prévisualisez exactement les informations qui seront placées dans le signalement. Les comptes, e-mails et chemins personnels détectés sont masqués.</p><button class="text-button" id="previewFeedback">Prévisualiser avant l’envoi →</button></div></article>
           <article class="diagnostic-card"><span>⚙</span><div><strong>Diagnostic automatique</strong><p>Collectez uniquement les versions de Windows, OwlSetup, WinGet et WebView2. Aucun nom, chemin personnel ou contenu de journal n'est inclus.</p><button class="text-button" id="collectFeedbackDiagnostics">Lancer le diagnostic →</button><pre class="feedback-diagnostics hidden" id="feedbackDiagnostics"></pre></div></article>
+          <article><span>↗</span><div><strong>Suivi de mes signalements</strong><p id="feedbackFollowupText">Les signalements mémorisés sur cet appareil sont vérifiés publiquement.</p><div class="feedback-followup-list" id="feedbackFollowupList"></div><button class="text-button" id="openFeedbackFollowup">Voir tous mes signalements →</button></div></article>
+          <article><span>⇩</span><div><strong>Archive d’assistance anonymisée</strong><p>Exportez uniquement le diagnostic affiché et les extraits que vous avez relus, sans joindre automatiquement vos journaux.</p><button class="text-button" id="exportSupportBundle">Créer l’archive →</button></div></article>
           <article><span>▣</span><div><strong>Rapports locaux</strong><p>Les journaux peuvent aider à comprendre un code de sortie ou une installation incomplète.</p><button class="text-button" id="openFeedbackLogs">Ouvrir le dossier des rapports →</button></div></article>
           <article><span>♢</span><div><strong>Protégez vos informations</strong><p>Relisez le commentaire et les journaux avant tout partage. Retirez les noms, chemins personnels, adresses et autres données sensibles.</p></div></article>
           <article><span>i</span><div><strong>Version jointe automatiquement</strong><p>Le commentaire mentionne uniquement la version d'OwlSetup et le type de problème sélectionné.</p></div></article>
@@ -338,13 +450,79 @@
     <section class="view" id="history">
       <div class="page-intro"><span class="label">MODE D'EMPLOI</span><h1>Installer en toute sécurité</h1><p>Le script utilise uniquement winget et les fonctions Windows intégrées.</p></div>
       <div class="steps">
-        <article><b>01</b><div><h3>Composez votre sélection</h3><p>Choisissez un profil ou ajoutez les applications une à une depuis le catalogue.</p></div></article>
-        <article><b>02</b><div><h3>Vérifiez la simulation</h3><p>OwlSetup présente les éléments concernés avant toute suppression ou opération de nettoyage.</p></div></article>
-        <article><b>03</b><div><h3>Confirmez l’opération</h3><p>L’autorisation administrateur Windows apparaît uniquement lorsqu’une fonction système en a réellement besoin.</p></div></article>
-        <article><b>04</b><div><h3>Consultez le résultat</h3><p>La progression reste visible dans l’application et un rapport local est enregistré pour chaque opération.</p></div></article>
+        <article><b><svg aria-hidden="true"><use href="#guide-select"/></svg><small>01</small></b><div><h3>Composez votre sélection</h3><p>Choisissez un profil ou ajoutez les applications une à une depuis le catalogue.</p></div></article>
+        <article><b><svg aria-hidden="true"><use href="#guide-review"/></svg><small>02</small></b><div><h3>Vérifiez la simulation</h3><p>OwlSetup présente les éléments concernés avant toute suppression ou opération de nettoyage.</p></div></article>
+        <article><b><svg aria-hidden="true"><use href="#guide-confirm"/></svg><small>03</small></b><div><h3>Confirmez l’opération</h3><p>L’autorisation administrateur Windows apparaît uniquement lorsqu’une fonction système en a réellement besoin.</p></div></article>
+        <article><b><svg aria-hidden="true"><use href="#guide-report"/></svg><small>04</small></b><div><h3>Consultez le résultat</h3><p>La progression reste visible dans l’application et un rapport local est enregistré pour chaque opération.</p></div></article>
       </div>
+      <section class="guide-help">
+        <div class="section-heading"><div><span class="label">EN CAS DE PROBLÈME</span><h2>Les vérifications les plus utiles</h2></div><button class="text-button" data-view="troubleshooting">Ouvrir le dépannage →</button></div>
+        <div class="guide-help-grid">
+          <article><span><svg aria-hidden="true"><use href="#guide-close-app"/></svg></span><div><strong>Fermez l’application concernée</strong><p>Un programme encore ouvert peut empêcher sa mise à jour ou sa désinstallation. Fermez-le également depuis la zone de notification.</p></div></article>
+          <article><span><svg aria-hidden="true"><use href="#guide-source"/></svg></span><div><strong>Contrôlez WinGet</strong><p>Si un paquet est introuvable, actualisez les sources depuis « Outils système », puis recommencez l’opération.</p></div></article>
+          <article><span><svg aria-hidden="true"><use href="#guide-admin"/></svg></span><div><strong>Acceptez uniquement la demande OwlSetup</strong><p>Windows peut demander les droits administrateur pour une action système. OwlSetup ne mémorise jamais votre mot de passe.</p></div></article>
+          <article><span><svg aria-hidden="true"><use href="#guide-log"/></svg></span><div><strong>Consultez le journal visuel</strong><p>Le rapport explique les codes de sortie et permet de préparer un signalement anonymisé sans ouvrir le Bloc-notes.</p></div></article>
+        </div>
+      </section>
       <div class="notice"><span>i</span><div><strong>Avant de commencer</strong><p>Créez un point de restauration et fermez vos applications. Certains composants peuvent demander un redémarrage.</p></div></div>
-      <div class="onboarding-replay"><div><span>✦</span><p><strong>Besoin de revoir les bases ?</strong><small>Relancez à tout moment la prise en main animée d’OwlSetup.</small></p></div><button class="primary-dialog-button" id="replayOnboarding">Revoir la prise en main</button></div>
+    </section>
+
+    <section class="view" id="settings">
+      <div class="page-intro settings-intro">
+        <div><span class="label">PRÉFÉRENCES OWLSETUP</span><h1>Paramètres</h1><p>Personnalisez l’interface et retrouvez les options locales de l’application.</p></div>
+        <div class="settings-overview" aria-label="Résumé des paramètres"><span><b>Local</b><small>Aucun compte requis</small></span><span><b>Privé</b><small>Aucune télémétrie</small></span><span><b>Réversible</b><small>Réglages exportables</small></span></div>
+      </div>
+      <div class="settings-layout">
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon">文</span><div><strong>Langue et région</strong><small>Choisissez la langue utilisée dans toute l’interface.</small></div></div>
+          <div class="language-settings"><div><span>文</span><p><strong>Langue de l’application</strong><small>Le changement est immédiat et conservé sur ce PC.</small></p></div><label for="appLanguage">Langue<select id="appLanguage"><option value="fr">Français</option><option value="en">English (Beta)</option></select></label></div>
+        </article>
+        <article class="settings-panel appearance-settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon theme"><svg aria-hidden="true"><use href="#nav-theme"/></svg></span><div><strong>Apparence</strong><small>Adaptez OwlSetup à votre environnement Windows.</small></div></div>
+          <div class="appearance-settings"><div><span><svg aria-hidden="true"><use href="#nav-theme"/></svg></span><p><strong>Thème de l’application</strong><small>Le choix est appliqué immédiatement et reste enregistré sur ce PC.</small></p></div><label for="appTheme">Thème<select id="appTheme"><option value="system">Selon Windows</option><option value="dark">Sombre</option><option value="light">Clair</option></select></label></div>
+        </article>
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon"><svg aria-hidden="true"><use href="#nav-guide"/></svg></span><div><strong>Prise en main</strong><small>Relancez le parcours animé quand vous le souhaitez.</small></div></div>
+          <div class="onboarding-replay"><div><span>▶</span><p><strong>Revoir les fonctions principales</strong><small>Le catalogue, les mises à jour, le nettoyage et les protections.</small></p></div><button class="primary-dialog-button" id="replayOnboarding">Revoir la prise en main</button></div>
+        </article>
+        <article class="settings-panel settings-information">
+          <div class="settings-panel-heading"><span class="settings-heading-icon safe"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><div><strong>Données conservées localement</strong><small>Vos préférences, votre sélection et vos notifications restent uniquement sur ce PC.</small></div></div>
+          <div class="settings-safe-list"><span>✓ Aucun compte OwlSetup nécessaire</span><span>✓ Aucun historique envoyé automatiquement</span><span>✓ Paramètres propres à chaque utilisateur Windows</span></div>
+        </article>
+        <article class="settings-panel telemetry-settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon safe"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><div><strong>Rapports d’erreurs facultatifs <button class="help-hint" type="button" data-help-title="Télémétrie d’erreurs" data-help-text="OwlSetup n’envoie jamais vos journaux complets. Selon votre choix, il peut transmettre la catégorie, l’étape, le code et uniquement l’identifiant du paquet qui a échoué.">?</button></strong><small>Aidez à corriger les pannes sans envoyer de données personnelles.</small></div></div>
+          <div class="telemetry-choice-list" role="radiogroup" aria-label="Envoi des rapports d’erreurs">
+            <label><input type="radio" name="errorTelemetryMode" value="never" checked><span><b>Ne rien envoyer</b><small>Choix par défaut. Tout reste sur ce PC.</small></span></label>
+            <label><input type="radio" name="errorTelemetryMode" value="ask"><span><b>Me demander</b><small>Proposer un aperçu après une erreur.</small></span></label>
+            <label><input type="radio" name="errorTelemetryMode" value="automatic"><span><b>Envoi automatique minimal</b><small>Diagnostic technique anonymisé uniquement.</small></span></label>
+          </div>
+          <div class="telemetry-summary"><span>Le paquet en échec peut être indiqué. Jamais inclus : nom, e-mail, adresse IP enregistrée, chemins personnels, inventaire complet ou journaux complets.</span><button class="secondary-dialog-button" id="previewTelemetrySample" type="button">Voir un exemple</button></div>
+        </article>
+        <article class="settings-panel settings-information">
+          <div class="settings-panel-heading"><span class="settings-heading-icon"><svg aria-hidden="true"><use href="#nav-help"/></svg></span><div><strong>À propos d’OwlSetup</strong><small>Application open source de maintenance et d’installation pour Windows.</small></div></div>
+          <div class="settings-about"><span>Version installée</span><b id="settingsBuildVersion">Chargement…</b><a href="https://github.com/OwlNetGeekFR/OwlSetup" target="_blank" rel="noopener">Voir le projet GitHub ↗</a></div>
+        </article>
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon">Aa</span><div><strong>Accessibilité</strong><small>Agrandissez l’interface et adaptez les animations à votre confort.</small></div></div>
+          <div class="accessibility-settings"><label>Taille du texte<select id="accessibilityScale"><option value="1">Normale</option><option value="1.1">Grande</option><option value="1.2">Très grande</option></select></label><label class="settings-toggle"><input id="highContrastMode" type="checkbox"><span></span><b>Contraste renforcé</b></label><label class="settings-toggle"><input id="reducedMotionMode" type="checkbox"><span></span><b>Réduire les animations</b></label></div>
+        </article>
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon safe"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><div><strong>Protection avant maintenance <button class="help-hint" type="button" data-help-title="Point de restauration automatique" data-help-text="Avant une opération importante, OwlSetup demande à Windows de créer un point de restauration. La protection du système doit être activée sur le lecteur Windows (généralement C:). Vos documents personnels ne sont pas copiés par cette fonction.">?</button></strong><small>Créez un point de restauration avant les opérations importantes.</small></div></div>
+          <div class="protection-setting"><label class="settings-toggle"><input id="autoRestorePoint" type="checkbox"><span></span><b>Créer automatiquement un point</b></label><p>Mises à jour, nettoyage et désinstallations attendront la confirmation de Windows avant de commencer.</p></div>
+        </article>
+        <article class="settings-panel settings-self-test">
+          <div class="settings-panel-heading"><span class="settings-heading-icon"><svg aria-hidden="true"><use href="#nav-troubleshoot"/></svg></span><div><strong>Autodiagnostic OwlSetup</strong><small>Vérifiez l’intégrité, WinGet, WebView2, les dossiers locaux et les permissions.</small></div></div>
+          <div class="self-test-actions"><button class="primary-dialog-button" id="runSelfDiagnostic" type="button">Lancer les tests</button><span id="selfDiagnosticSummary">Aucun test lancé.</span></div><div class="self-test-results" id="selfDiagnosticResults"></div>
+        </article>
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon expert"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><div><strong>Mode expert <button class="help-hint" type="button" data-help-title="Mode expert" data-help-text="Affiche les commandes et détails techniques en lecture seule. Ce mode n’ajoute aucun droit administrateur et n’enregistre aucun mot de passe.">?</button></strong><small>Affichez les commandes WinGet et les détails techniques avant exécution.</small></div></div>
+          <div class="protection-setting"><label class="settings-toggle"><input id="expertMode" type="checkbox"><span></span><b>Afficher les détails techniques</b></label><p>Les commandes sont affichées en lecture seule. Aucun mot de passe n’est enregistré.</p></div>
+        </article>
+        <article class="settings-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon"><svg aria-hidden="true"><use href="#nav-selection"/></svg></span><div><strong>Sauvegarde complète</strong><small>Conservez la langue, l’accessibilité, les profils et les préférences avec votre liste de logiciels.</small></div></div>
+          <div class="settings-backup-actions"><button class="primary-dialog-button" id="exportAllSettings">Exporter mes réglages</button><button class="secondary-dialog-button" id="importAllSettings">Restaurer une sauvegarde</button></div>
+        </article>
+      </div>
     </section>
   </main>
 
@@ -354,6 +532,39 @@
     <button id="viewSelection">Voir ma sélection <span>→</span></button>
   </div>
 
+  <div class="language-overlay hidden" id="languageOverlay" role="dialog" aria-modal="true" aria-labelledby="languageTitle">
+    <div class="language-dialog">
+      <div class="language-brand"><img src="assets/branding/owlsetup-logo.png" alt=""><span><strong>OwlSetup</strong><small>WELCOME · BIENVENUE</small></span></div>
+      <div class="language-heading"><span class="label">PREMIER DÉMARRAGE</span><h2 id="languageTitle">Choisissez votre langue</h2><p>Vous pourrez la modifier plus tard depuis le guide d’installation.</p></div>
+      <div class="language-grid">
+        <button class="language-choice" data-language="fr"><span>FR</span><strong>Français</strong><small>Langue complète</small><b>→</b></button>
+        <button class="language-choice" data-language="en"><span>EN</span><strong>English</strong><small>Beta translation</small><b>→</b></button>
+        <button class="language-choice coming-soon" disabled><span>ES</span><strong>Español</strong><small>Prochainement</small></button>
+        <button class="language-choice coming-soon" disabled><span>DE</span><strong>Deutsch</strong><small>Demnächst</small></button>
+        <button class="language-choice coming-soon" disabled><span>IT</span><strong>Italiano</strong><small>Prossimamente</small></button>
+        <button class="language-choice coming-soon" disabled><span>PT</span><strong>Português</strong><small>Em breve</small></button>
+      </div>
+      <div class="language-privacy"><span>✓</span><p><strong>Choix enregistré uniquement sur ce PC</strong><small>Aucune information de langue n’est envoyée en ligne.</small></p></div>
+    </div>
+  </div>
+
+  <div class="first-run-overlay hidden" id="firstRunConfiguration" role="dialog" aria-modal="true" aria-labelledby="firstRunConfigurationTitle">
+    <div class="first-run-dialog">
+      <div class="first-run-brand"><img src="assets/branding/owlsetup-logo.png" alt=""><span><strong>OwlSetup</strong><small>CONFIGURATION INITIALE</small></span></div>
+      <div class="first-run-heading"><span class="label">ÉTAPE 2 SUR 3</span><h2 id="firstRunConfigurationTitle">Configurez votre expérience</h2><p>Choisissez quelques préférences avant de découvrir les fonctions principales.</p></div>
+      <div class="first-run-options">
+        <label class="first-run-option"><span class="first-run-option-icon"><svg aria-hidden="true"><use href="#nav-theme"/></svg></span><span><strong>Apparence</strong><small>Utilisez le thème de Windows ou choisissez une interface sombre ou claire.</small></span><select id="firstRunTheme"><option value="system">Selon Windows</option><option value="dark">Sombre</option><option value="light">Clair</option></select></label>
+        <label class="first-run-option"><span class="first-run-option-icon">Aa</span><span><strong>Taille du texte</strong><small>Adaptez immédiatement la lisibilité de toute l’interface.</small></span><select id="firstRunScale"><option value="1">Normale</option><option value="1.1">Grande</option><option value="1.2">Très grande</option></select></label>
+        <label class="first-run-option"><span class="first-run-option-icon">◐</span><span><strong>Contraste renforcé</strong><small>Accentue les bordures et les informations importantes.</small></span><input id="firstRunContrast" type="checkbox"></label>
+        <label class="first-run-option"><span class="first-run-option-icon">✦</span><span><strong>Réduire les animations</strong><small>Limite les mouvements si vous préférez une interface plus calme.</small></span><input id="firstRunMotion" type="checkbox"></label>
+        <div class="first-run-option first-run-restore-choice"><span class="first-run-option-icon"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><span><strong>Point de restauration automatique</strong><small>Choix facultatif. Vous pourrez le modifier à tout moment dans Paramètres.</small></span><div class="first-run-choice-buttons" role="radiogroup" aria-label="Création automatique d’un point de restauration"><label><input type="radio" name="firstRunRestoreChoice" value="false" checked><span>Pas maintenant</span></label><label><input id="firstRunRestorePoint" type="radio" name="firstRunRestoreChoice" value="true"><span>Activer</span></label></div></div>
+        <div class="first-run-option first-run-restore-choice"><span class="first-run-option-icon"><svg aria-hidden="true"><use href="#nav-troubleshoot"/></svg></span><span><strong>Rapports d’erreurs facultatifs</strong><small>Le refus n’empêche aucune fonction. Vous pourrez modifier ce choix dans Paramètres.</small></span><div class="first-run-choice-buttons" role="radiogroup" aria-label="Rapports d’erreurs facultatifs"><label><input type="radio" name="firstRunTelemetryChoice" value="never" checked><span>Ne rien envoyer</span></label><label><input type="radio" name="firstRunTelemetryChoice" value="ask"><span>Me demander</span></label><label><input type="radio" name="firstRunTelemetryChoice" value="automatic"><span>Minimal automatique</span></label></div></div>
+      </div>
+      <div class="first-run-privacy"><span>✓</span><p><strong>Configuration privée et locale</strong><small>Ces choix restent associés uniquement à votre session Windows et pourront être modifiés dans Paramètres.</small></p></div>
+      <footer class="first-run-footer"><span>Langue ✓ <b>Configuration</b> Guide</span><button class="onboarding-primary" id="completeFirstRunConfiguration">Enregistrer et voir le guide <span>→</span></button></footer>
+    </div>
+  </div>
+
   <div class="onboarding-overlay hidden" id="onboardingOverlay" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
     <div class="onboarding-dialog">
       <div class="onboarding-ambient"></div>
@@ -361,19 +572,19 @@
       <div class="onboarding-progress"><i id="onboardingProgress"></i></div>
       <div class="onboarding-stage" id="onboardingStage">
         <article class="onboarding-slide active" data-onboarding-step="0" data-target-view="home">
-          <div class="onboarding-visual welcome"><span>✦</span><i></i><i></i><i></i></div><span class="label">BIENVENUE</span><h2 id="onboardingTitle">Votre PC, simplement.</h2><p>OwlSetup réunit l’installation, les mises à jour, le nettoyage et la maintenance Windows dans une seule application.</p><div class="onboarding-pills"><span>✓ Sources officielles</span><span>✓ Actions confirmées</span><span>✓ Fonctionnement local</span></div>
+          <div class="onboarding-visual welcome"><span><svg aria-hidden="true"><use href="#guide-welcome"/></svg></span><i></i><i></i><i></i></div><span class="label">BIENVENUE</span><h2 id="onboardingTitle">Votre PC, simplement.</h2><p>OwlSetup réunit l’installation, les mises à jour, le nettoyage et la maintenance Windows dans une seule application.</p><div class="onboarding-pills"><span>✓ Sources officielles</span><span>✓ Actions confirmées</span><span>✓ Fonctionnement local</span></div>
         </article>
         <article class="onboarding-slide" data-onboarding-step="1" data-target-view="catalog">
-          <div class="onboarding-visual catalog"><span>▦</span><b>＋</b><b>✓</b></div><span class="label">INSTALLER</span><h2>Composez votre sélection.</h2><p>Choisissez un profil ou recherchez une application. OwlSetup prépare ensuite une installation groupée et silencieuse via WinGet.</p><div class="onboarding-tip"><span>1</span><p><strong>Cliquez sur les cartes</strong><small>Retrouvez votre liste dans « Ma sélection » avant de confirmer.</small></p></div>
+          <div class="onboarding-visual catalog"><span><svg aria-hidden="true"><use href="#guide-select"/></svg></span><b><svg aria-hidden="true"><use href="#nav-selection"/></svg></b><b><svg aria-hidden="true"><use href="#guide-confirm"/></svg></b></div><span class="label">INSTALLER</span><h2>Composez votre sélection.</h2><p>Choisissez un profil ou recherchez une application. OwlSetup prépare ensuite une installation groupée et silencieuse via WinGet.</p><div class="onboarding-tip"><span>1</span><p><strong>Cliquez sur les cartes</strong><small>Retrouvez votre liste dans « Ma sélection » avant de confirmer.</small></p></div>
         </article>
         <article class="onboarding-slide" data-onboarding-step="2" data-target-view="installed">
-          <div class="onboarding-visual installed"><span>▣</span><b>⚙</b><b>×</b></div><span class="label">GÉRER</span><h2>Retrouvez vos applications.</h2><p>La page « Applications installées » permet de rechercher, réparer ou sélectionner plusieurs logiciels à désinstaller.</p><div class="onboarding-tip"><span>2</span><p><strong>Simulation obligatoire</strong><small>Vous voyez toujours la liste concernée avant une désinstallation.</small></p></div>
+          <div class="onboarding-visual installed"><span><svg aria-hidden="true"><use href="#nav-installed"/></svg></span><b><svg aria-hidden="true"><use href="#nav-tools"/></svg></b><b><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></b></div><span class="label">GÉRER</span><h2>Retrouvez vos applications.</h2><p>La page « Applications installées » permet de rechercher, réparer ou sélectionner plusieurs logiciels à désinstaller.</p><div class="onboarding-tip"><span>2</span><p><strong>Simulation obligatoire</strong><small>Vous voyez toujours la liste concernée avant une désinstallation.</small></p></div>
         </article>
         <article class="onboarding-slide" data-onboarding-step="3" data-target-view="updates">
-          <div class="onboarding-visual maintenance"><span>↥</span><b>◇</b><b>↻</b></div><span class="label">ENTRETENIR</span><h2>Mettez à jour et nettoyez.</h2><p>Recherchez les nouvelles versions, contrôlez Windows Update et récupérez de l’espace sans toucher à vos documents personnels.</p><div class="onboarding-tip"><span>3</span><p><strong>Repères colorés</strong><small>Vert recommandé, orange à vérifier, violet avancé et bleu réversible.</small></p></div>
+          <div class="onboarding-visual maintenance"><span><svg aria-hidden="true"><use href="#guide-maintenance"/></svg></span><b><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></b><b><svg aria-hidden="true"><use href="#nav-tools"/></svg></b></div><span class="label">ENTRETENIR</span><h2>Mettez à jour et nettoyez.</h2><p>Recherchez les nouvelles versions, contrôlez Windows Update et récupérez de l’espace sans toucher à vos documents personnels.</p><div class="onboarding-tip"><span>3</span><p><strong>Repères colorés</strong><small>Vert recommandé, orange à vérifier, violet avancé et bleu réversible.</small></p></div>
         </article>
         <article class="onboarding-slide" data-onboarding-step="4" data-target-view="security">
-          <div class="onboarding-visual security"><span>♢</span><b>✓</b></div><span class="label">SÉCURITÉ</span><h2>Vous gardez le contrôle.</h2><p>Les outils sensibles affichent une simulation, demandent une confirmation et enregistrent leurs rapports dans le dossier local OwlSetup.</p><div class="onboarding-pills"><span>✓ Point de restauration</span><span>✓ Quarantaine</span><span>✓ Rapports locaux</span></div>
+          <div class="onboarding-visual security"><span><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><b><svg aria-hidden="true"><use href="#guide-confirm"/></svg></b></div><span class="label">SÉCURITÉ</span><h2>Vous gardez le contrôle.</h2><p>Les outils sensibles affichent une simulation, demandent une confirmation et enregistrent leurs rapports dans le dossier local OwlSetup.</p><div class="onboarding-pills"><span>✓ Point de restauration facultatif</span><span>✓ Quarantaine</span><span>✓ Rapports locaux</span></div>
         </article>
       </div>
       <footer class="onboarding-footer"><div class="onboarding-dots" id="onboardingDots" aria-label="Étapes de la prise en main"></div><div><button class="onboarding-secondary" id="previousOnboarding" disabled>← Précédent</button><button class="onboarding-primary" id="nextOnboarding">Commencer <span>→</span></button></div></footer>
@@ -414,8 +625,15 @@
           </div>
         </div>
         <div class="dialog-checks"><span>✓ Téléchargement automatique</span><span>✓ Installation silencieuse</span><span>✓ Rapport rangé dans OwlSetup</span></div>
-        <div class="install-preferences"><label for="installShortcutLocation"><span>Emplacement du raccourci</span><select id="installShortcutLocation"><option value="start">Menu Démarrer — recommandé</option><option value="desktop">Bureau</option><option value="both">Menu Démarrer et Bureau</option><option value="none">Aucun raccourci supplémentaire</option></select></label><label class="launch-after hidden" id="launchAfterOption"><input type="checkbox" id="launchAfterInstall"><span>Lancer l’application après l’installation</span></label><small id="portableInstallNotice">Les fichiers restent dans le dossier sécurisé choisi par WinGet ou l’éditeur.</small></div>
+        <div class="install-preferences">
+          <label for="installLocationMode"><span>Dossier d’installation</span><select id="installLocationMode"><option value="auto">Automatique — recommandé</option><option value="custom">Choisir un dossier personnalisé</option></select></label>
+          <div class="install-location-picker hidden" id="installLocationPicker"><input id="installLocationPath" type="text" readonly placeholder="Aucun dossier sélectionné"><button class="btn ghost" type="button" id="chooseInstallLocation">Parcourir…</button></div>
+          <small id="installLocationNotice">WinGet ou l’éditeur choisit l’emplacement le plus compatible.</small>
+          <label for="installShortcutLocation"><span>Emplacement du raccourci</span><select id="installShortcutLocation"><option value="start">Menu Démarrer — recommandé</option><option value="desktop">Bureau</option><option value="both">Menu Démarrer et Bureau</option><option value="none">Aucun raccourci supplémentaire</option></select></label>
+          <label class="launch-after hidden" id="launchAfterOption"><input type="checkbox" id="launchAfterInstall"><span>Lancer l’application après l’installation</span></label><small id="portableInstallNotice">Les fichiers restent dans le dossier sécurisé choisi par WinGet ou l’éditeur.</small>
+        </div>
         <div class="dialog-warning"><span>i</span> Fermez les applications concernées avant de continuer.</div>
+        <pre class="expert-command-preview hidden" id="installExpertPreview"></pre>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelInstall">Annuler</button><button class="primary-dialog-button" id="confirmInstall" disabled><span>▶</span> Commencer l'installation</button></div>
       </div>
       <div class="dialog-progress hidden" id="installProgressView">
@@ -423,8 +641,9 @@
         <div class="progress-track"><i id="progressBar"></i></div>
         <div class="current-package"><span class="package-icon">↓</span><div><small>LOGICIEL EN COURS</small><strong id="currentPackage">En attente...</strong></div><span id="packageResult">—</span></div>
         <div class="progress-summary" id="progressSummary">Ne fermez pas OwlSetup pendant l'installation.</div>
+        <div class="post-install-verified hidden" id="postInstallVerified"><div class="post-install-verified-heading"><span>✓</span><div><strong>Vérification rapide terminée</strong><small>Ces applications ont été confirmées par WinGet. Vous pouvez les désinstaller immédiatement si nécessaire.</small></div></div><div class="post-install-verified-list" id="postInstallVerifiedList"></div></div>
         <div class="install-result-actions" id="installBackgroundActions"><button class="secondary-dialog-button" id="hideInstallProgress" type="button">Continuer en arrière-plan</button></div>
-        <div class="install-result-actions hidden" id="installResultActions"><button class="secondary-dialog-button" id="openInstallReport" type="button">Ouvrir le rapport</button><button class="primary-dialog-button" id="retryFailedInstall" type="button">↻ Réessayer les échecs</button></div>
+        <div class="install-result-actions hidden" id="installResultActions"><button class="secondary-dialog-button" id="openInstallReport" type="button">Ouvrir le rapport</button><button class="danger-dialog-button hidden" id="reportInstallFailure" type="button">↗ Signaler le problème</button><button class="primary-dialog-button" id="retryFailedInstall" type="button">↻ Réessayer les échecs</button></div>
         <button class="primary-dialog-button hidden" id="finishInstall">Terminer</button>
       </div>
     </div>
@@ -438,6 +657,7 @@
         <p>OwlSetup va installer <strong id="updateModalCount">0 application</strong> sélectionnée(s), puis lancer la recherche des composants Windows et pilotes.</p>
         <div class="update-confirm-list"><span><b>1</b> Applications WinGet</span><span><b>2</b> Composants Windows</span><span><b>3</b> Pilotes certifiés</span></div>
         <div class="dialog-warning"><span>i</span> Fermez les logiciels ouverts et branchez votre PC au secteur.</div>
+        <pre class="expert-command-preview hidden" id="updateExpertPreview"></pre>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelUpdate">Annuler</button><button class="primary-dialog-button update-confirm-button" id="confirmUpdate"><span>▶</span> Lancer la mise à jour</button></div>
       </div>
       <div class="dialog-progress hidden" id="updateProgressView">
@@ -449,7 +669,8 @@
           <div data-update-step="windows"><span>3</span><div><strong>Windows Update</strong><small>Composants et pilotes</small></div></div>
         </div>
         <div class="progress-summary" id="updateSummary">Ne fermez pas OwlSetup pendant la mise à jour.</div>
-        <button class="primary-dialog-button hidden" id="finishUpdate">Terminer</button>
+        <div class="update-blocker-warning hidden" id="updateBlockerWarning"><span>!</span><small>La fermeture forcée peut faire perdre les modifications non enregistrées.</small></div>
+        <div class="install-result-actions hidden" id="updateResultActions"><button class="secondary-dialog-button hidden" id="closeUpdateBlocker" type="button">Fermer l'application</button><button class="danger-dialog-button hidden" id="forceCloseUpdateBlocker" type="button">Forcer la fermeture</button><button class="danger-dialog-button hidden" id="reportUpdateFailure" type="button">↗ Signaler le problème</button><button class="primary-dialog-button" id="finishUpdate" type="button">Terminer</button></div>
       </div>
     </div>
   </div>
@@ -555,6 +776,33 @@
     </div>
   </div>
 
+  <div class="install-modal hidden" id="logModal" role="dialog" aria-modal="true" aria-labelledby="logViewerTitle">
+    <div class="install-dialog log-dialog">
+      <div class="dialog-glow log-dialog-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo log-dialog-logo">≡</span><div><span class="label">JOURNAL D’ACTIVITÉ</span><h2 id="logViewerTitle">Détails de l’opération</h2></div><button class="dialog-close" id="closeLogModal" aria-label="Fermer">×</button></div>
+      <div class="log-body">
+        <section class="report-hero log-hero" id="logHero"><span id="logHeroIcon">✓</span><div><strong id="logHeroTitle">Journal analysé</strong><small id="logHeroDetail">Chargement des événements...</small></div></section>
+        <div class="log-summary-grid"><article><small>ERREURS</small><strong id="logErrorCount">0</strong></article><article><small>AVERTISSEMENTS</small><strong id="logWarningCount">0</strong></article><article><small>RÉUSSITES</small><strong id="logSuccessCount">0</strong></article></div>
+        <div class="report-meta" id="logMeta"></div>
+        <div class="log-suggestions hidden" id="logSuggestions"></div>
+        <div class="report-section-head"><div><span class="label">ÉVÉNEMENTS</span><strong>Lecture simplifiée</strong></div><span id="logFileName"></span></div>
+        <div class="log-entries" id="logEntries"></div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="openLogFolderFromViewer" type="button">Ouvrir le dossier des journaux</button><button class="secondary-dialog-button hidden" id="retryLogFailures" type="button">↻ Réessayer les échecs</button><button class="danger-dialog-button hidden" id="reportLogErrors" type="button">↗ Signaler ces erreurs</button><button class="primary-dialog-button" id="finishLogViewer" type="button">Terminer</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="install-modal hidden" id="feedbackPreviewModal" role="dialog" aria-modal="true" aria-labelledby="feedbackPreviewTitle">
+    <div class="install-dialog feedback-preview-dialog"><div class="dialog-glow"></div><div class="dialog-header"><span class="dialog-logo">◉</span><div><span class="label">CONFIDENTIALITÉ AVANT ENVOI</span><h2 id="feedbackPreviewTitle">Vérifiez le signalement</h2></div><button class="dialog-close" id="closeFeedbackPreview" aria-label="Fermer">×</button></div><div class="feedback-preview-body"><div class="privacy-status"><span>✓</span><div><strong>Données personnelles masquées</strong><small>Aucun journal complet n’est joint automatiquement.</small></div></div><pre id="feedbackPreviewContent"></pre><label class="privacy-confirm"><input id="confirmFeedbackPrivacy" type="checkbox"> J’ai relu le contenu et j’accepte de l’ouvrir sur GitHub.</label><div class="dialog-actions"><button class="secondary-dialog-button" id="cancelFeedbackPreview" type="button">Modifier</button><button class="primary-dialog-button" id="confirmGitHubFeedback" type="button" disabled>Ouvrir sur GitHub</button></div></div></div>
+  </div>
+  <dialog class="telemetry-preview-dialog" id="telemetryPreviewDialog" aria-labelledby="telemetryPreviewTitle">
+    <div class="telemetry-preview-heading"><span class="settings-heading-icon safe"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><div><span class="label">APERÇU DE CONFIDENTIALITÉ</span><h2 id="telemetryPreviewTitle">Exemple de rapport minimal</h2></div></div>
+    <p>Voici exactement la structure envoyée en mode automatique. L’identifiant du seul paquet en échec peut apparaître ; aucun message libre ni journal complet n’est inclus.</p>
+    <pre id="telemetryPreviewContent"></pre>
+    <div class="telemetry-preview-exclusions"><strong>Données exclues</strong><span>Nom et e-mail</span><span>Adresse IP enregistrée</span><span>Chemins personnels</span><span>Liste des logiciels</span><span>Contenu des journaux</span></div>
+    <div class="dialog-actions"><button class="secondary-dialog-button" id="closeTelemetryPreview" type="button">Fermer</button><button class="primary-dialog-button hidden" id="sendTelemetryPreview" type="button">Envoyer ce diagnostic</button></div>
+  </dialog>
+
   <div class="install-modal hidden" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportViewerTitle">
     <div class="install-dialog report-dialog">
       <div class="dialog-glow report-dialog-glow"></div>
@@ -570,8 +818,21 @@
     </div>
   </div>
 
+  <div class="install-modal hidden" id="healthDetailsModal" role="dialog" aria-modal="true" aria-labelledby="healthDetailsTitle">
+    <div class="install-dialog health-details-dialog">
+      <div class="dialog-glow health-details-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo health-details-logo">100</span><div><span class="label">ÉTAT DE MAINTENANCE</span><h2 id="healthDetailsTitle">Comprendre le score</h2></div><button class="dialog-close" id="closeHealthDetails" type="button" aria-label="Fermer">×</button></div>
+      <div class="health-details-body">
+        <div class="health-details-total"><span>Score actuel</span><strong id="healthDetailsScore">— / 100</strong><small>Indicateur local d’entretien, sans mesure des performances matérielles.</small></div>
+        <div class="health-details-list" id="healthDetailsList"></div>
+        <div class="dialog-warning"><span>i</span> Ce score reste uniquement sur ce PC. Il évolue après une nouvelle analyse d’OwlSetup.</div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="refreshHealthFromDetails" type="button">Actualiser l’analyse</button><button class="primary-dialog-button" id="finishHealthDetails" type="button">Terminer</button></div>
+      </div>
+    </div>
+  </div>
+
   <aside class="notification-center hidden" id="notificationCenter" aria-label="Centre de notifications">
-    <div class="notification-center-head"><div><span class="label">ACTIVITÉ OWLSETUP</span><strong>Notifications</strong></div><button id="clearNotifications" type="button">Tout marquer comme lu</button></div>
+    <div class="notification-center-head"><div><span class="label">ACTIVITÉ OWLSETUP</span><strong>Notifications</strong></div><div class="notification-head-actions"><button id="clearNotifications" type="button">Tout marquer comme lu</button><button id="deleteReadNotifications" type="button">Effacer les lues</button></div></div>
     <div class="notification-list" id="notificationList"><div class="notification-empty"><span>✓</span><strong>Tout est calme</strong><small>Les mises à jour et installations apparaîtront ici.</small></div></div>
   </aside>
 
@@ -582,6 +843,13 @@
     <button id="showInstallProgress" type="button">Afficher</button>
   </section>
 
+  <section class="background-operation background-update hidden" id="backgroundUpdate" aria-live="polite">
+    <span class="background-operation-icon"><svg aria-hidden="true"><use href="#guide-maintenance"/></svg></span>
+    <div class="background-operation-copy"><small>MISE À JOUR EN ARRIÈRE-PLAN</small><strong id="backgroundUpdateTitle">Préparation...</strong><span id="backgroundUpdateDetail">Vous pouvez continuer à utiliser OwlSetup.</span><i><b id="backgroundUpdateBar"></b></i></div>
+    <em id="backgroundUpdatePercent">0%</em>
+    <button id="showUpdateProgress" type="button">Afficher</button>
+  </section>
+
   <section class="background-operation background-uninstall hidden" id="backgroundUninstall" aria-live="polite">
     <span class="background-operation-icon">×</span>
     <div class="background-operation-copy"><small>DÉSINSTALLATION EN ARRIÈRE-PLAN</small><strong id="backgroundUninstallTitle">Préparation...</strong><span id="backgroundUninstallDetail">Vous pouvez continuer à utiliser OwlSetup.</span><i><b id="backgroundUninstallBar"></b></i></div>
@@ -590,6 +858,15 @@
   </section>
 
   <div class="toast" id="toast" role="status"><span>✓</span><div><strong id="toastTitle">Ajouté à la sélection</strong><small id="toastText"></small></div></div>
-  <script src="app.js"></script>
+  <aside class="native-error-card hidden" id="nativeErrorCard" role="alert" aria-live="assertive">
+    <span class="native-error-symbol" aria-hidden="true">!</span>
+    <div class="native-error-copy"><span class="label">ACTION À VÉRIFIER</span><strong>OwlSetup n’a pas pu terminer l’action</strong><p id="nativeErrorMessage"></p><code id="nativeErrorId"></code></div>
+    <div class="native-error-actions"><button type="button" id="copyNativeError">Copier le diagnostic</button><button type="button" id="openNativeErrorHelp">Ouvrir le dépannage</button><button type="button" id="closeNativeError" aria-label="Fermer">×</button></div>
+  </aside>
+  <div class="context-help-popover hidden" id="contextHelpPopover" role="dialog" aria-modal="false" aria-labelledby="contextHelpTitle"><button type="button" id="closeContextHelp" aria-label="Fermer">×</button><span aria-hidden="true">i</span><div><strong id="contextHelpTitle">Aide</strong><p id="contextHelpText"></p></div></div>
+  <div class="history-clear-overlay hidden" id="historyClearOverlay" role="dialog" aria-modal="true" aria-labelledby="historyClearTitle"><div class="history-clear-dialog"><span class="history-clear-icon" aria-hidden="true">!</span><div><span class="label">HISTORIQUE LOCAL</span><h2 id="historyClearTitle">Effacer tout l’historique ?</h2><p>Les journaux et rapports OwlSetup seront supprimés définitivement de ce PC. Vos applications, documents et réglages ne seront pas modifiés.</p></div><div class="dialog-actions"><button class="secondary-dialog-button" id="cancelClearHistory" type="button">Annuler</button><button class="danger-dialog-button" id="confirmClearHistory" type="button">Effacer définitivement</button></div></div></div>
+  <div class="restore-protection-overlay hidden" id="restoreProtectionOverlay" role="dialog" aria-modal="true" aria-labelledby="restoreProtectionTitle"><div class="restore-protection-dialog"><button class="dialog-close" id="closeRestoreProtection" type="button" aria-label="Fermer">×</button><span class="restore-protection-icon" aria-hidden="true"><svg><use href="#nav-shield"/></svg></span><div><span class="label">PROTECTION AVANT MAINTENANCE</span><h2 id="restoreProtectionTitle">Le point de restauration n’a pas été créé</h2><p id="restoreProtectionReason">La protection du système Windows semble désactivée sur le lecteur système.</p><ol><li>Ouvrez la protection du système Windows.</li><li>Sélectionnez le lecteur C:, puis cliquez sur « Configurer ».</li><li>Activez la protection du système et réessayez.</li></ol><p class="restore-protection-note">Vous pouvez aussi désactiver cette automatisation. OwlSetup ne modifiera jamais ce réglage Windows sans votre accord.</p></div><div class="dialog-actions restore-protection-actions"><button class="secondary-dialog-button" id="disableAutomaticRestore" type="button">Désactiver l’automatisation</button><button class="primary-dialog-button" id="openSystemProtection" type="button">Ouvrir la protection Windows</button></div></div></div>
+  <script src="i18n.js?v=3.7.0-beta.57"></script>
+  <script src="app.js?v=3.7.0-beta.57"></script>
 </body>
 </html>

@@ -14,11 +14,11 @@ $packages = @(
     [pscustomobject]@{ Id='Brave.Brave'; Logo='brave.svg'; Name='Brave' },
     [pscustomobject]@{ Id='Vivaldi.Vivaldi'; Logo='vivaldi.svg'; Name='Vivaldi' },
     [pscustomobject]@{ Id='Opera.Opera'; Logo='opera.svg'; Name='Opera' },
-    [pscustomobject]@{ Id='Opera.OperaGX'; Logo='operagx.svg'; Name='Opera GX' },
+    [pscustomobject]@{ Id='Opera.OperaGX'; Logo='operagx-color.svg'; Name='Opera GX' },
     [pscustomobject]@{ Id='LibreWolf.LibreWolf'; Logo='librewolf.svg'; Name='LibreWolf' },
     [pscustomobject]@{ Id='Ablaze.Floorp'; Logo='floorp.svg'; Name='Floorp' },
-    [pscustomobject]@{ Id='TorProject.TorBrowser'; Logo='torbrowser.svg'; Name='Tor Browser' },
-    [pscustomobject]@{ Id='Waterfox.Waterfox'; Logo='waterfox.svg'; Name='Waterfox' }
+    [pscustomobject]@{ Id='TorProject.TorBrowser'; Logo='torbrowser-color.svg'; Name='Tor Browser' },
+    [pscustomobject]@{ Id='Waterfox.Waterfox'; Logo='waterfox-color.svg'; Name='Waterfox' }
 )
 
 if ($Package) {
