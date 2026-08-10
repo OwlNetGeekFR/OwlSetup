@@ -52,6 +52,7 @@ internal sealed class WebAppForm : Form
     bool scanRunning;
     bool updateRunning;
     bool cleanupRunning;
+    bool browserCleanupRunning;
     bool healthScanning;
     bool updatesScanning;
     bool selfUpdateRunning;
@@ -63,6 +64,7 @@ internal sealed class WebAppForm : Form
     readonly Dictionary<string,List<ResidueCandidate>> uninstallResidueSimulations=new Dictionary<string,List<ResidueCandidate>>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,DateTime> uninstallResidueExpirations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,bool> diskScanTargets=new Dictionary<string,bool>(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string,BrowserCleanupPlan> browserCleanupPlans=new Dictionary<string,BrowserCleanupPlan>(StringComparer.OrdinalIgnoreCase);
 
     sealed class ResidueCandidate
     {
@@ -74,9 +76,27 @@ internal sealed class WebAppForm : Form
         public long Files;
     }
 
+    sealed class BrowserDefinition
+    {
+        public string Id,Name,Engine,Root,Process;
+        public bool ProfileRoot;
+    }
+    sealed class BrowserTarget
+    {
+        public string Browser,Category,CategoryLabel,Path,Root;
+        public long Bytes,Files;
+    }
+    sealed class BrowserCleanupPlan
+    {
+        public DateTime Expires;
+        public string[] Browsers,Categories;
+        public List<BrowserTarget> Targets;
+        public long Bytes,Files;
+    }
+
     public WebAppForm()
     {
-        Text = BuildInfo.IsBeta ? "OwlSetup BETA - " + BuildInfo.DisplayVersion : "OwlSetup";
+        Text = BuildInfo.IsBeta ? "OwlSetup " + BuildInfo.Channel.ToUpperInvariant() + " - " + BuildInfo.DisplayVersion : "OwlSetup";
         string iconPath=Path.Combine(Bootstrap.AppRoot,"OwlSetup.ico");
         Icon = File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
         Size = new Size(1500, 920);
@@ -230,7 +250,11 @@ internal sealed class WebAppForm : Form
             else if (action == "export-config") ExportConfiguration(payload);
             else if (action == "import-config") ImportConfiguration();
             else if (action == "analyze-cleanup") AnalyzeCleanup(payload);
+            else if (action == "scan-browser-data") ScanBrowserData();
+            else if (action == "analyze-browser-data") AnalyzeBrowserData(payload);
+            else if (action == "cleanup-browser-data") RunBrowserCleanup(payload);
             else if (action == "diagnose-winget") DiagnoseWinget();
+            else if (action == "search-winget") SearchWinget(payload);
             else if (action == "repair-winget") RepairWinget();
             else if (action == "inspect-package-processes") InspectPackageProcesses(payload);
             else if (action == "close-package-processes") ClosePackageProcesses(payload);
@@ -1179,10 +1203,22 @@ internal sealed class WebAppForm : Form
             var report=new StringBuilder();
             string error;
             var wingetInstalled=DetectInstalledFromWinget(requested,report,out error);
+            var installed=new HashSet<string>(wingetInstalled,StringComparer.OrdinalIgnoreCase);
+            string discoveryWarning;
+            var discoveredPackages=DiscoverInstalledPackages(report,out discoveryWarning);
+            if(!String.IsNullOrWhiteSpace(discoveryWarning) && String.IsNullOrWhiteSpace(error))error=discoveryWarning;
+            foreach(var package in discoveredPackages)
+            {
+                string packageId=package.ContainsKey("id")?package["id"]:"";
+                if(!String.IsNullOrWhiteSpace(packageId))
+                {
+                    installed.Add(packageId);
+                    if(package.ContainsKey("source") && String.Equals(package["source"],"winget",StringComparison.OrdinalIgnoreCase))wingetInstalled.Add(packageId);
+                }
+            }
             var registryInstalled=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var msixInstalled=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var relatedPackages=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var installed=new HashSet<string>(wingetInstalled,StringComparer.OrdinalIgnoreCase);
             try
             {
                 DetectInstalledFromRegistry(catalog,requested,registryInstalled);
@@ -1206,8 +1242,16 @@ internal sealed class WebAppForm : Form
                     if(EnsurePortableShortcut(id,name,preference,report) && !shortcutAlreadyPresent && preference!="none")
                         SendToWeb(new { type="portable-access-ready", id=id, name=name });
                 }
-                var details=installed.OrderBy(value=>catalog.ContainsKey(value)?catalog[value]:value).Select(id=>new{
+                var discoveredById=discoveredPackages
+                    .Where(item=>item.ContainsKey("id"))
+                    .GroupBy(item=>item["id"],StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(group=>group.Key,group=>group.First(),StringComparer.OrdinalIgnoreCase);
+                var details=installed.OrderBy(value=>catalog.ContainsKey(value)?catalog[value]:discoveredById.ContainsKey(value)?discoveredById[value]["name"]:value).Select(id=>new{
                     id=id,
+                    name=catalog.ContainsKey(id)?catalog[id]:discoveredById.ContainsKey(id)?discoveredById[id]["name"]:id,
+                    version=discoveredById.ContainsKey(id)&&discoveredById[id].ContainsKey("version")?discoveredById[id]["version"]:"",
+                    iconData=discoveredById.ContainsKey(id)&&discoveredById[id].ContainsKey("iconData")?discoveredById[id]["iconData"]:"",
+                    discovered=!catalog.ContainsKey(id),
                     source=portablePackages.Contains(id)?"portable":wingetInstalled.Contains(id)?"winget":msixInstalled.Contains(id)?"msix":"windows",
                     manageable=portablePackages.Contains(id)||wingetInstalled.Contains(id)
                 }).ToArray();
@@ -1290,6 +1334,152 @@ internal sealed class WebAppForm : Form
         catch(Exception ex){error=ex.Message;}
         finally{try{if(File.Exists(exportFile))File.Delete(exportFile);}catch{}}
         return installed;
+    }
+
+    List<Dictionary<string,string>> DiscoverInstalledPackages(StringBuilder report,out string warning)
+    {
+        warning=null;
+        var results=new List<Dictionary<string,string>>();
+        var capture=new StringBuilder();
+        try
+        {
+            int code=RunHiddenProcess("winget.exe","list --accept-source-agreements --disable-interactivity",capture);
+            report.AppendLine(capture.ToString());
+            string[] lines=capture.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries)
+                .Select(line=>Regex.Replace(line,@"\x1B\[[0-9;?]*[ -/]*[@-~]","").TrimEnd()).ToArray();
+            int headerIndex=-1,idStart=-1,versionStart=-1,sourceStart=-1;
+            for(int index=0;index<lines.Length;index++)
+            {
+                string line=lines[index];
+                int candidateId=line.IndexOf("Id",StringComparison.OrdinalIgnoreCase);
+                int candidateVersion=line.IndexOf("Version",StringComparison.OrdinalIgnoreCase);
+                if(candidateId>0&&candidateVersion>candidateId)
+                {
+                    headerIndex=index;idStart=candidateId;versionStart=candidateVersion;
+                    sourceStart=line.IndexOf("Source",StringComparison.OrdinalIgnoreCase);
+                    break;
+                }
+            }
+            var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if(headerIndex>=0)
+            {
+                for(int index=headerIndex+1;index<lines.Length;index++)
+                {
+                    string line=lines[index];
+                    if(String.IsNullOrWhiteSpace(line)||Regex.IsMatch(line,@"^\s*-{3,}")||line.Length<=idStart)continue;
+                    string name=line.Substring(0,Math.Min(idStart,line.Length)).Trim();
+                    int idEnd=Math.Min(versionStart,line.Length);
+                    string id=line.Substring(idStart,Math.Max(0,idEnd-idStart)).Trim();
+                    if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||String.IsNullOrWhiteSpace(name)||!seen.Add(id))continue;
+                    string version="",source="windows";
+                    if(line.Length>versionStart)
+                    {
+                        int versionEnd=sourceStart>versionStart?Math.Min(sourceStart,line.Length):line.Length;
+                        version=Regex.Match(line.Substring(versionStart,Math.Max(0,versionEnd-versionStart)).Trim(),@"^\S+").Value;
+                    }
+                    if(sourceStart>0&&line.Length>sourceStart)
+                    {
+                        string sourceValue=line.Substring(sourceStart).Trim();
+                        if(sourceValue.StartsWith("winget",StringComparison.OrdinalIgnoreCase)||sourceValue.StartsWith("msstore",StringComparison.OrdinalIgnoreCase))source="winget";
+                    }
+                    results.Add(new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){{"id",id},{"name",name},{"version",version},{"source",source}});
+                }
+            }
+            EnrichInstalledPackageIcons(results,report);
+            if(code!=0)warning="WinGet n'a pas pu terminer l'inventaire complet des applications installées.";
+        }
+        catch(Exception ex){warning=ex.Message;}
+        return results;
+    }
+
+    void EnrichInstalledPackageIcons(List<Dictionary<string,string>> packages,StringBuilder report)
+    {
+        if(packages==null||packages.Count==0)return;
+        var registryIcons=new List<Tuple<string,string>>();
+        foreach(RegistryHive hive in new[]{RegistryHive.LocalMachine,RegistryHive.CurrentUser})
+        foreach(RegistryView view in new[]{RegistryView.Registry64,RegistryView.Registry32})
+        {
+            try
+            {
+                using(var baseKey=RegistryKey.OpenBaseKey(hive,view))
+                using(var uninstall=baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"))
+                {
+                    if(uninstall==null)continue;
+                    foreach(string childName in uninstall.GetSubKeyNames())
+                    {
+                        try
+                        {
+                            using(var child=uninstall.OpenSubKey(childName))
+                            {
+                                string name=Convert.ToString(child.GetValue("DisplayName"));
+                                string displayIcon=Convert.ToString(child.GetValue("DisplayIcon"));
+                                if(!String.IsNullOrWhiteSpace(name)&&!String.IsNullOrWhiteSpace(displayIcon))
+                                    registryIcons.Add(Tuple.Create(NormalizeSoftwareName(name),displayIcon));
+                            }
+                        }
+                        catch{}
+                    }
+                }
+            }
+            catch{}
+        }
+        foreach(var package in packages)
+        {
+            try
+            {
+                string packageName=package.ContainsKey("name")?NormalizeSoftwareName(package["name"]):"";
+                string idTail=package.ContainsKey("id")?NormalizeSoftwareName(package["id"].Split('.').Last()):"";
+                if(packageName.Length<2)continue;
+                var match=registryIcons.Select(item=>new{Item=item,Score=InstalledIconMatchScore(packageName,idTail,item.Item1)})
+                    .Where(item=>item.Score>0).OrderByDescending(item=>item.Score).FirstOrDefault();
+                if(match==null)continue;
+                string iconData=ReadInstalledIconData(match.Item.Item2);
+                if(!String.IsNullOrWhiteSpace(iconData))package["iconData"]=iconData;
+            }
+            catch(Exception ex){report.AppendLine("Icone locale ignoree : "+ex.Message);}
+        }
+    }
+
+    int InstalledIconMatchScore(string packageName,string idTail,string registryName)
+    {
+        if(String.IsNullOrWhiteSpace(registryName))return 0;
+        if(registryName==packageName)return 100;
+        if(!String.IsNullOrWhiteSpace(idTail)&&registryName==idTail)return 95;
+        if(packageName.Length>=5&&(registryName.StartsWith(packageName+" ",StringComparison.OrdinalIgnoreCase)||packageName.StartsWith(registryName+" ",StringComparison.OrdinalIgnoreCase)))return 85;
+        if(idTail.Length>=5&&(registryName.Contains(idTail)||idTail.Contains(registryName)))return 70;
+        return 0;
+    }
+
+    string ReadInstalledIconData(string displayIcon)
+    {
+        if(String.IsNullOrWhiteSpace(displayIcon))return "";
+        string value=Environment.ExpandEnvironmentVariables(displayIcon.Trim());
+        Match quoted=Regex.Match(value,"^\\\"([^\\\"]+)\\\"");
+        string path=quoted.Success?quoted.Groups[1].Value:Regex.Replace(value,@",\s*-?\d+\s*$","").Trim().Trim('"');
+        if(!Path.IsPathRooted(path)||!File.Exists(path)||IsReparsePoint(path))return "";
+        string extension=Path.GetExtension(path).ToLowerInvariant();
+        if(extension!=".exe"&&extension!=".dll"&&extension!=".ico")return "";
+        try
+        {
+            using(Icon source=extension==".ico"?new Icon(path):Icon.ExtractAssociatedIcon(path))
+            {
+                if(source==null)return "";
+                using(var bitmap=new Bitmap(48,48))
+                {
+                    using(var graphics=Graphics.FromImage(bitmap))
+                    {
+                        graphics.Clear(Color.Transparent);
+                        graphics.DrawIcon(source,new Rectangle(0,0,48,48));
+                    }
+                    using(var stream=new MemoryStream())
+                    {
+                        bitmap.Save(stream,System.Drawing.Imaging.ImageFormat.Png);
+                        return "data:image/png;base64,"+Convert.ToBase64String(stream.ToArray());
+                    }
+                }
+            }
+        }
+        catch{return "";}
     }
 
     void PromoteVerifiedWingetPackages(HashSet<string> wingetInstalled,IEnumerable<string> windowsCandidates,StringBuilder report)
@@ -2039,6 +2229,73 @@ internal sealed class WebAppForm : Form
             SendToWeb(new { type="tool-progress", tool="winget", percent=100, status="Diagnostic termine." });
             SendToWeb(new { type="winget-diagnostic",available=available,sources=sources,version=version,message=message });
         });
+    }
+
+    void SearchWinget(Dictionary<string,object> payload)
+    {
+        string query=payload!=null&&payload.ContainsKey("query")?Convert.ToString(payload["query"]).Trim():"";
+        if(query.Length<2||query.Length>80||!Regex.IsMatch(query,@"^[\p{L}\p{N} ._+\-]+$"))
+        {
+            SendToWeb(new {type="winget-search-complete",success=false,query=query,items=new object[0],message="Utilisez entre 2 et 80 lettres, chiffres, espaces, points, tirets ou signes +."});
+            return;
+        }
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            try
+            {
+                string arguments="search --query \""+query+"\" --source winget --count 15 --accept-source-agreements --disable-interactivity";
+                int code=RunHiddenProcess("winget.exe",arguments,report);
+                var items=ParseWingetSearchResults(report.ToString()).Take(12).ToArray();
+                string message=code==0
+                    ? (items.Length==0?"Aucun paquet WinGet supplémentaire n'a été trouvé.":"Recherche WinGet terminée.")
+                    : "WinGet n'a pas pu terminer la recherche.";
+                SendToWeb(new {type="winget-search-complete",success=code==0,query=query,items=items,message=message});
+            }
+            catch(Exception ex)
+            {
+                SendToWeb(new {type="winget-search-complete",success=false,query=query,items=new object[0],message=ex.Message});
+            }
+        });
+    }
+
+    IEnumerable<object> ParseWingetSearchResults(string output)
+    {
+        string[] lines=(output??"").Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries)
+            .Select(line=>Regex.Replace(line,@"\x1B\[[0-9;?]*[ -/]*[@-~]","").TrimEnd()).ToArray();
+        int headerIndex=-1,idStart=-1,versionStart=-1,sourceStart=-1;
+        for(int index=0;index<lines.Length;index++)
+        {
+            string line=lines[index];
+            int candidateId=line.IndexOf("Id",StringComparison.OrdinalIgnoreCase);
+            int candidateVersion=line.IndexOf("Version",StringComparison.OrdinalIgnoreCase);
+            if(candidateId>0&&candidateVersion>candidateId)
+            {
+                headerIndex=index;idStart=candidateId;versionStart=candidateVersion;
+                sourceStart=line.IndexOf("Source",StringComparison.OrdinalIgnoreCase);
+                break;
+            }
+        }
+        if(headerIndex<0)return new object[0];
+        var results=new List<object>();var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for(int index=headerIndex+1;index<lines.Length;index++)
+        {
+            string line=lines[index];
+            if(String.IsNullOrWhiteSpace(line)||Regex.IsMatch(line,@"^\s*-{3,}"))continue;
+            if(line.Length<=idStart)continue;
+            string name=line.Substring(0,Math.Min(idStart,line.Length)).Trim();
+            int idEnd=Math.Min(versionStart,line.Length);
+            string id=line.Substring(idStart,Math.Max(0,idEnd-idStart)).Trim();
+            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||String.IsNullOrWhiteSpace(name)||!seen.Add(id))continue;
+            string version="";
+            if(line.Length>versionStart)
+            {
+                int versionEnd=sourceStart>versionStart?Math.Min(sourceStart,line.Length):line.Length;
+                string versionArea=line.Substring(versionStart,Math.Max(0,versionEnd-versionStart)).Trim();
+                version=Regex.Match(versionArea,@"^\S+").Value;
+            }
+            results.Add(new {name=name,id=id,version=version,source="winget"});
+        }
+        return results;
     }
 
     void RepairWinget()
@@ -3155,6 +3412,118 @@ internal sealed class WebAppForm : Form
             SendToWeb(new { type="config-imported", packages=packages.ToArray(), cleanup=cleanup, preferences=preferences, file=Path.GetFileName(source) });
         }
         catch(Exception ex){SendToWeb(new { type="config-import-error", message=ex.Message });}
+    }
+
+    List<BrowserDefinition> BrowserDefinitions()
+    {
+        string local=Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), roaming=Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), home=Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return new List<BrowserDefinition>{
+            new BrowserDefinition{Id="chrome",Name="Google Chrome",Engine="Chromium",Root=Path.Combine(local,@"Google\Chrome\User Data"),Process="chrome"},
+            new BrowserDefinition{Id="edge",Name="Microsoft Edge",Engine="Chromium",Root=Path.Combine(local,@"Microsoft\Edge\User Data"),Process="msedge"},
+            new BrowserDefinition{Id="brave",Name="Brave",Engine="Chromium",Root=Path.Combine(local,@"BraveSoftware\Brave-Browser\User Data"),Process="brave"},
+            new BrowserDefinition{Id="vivaldi",Name="Vivaldi",Engine="Chromium",Root=Path.Combine(local,@"Vivaldi\User Data"),Process="vivaldi"},
+            new BrowserDefinition{Id="opera",Name="Opera",Engine="Chromium",Root=Path.Combine(roaming,@"Opera Software\Opera Stable"),Process="opera",ProfileRoot=true},
+            new BrowserDefinition{Id="opera-gx",Name="Opera GX",Engine="Chromium",Root=Path.Combine(roaming,@"Opera Software\Opera GX Stable"),Process="opera",ProfileRoot=true},
+            new BrowserDefinition{Id="firefox",Name="Mozilla Firefox",Engine="Firefox",Root=Path.Combine(roaming,@"Mozilla\Firefox\Profiles"),Process="firefox"},
+            new BrowserDefinition{Id="librewolf",Name="LibreWolf",Engine="Firefox",Root=Path.Combine(roaming,@"librewolf\Profiles"),Process="librewolf"},
+            new BrowserDefinition{Id="floorp",Name="Floorp",Engine="Firefox",Root=Path.Combine(roaming,@"Floorp\Profiles"),Process="floorp"},
+            new BrowserDefinition{Id="waterfox",Name="Waterfox",Engine="Firefox",Root=Path.Combine(roaming,@"Waterfox\Profiles"),Process="waterfox"},
+            new BrowserDefinition{Id="tor",Name="Tor Browser",Engine="Firefox",Root=Path.Combine(home,@"Tor Browser\Browser\TorBrowser\Data\Browser\profile.default"),Process="firefox",ProfileRoot=true}
+        };
+    }
+
+    List<string> BrowserProfiles(BrowserDefinition browser)
+    {
+        var result=new List<string>();if(!Directory.Exists(browser.Root)||IsReparsePoint(browser.Root))return result;
+        if(browser.ProfileRoot){result.Add(browser.Root);return result;}
+        if(browser.Engine=="Chromium")
+        {
+            foreach(string path in Directory.GetDirectories(browser.Root))
+            {string name=Path.GetFileName(path);if(name=="Default"||name=="Guest Profile"||name.StartsWith("Profile ",StringComparison.OrdinalIgnoreCase))result.Add(path);}
+        }
+        else foreach(string path in Directory.GetDirectories(browser.Root))if(!IsReparsePoint(path))result.Add(path);
+        return result;
+    }
+
+    void ScanBrowserData()
+    {
+        Task.Run(delegate{try{var items=BrowserDefinitions().Select(browser=>new{browser=browser,profiles=BrowserProfiles(browser)}).Where(x=>x.profiles.Count>0).Select(x=>new{id=x.browser.Id,name=x.browser.Name,engine=x.browser.Engine,profiles=x.profiles.Count,running=Process.GetProcessesByName(x.browser.Process).Length>0}).ToArray();SendToWeb(new{type="browser-scan-state",items=items});}catch(Exception ex){SendToWeb(new{type="browser-scan-error",message=ex.Message});}});
+    }
+
+    string BrowserCategoryLabel(string category)
+    {
+        if(category=="cache")return "Cache de navigation";if(category=="media-cache")return "Cache multimédia";if(category=="crash")return "Rapports de plantage";if(category=="cookies")return "Cookies";if(category=="site-data")return "Données de sites";return "Historique";
+    }
+
+    IEnumerable<string> BrowserRelativeTargets(BrowserDefinition browser,string category)
+    {
+        if(browser.Engine=="Chromium")
+        {
+            if(category=="cache")return new[]{"Cache","Code Cache","GPUCache","DawnCache"};
+            if(category=="media-cache")return new[]{"Media Cache"};
+            if(category=="crash")return new[]{"Crashpad\\reports","Crashpad\\pending"};
+            if(category=="cookies")return new[]{"Network\\Cookies","Network\\Cookies-journal","Cookies","Cookies-journal"};
+            if(category=="site-data")return new[]{"Local Storage","IndexedDB","Service Worker","Session Storage","WebStorage"};
+            if(category=="history")return new[]{"History","History-journal","History-wal","History-shm","Archived History","Archived History-journal","Archived History-wal","Archived History-shm"};
+        }
+        else
+        {
+            if(category=="cache")return new[]{"cache2","startupCache"};
+            if(category=="media-cache")return new string[0];
+            if(category=="crash")return new[]{"minidumps"};
+            if(category=="cookies")return new[]{"cookies.sqlite","cookies.sqlite-wal","cookies.sqlite-shm"};
+            if(category=="site-data")return new[]{"storage\\default","storage\\temporary"};
+            // Firefox stocke l'historique et les favoris dans places.sqlite : on protège donc les deux.
+            if(category=="history")return new string[0];
+        }
+        return new string[0];
+    }
+
+    void AnalyzeBrowserData(Dictionary<string,object> payload)
+    {
+        string[] allowedCategories={"cache","media-cache","crash","cookies","site-data","history"};
+        var selectedBrowsers=new HashSet<string>(ReadArray(payload,"browsers").Where(x=>Regex.IsMatch(x,"^[a-z0-9-]+$")),StringComparer.OrdinalIgnoreCase);
+        var categories=ReadArray(payload,"categories").Where(x=>allowedCategories.Contains(x)).Distinct().ToArray();
+        if(selectedBrowsers.Count==0||categories.Length==0)throw new InvalidOperationException("Sélection de navigateurs vide.");
+        Task.Run(delegate{try{
+            var targets=new List<BrowserTarget>();var definitions=BrowserDefinitions().Where(x=>selectedBrowsers.Contains(x.Id)).ToArray();
+            foreach(var browser in definitions)foreach(string profile in BrowserProfiles(browser))foreach(string category in categories)foreach(string relative in BrowserRelativeTargets(browser,category))
+            {
+                string path=Path.Combine(profile,relative);if(!File.Exists(path)&&!Directory.Exists(path))continue;
+                EnsureNoReparsePoints(path,browser.Root);long bytes=0,files=0;if(File.Exists(path)){bytes=new FileInfo(path).Length;files=1;}else MeasurePath(path,out bytes,out files);
+                targets.Add(new BrowserTarget{Browser=browser.Name,Category=category,CategoryLabel=BrowserCategoryLabel(category),Path=path,Root=browser.Root,Bytes=bytes,Files=files});
+            }
+            targets=targets.GroupBy(x=>x.Path,StringComparer.OrdinalIgnoreCase).Select(x=>x.First()).ToList();string token=Guid.NewGuid().ToString("N");
+            var plan=new BrowserCleanupPlan{Expires=DateTime.UtcNow.AddMinutes(5),Browsers=definitions.Select(x=>x.Id).OrderBy(x=>x).ToArray(),Categories=categories.OrderBy(x=>x).ToArray(),Targets=targets,Bytes=targets.Sum(x=>x.Bytes),Files=targets.Sum(x=>x.Files)};
+            lock(browserCleanupPlans){browserCleanupPlans[token]=plan;foreach(string expired in browserCleanupPlans.Where(x=>x.Value.Expires<DateTime.UtcNow).Select(x=>x.Key).ToArray())browserCleanupPlans.Remove(expired);}
+            var items=targets.GroupBy(x=>new{x.Browser,x.Category,x.CategoryLabel}).Select(group=>new{browser=group.Key.Browser,category=group.Key.Category,categoryLabel=group.Key.CategoryLabel,bytes=group.Sum(x=>x.Bytes),size=FormatBytes(group.Sum(x=>x.Bytes)),files=group.Sum(x=>x.Files)}).ToArray();
+            SendToWeb(new{type="browser-analysis-state",token=token,items=items,bytes=plan.Bytes,size=FormatBytes(plan.Bytes),files=plan.Files,protectedData=new[]{"Mots de passe","Favoris","Extensions","Téléchargements","Sessions","Profils"}});
+        }catch(Exception ex){SendToWeb(new{type="browser-analysis-error",message=ex.Message});}});
+    }
+
+    void RunBrowserCleanup(Dictionary<string,object> payload)
+    {
+        string token=payload!=null&&payload.ContainsKey("token")?Convert.ToString(payload["token"]):"";BrowserCleanupPlan plan;
+        if(!Regex.IsMatch(token,"^[a-f0-9]{32}$"))throw new InvalidOperationException("Jeton d'analyse invalide.");
+        lock(browserCleanupPlans){if(!browserCleanupPlans.TryGetValue(token,out plan)||plan.Expires<DateTime.UtcNow)throw new InvalidOperationException("L'analyse a expiré. Relancez-la.");browserCleanupPlans.Remove(token);}
+        if(browserCleanupRunning)throw new InvalidOperationException("Un nettoyage de navigateur est déjà en cours.");
+        bool closeBrowsers=payload!=null&&payload.ContainsKey("closeBrowsers")&&Convert.ToBoolean(payload["closeBrowsers"]);browserCleanupRunning=true;
+        Task.Run(delegate{int deleted=0,skipped=0;long recovered=0;string logName="PC-Setup-Navigateurs-"+DateTime.Now.ToString("yyyy-MM-dd-HHmmss")+".log";var report=new StringBuilder();try{
+            var definitions=BrowserDefinitions().Where(x=>plan.Browsers.Contains(x.Id)).ToArray();var running=definitions.Where(x=>Process.GetProcessesByName(x.Process).Length>0).ToArray();
+            if(running.Length>0&&closeBrowsers){foreach(var browser in running)foreach(Process process in Process.GetProcessesByName(browser.Process))try{process.CloseMainWindow();}catch{}Thread.Sleep(1800);running=definitions.Where(x=>Process.GetProcessesByName(x.Process).Length>0).ToArray();}
+            if(running.Length>0)throw new InvalidOperationException("Fermez complètement : "+String.Join(", ",running.Select(x=>x.Name).Distinct())+", puis relancez l'analyse.");
+            SendToWeb(new{type="browser-cleanup-start",detail=plan.Targets.Count+" zone(s) analysée(s)"});
+            foreach(var target in plan.Targets)try{EnsureNoReparsePoints(target.Path,target.Root);if(File.Exists(target.Path))File.Delete(target.Path);else if(Directory.Exists(target.Path))DeleteBrowserTree(target.Path,target.Root);deleted++;recovered+=target.Bytes;report.AppendLine("SUPPRIME | "+target.Browser+" | "+target.CategoryLabel+" | "+target.Path);}catch(Exception ex){skipped++;report.AppendLine("IGNORE | "+target.Path+" | "+ex.Message);}
+            File.WriteAllText(Path.Combine(GetDataFolder("Logs"),logName),report.ToString(),Encoding.UTF8);SendToWeb(new{type="browser-cleanup-complete",success=skipped==0,deleted=deleted,skipped=skipped,recovered=FormatBytes(recovered),logName=logName});
+        }catch(Exception ex){SendToWeb(new{type="browser-cleanup-error",message=ex.Message});}finally{browserCleanupRunning=false;}});
+    }
+
+    void DeleteBrowserTree(string path,string allowedRoot)
+    {
+        EnsureNoReparsePoints(path,allowedRoot);if(!Directory.Exists(path))return;
+        foreach(string file in Directory.GetFiles(path))try{File.SetAttributes(file,FileAttributes.Normal);File.Delete(file);}catch{throw;}
+        foreach(string folder in Directory.GetDirectories(path)){if(IsReparsePoint(folder))throw new UnauthorizedAccessException("Lien symbolique refusé.");DeleteBrowserTree(folder,allowedRoot);}
+        Directory.Delete(path,false);
     }
 
     void AnalyzeCleanup(Dictionary<string, object> payload)
