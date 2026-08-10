@@ -10,12 +10,19 @@ OwlSetup 3.7.0 regroupe l’installation, la mise à jour, la désinstallation e
 - mises à jour et installations suivies en arrière-plan ;
 - meilleure détection des applications installées et des processus bloquants ;
 - centre des opérations avec résolution automatique des anciennes erreurs ;
+- vérification réelle après installation et mise à jour avant d'afficher un succès ou une erreur ;
+- regroupement des erreurs répétées afin de garder un centre des opérations lisible ;
+- suivi séparé des mises à jour d'applications et du déclenchement de Windows Update, sans faux échec ;
 - historique et journaux consultables dans OwlSetup ;
 - télémétrie d’erreur facultative, minimale et désactivée par défaut ;
 - sécurité renforcée et points de restauration entièrement facultatifs ;
 - messages explicites lorsqu’un redémarrage complet du PC est nécessaire.
 - thème sombre, clair ou synchronisé avec Windows ;
 - catalogue enrichi de 93 applications avec leurs logos en couleur et leurs sites officiels ;
+- recherche globale : OwlSetup consulte d’abord son catalogue puis étend automatiquement la recherche à la source officielle WinGet ;
+- vues séparées pour le catalogue OwlSetup, les applications réellement installées sur le PC et les composants système ;
+- désinstallation proposée uniquement lorsque le paquet WinGet exact a été vérifié, avec renvoi vers Windows dans les autres cas ;
+- nettoyage des navigateurs avec analyse préalable, sélection par profil et protection explicite des mots de passe, favoris, extensions et sessions ;
 - accès direct aux dossiers volumineux détectés par l’analyse du disque ;
 - nettoyage prudent du cache `.cache`, placé en quarantaine réversible avant toute suppression définitive.
 

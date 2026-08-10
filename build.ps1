@@ -1,7 +1,7 @@
 param(
     [string]$Output = "OwlSetup.exe",
     [string]$AppVersion = "3.7.0",
-    [ValidateSet("stable", "beta")]
+    [ValidateSet("stable", "beta", "alpha")]
     [string]$Channel = "stable",
     [string]$PrereleaseLabel = ""
 )
@@ -15,20 +15,20 @@ $nupkg = Join-Path $root "packages\Microsoft.Web.WebView2.$webViewVersion.nupkg"
 if ($AppVersion -notmatch '^\d+\.\d+\.\d+$') {
     throw "La version doit utiliser le format majeur.mineur.correctif, par exemple 3.2.0."
 }
-if ($Channel -eq "beta" -and [string]::IsNullOrWhiteSpace($PrereleaseLabel)) {
-    $PrereleaseLabel = "beta.1"
+if ($Channel -ne "stable" -and [string]::IsNullOrWhiteSpace($PrereleaseLabel)) {
+    $PrereleaseLabel = if ($Channel -eq "alpha") { "alpha.1" } else { "beta.1" }
 }
 if ($PrereleaseLabel -and $PrereleaseLabel -notmatch '^[A-Za-z0-9.-]+$') {
     throw "Le libellé de préversion contient des caractères non autorisés."
 }
 
-$displayVersion = if ($Channel -eq "beta") { "$AppVersion-$PrereleaseLabel" } else { $AppVersion }
+$displayVersion = if ($Channel -ne "stable") { "$AppVersion-$PrereleaseLabel" } else { $AppVersion }
 $assemblyVersion = "$AppVersion.0"
 $buildInfo = Join-Path $root "obj\PCSetup.BuildInfo.cs"
 $outputPath = if ([IO.Path]::IsPathRooted($Output)) { $Output } else { Join-Path $root $Output }
 New-Item -ItemType Directory -Force -Path (Split-Path $buildInfo), (Split-Path $outputPath) | Out-Null
 
-$isBetaLiteral = if ($Channel -eq "beta") { "true" } else { "false" }
+$isBetaLiteral = if ($Channel -ne "stable") { "true" } else { "false" }
 @"
 using System.Reflection;
 [assembly: AssemblyTitle("OwlSetup")]

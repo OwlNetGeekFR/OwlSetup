@@ -143,6 +143,7 @@ const appLogos = {
   "guided.StabilityMatrix":"stabilitymatrix.png", "Comfy.ComfyUI-Desktop":"comfyui.svg"
 };
 apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${appLogos[app.id]}` : ""));
+const builtInCatalogIds = new Set(apps.map(app => app.id.toLocaleLowerCase("en")));
 
 const customPackagesStorageKey = "owlsetup-custom-packages-v1";
 const isValidPackageId = id => typeof id === "string" && /^[A-Za-z0-9.+_-]+$/.test(id);
@@ -150,7 +151,8 @@ const isValidPackageId = id => typeof id === "string" && /^[A-Za-z0-9.+_-]+$/.te
 // contrôlées du catalogue OwlSetup peuvent être proposées à l’utilisateur.
 localStorage.removeItem(customPackagesStorageKey);
 
-const categories = ["Tout", "Installés", ...new Set(apps.map(app => app.category))];
+const catalogScopeStorageKey = "owlsetup-catalog-scope-v1";
+let activeCatalogScope = ["catalog", "installed", "system"].includes(localStorage.getItem(catalogScopeStorageKey)) ? localStorage.getItem(catalogScopeStorageKey) : "catalog";
 document.querySelector("#homeCatalogCount").textContent = apps.length;
 let selected;
 try {
@@ -166,6 +168,7 @@ let managedInstalled = new Set();
 let wingetManageableApps = new Set();
 let installedDetection = new Map();
 let relatedWindowsApps = new Set();
+let discoveredInstalledIds = new Set();
 let pendingUninstallId = null;
 let pendingUninstallResidueToken = "";
 let pendingRepairId = null;
@@ -187,6 +190,10 @@ let feedbackDiagnostics = "Non généré";
 let updatesLoaded = false;
 let activeCategory = "Tout";
 let searchTerm = "";
+let extendedWingetResults = [];
+let extendedWingetQuery = "";
+let extendedWingetPending = false;
+let extendedWingetSearchTimer = 0;
 let installedSearchTerm = "";
 let installedSortMode = "name";
 const onboardingStorageKey = "owlsetup-onboarding-completed-v1";
@@ -218,6 +225,13 @@ const autoRestoreStorageKey = "owlsetup-auto-restore-v1";
 const operationsStorageKey = "owlsetup-operations-v1";
 const activeOperationStorageKey = "owlsetup-active-operation-v1";
 const expertModeStorageKey = "owlsetup-expert-mode-v1";
+const alphaPreferencesStorageKey = "owlsetup-alpha4-preferences-v1";
+let alphaOneClickPending = false;
+let alphaLastPlan = [];
+let alphaLastScore = 0;
+let alphaReviewMode = "recommended";
+let alphaSelectedPlanIds = new Set();
+const alphaHistoryStorageKey = "owlsetup-alpha4-history-v1";
 let operationFeed = [];
 let pendingResumeOperation = null;
 let selectedOperationFix = null;
@@ -232,6 +246,22 @@ let activeSecurityDetail = "";
 const securityRetentionStorageKey = "owlsetup-security-retention-v1";
 const sentTelemetryFingerprints = new Set();
 let pendingTelemetryReport = null;
+let lastTelemetrySendError = "";
+let browserScanLoaded = false;
+let browserScanItems = [];
+let browserAnalysisData = null;
+let browserCleanupRunning = false;
+let lastBrowserCleanupReport = "";
+const browserLogoFiles = {chrome:"googlechrome.svg",brave:"brave.svg",vivaldi:"vivaldi.svg",opera:"opera.svg","opera-gx":"operagx-color.svg",firefox:"firefox.svg",librewolf:"librewolf.svg",floorp:"floorp.svg",waterfox:"waterfox-color.svg",tor:"torbrowser-color.svg"};
+const browserCategoryDetails = {
+  cache:{label:"Cache de navigation",detail:"Images, scripts, polices et fichiers temporaires",risk:"safe"},
+  "media-cache":{label:"Cache multimédia",detail:"Copies temporaires audio et vidéo",risk:"safe"},
+  crash:{label:"Rapports de plantage",detail:"Diagnostics locaux devenus inutiles",risk:"safe"},
+  cookies:{label:"Cookies",detail:"Connexions et préférences de sites",risk:"warning"},
+  "site-data":{label:"Données de sites",detail:"Stockage local et données hors ligne",risk:"warning"},
+  history:{label:"Historique",detail:"Liste des pages visitées",risk:"warning"}
+};
+const browserProtectedLabels=["Mots de passe","Favoris","Extensions","Téléchargements","Sessions ouvertes","Profils"];
 
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
@@ -354,20 +384,43 @@ async function sendTelemetryPayload(payload) {
   const dedupeKey = `${payload?.fingerprint || ""}:${payload?.resolutionStatus || "open"}`;
   if (!payload || sentTelemetryFingerprints.has(dedupeKey)) return false;
   sentTelemetryFingerprints.add(dedupeKey);
-  try {
-    const response = await fetch(errorTelemetryEndpoint, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload),
-      referrerPolicy: "no-referrer",
-      credentials: "omit"
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return true;
-  } catch {
-    sentTelemetryFingerprints.delete(dedupeKey);
-    return false;
+  lastTelemetrySendError = "";
+  const retryDelays = [0, 1200, 3500];
+  for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
+    if (retryDelays[attempt]) await new Promise(resolve => window.setTimeout(resolve, retryDelays[attempt]));
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch(errorTelemetryEndpoint, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-store",
+        headers: {"Content-Type":"application/json", "Accept":"application/json"},
+        body: JSON.stringify(payload),
+        referrerPolicy: "no-referrer",
+        credentials: "omit",
+        signal: controller.signal
+      });
+      if (response.ok) {
+        window.clearTimeout(timeout);
+        return true;
+      }
+      lastTelemetrySendError = response.status === 429
+        ? "Le service a reçu trop de rapports. Réessayez dans quelques minutes."
+        : response.status >= 500
+          ? "Le dashboard démarre ou rencontre une indisponibilité temporaire."
+          : `Le dashboard a refusé ce diagnostic (HTTP ${response.status}).`;
+      window.clearTimeout(timeout);
+      if (response.status < 500 || response.status === 429) break;
+    } catch (error) {
+      window.clearTimeout(timeout);
+      lastTelemetrySendError = error?.name === "AbortError"
+        ? "Le dashboard met trop de temps à répondre."
+        : "Le dashboard est momentanément inaccessible depuis ce PC.";
+    }
   }
+  sentTelemetryFingerprints.delete(dedupeKey);
+  return false;
 }
 
 async function sendMinimalErrorTelemetry(fingerprint, message, context = {}) {
@@ -707,7 +760,47 @@ function renderReportViewer(message) {
 }
 
 function renderFilters() {
+  const scopedApps=apps.filter(catalogScopeMatches);
+  const categories=["Tout",...new Set(scopedApps.map(app=>app.category).filter(Boolean))];
+  if(!categories.includes(activeCategory))activeCategory="Tout";
+  const nonSystemInstalled=[...installedApps].filter(id=>{const app=apps.find(entry=>entry.id===id);return app&&!isSystemComponentApp(app);}).length;
+  const systemInstalled=[...installedApps].filter(id=>{const app=apps.find(entry=>entry.id===id);return app&&isSystemComponentApp(app);}).length;
+  const scopes=[
+    {id:"catalog",label:"Catalogue OwlSetup",detail:"Applications vérifiées",count:[...builtInCatalogIds].length,symbol:"▦"},
+    {id:"installed",label:"Installées sur ce PC",detail:"Logiciels utilisateur",count:nonSystemInstalled,symbol:"✓"},
+    {id:"system",label:"Composants système",detail:"Runtimes et services",count:systemInstalled,symbol:"⚙"}
+  ];
+  $("#catalogScopes").innerHTML=scopes.map(scope=>`<button class="catalog-scope ${scope.id===activeCatalogScope?"active":""}" type="button" data-catalog-scope="${scope.id}" aria-pressed="${scope.id===activeCatalogScope}"><span>${scope.symbol}</span><p><strong>${scope.label}</strong><small>${scope.detail}</small></p><b>${scope.count}</b></button>`).join("");
   $("#filters").innerHTML = categories.map(c => `<button class="filter ${c === activeCategory ? "active" : ""}" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("");
+}
+
+function isSystemComponentApp(app){
+  const value=`${app?.id||""} ${app?.name||""} ${app?.category||""}`;
+  return app?.systemComponent===true||/\b(runtime|redistributable|visual\s*c\+\+|vcredist|\.net\s*(?:sdk|runtime|native)|gameinput|webview2|edge\s*webview|windows\s*(?:app\s*)?runtime|update\s*health|driver|pilote|framework|sdk)\b/i.test(value)||/^(Microsoft\.(?:VCRedist|DotNet|EdgeWebView2|GameInput|WindowsAppRuntime)|Oracle\.JavaRuntime)/i.test(String(app?.id||""));
+}
+
+function catalogScopeMatches(app){
+  if(activeCatalogScope==="installed")return installedApps.has(app.id)&&!isSystemComponentApp(app);
+  if(activeCatalogScope==="system")return installedApps.has(app.id)&&isSystemComponentApp(app);
+  return builtInCatalogIds.has(String(app.id||"").toLocaleLowerCase("en"))||(app.externalWinget===true&&!app.discoveredInstalled);
+}
+
+function inferInstalledCategory(item,brand){
+  if(brand?.app?.category)return brand.app.category;
+  const value=`${item?.id||""} ${item?.name||""}`;
+  if(isSystemComponentApp({id:item?.id,name:item?.name}))return "Composants système";
+  const rules=[
+    [/chrome|firefox|brave|vivaldi|opera|browser|waterfox|floorp|librewolf/i,"Navigateurs"],
+    [/steam|epic|battle\.?net|ubisoft|gog|game|playnite|curseforge/i,"Gaming"],
+    [/visual studio|github|git\b|node\.?js|python|docker|jetbrains|dbeaver|winscp|putty|filezilla|rust|\bgo\b/i,"Développement"],
+    [/defender|malware|antivirus|vpn|bitwarden|keepass|security/i,"Sécurité"],
+    [/teams|discord|zoom|thunderbird|nextcloud|google drive|onedrive/i,"Communication"],
+    [/office|libreoffice|pdf|calibre|notion/i,"Bureautique"],
+    [/vlc|obs|audacity|spotify|handbrake|kdenlive/i,"Multimédia"],
+    [/chatgpt|claude|gemini|ollama|lm studio|comfy|stability|mistral|perplexity/i,"Intelligence artificielle"],
+    [/7-zip|winrar|rufus|everything|powertoys|setup|search|logitech/i,"Utilitaires"]
+  ];
+  return rules.find(([pattern])=>pattern.test(value))?.[1]||"Autres applications";
 }
 
 function installedSourceInfo(id) {
@@ -716,17 +809,159 @@ function installedSourceInfo(id) {
   return {source:detection.source||"windows",label:labels[detection.source]||"Windows",manageable:wingetManageableApps.has(id)};
 }
 
+function extendedWingetText(fr,en){return window.owlI18n?.getLanguage?.()==="en"?en:fr;}
+function wingetInitials(name){return String(name||"APP").split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase().slice(0,3)||"APP";}
+function normalizeWingetBrand(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("en").replace(/\b(x64|x86|arm64|desktop|client|community|installer|setup)\b/g,"").replace(/[^a-z0-9]+/g,"");}
+function wingetFallbackColor(value){
+  const palette=["#3178c6","#7c5ce5","#16a085","#d35454","#ca7a2b","#2788a8","#a64d79","#558b45"];
+  const hash=[...String(value||"APP")].reduce((total,char)=>((total*31)+char.charCodeAt(0))>>>0,0);
+  return palette[hash%palette.length];
+}
+function resolveWingetBrand(item){
+  const id=String(item?.id||"");
+  const nameKey=normalizeWingetBrand(item?.name);
+  const idTail=normalizeWingetBrand(id.split(".").pop());
+  let match=apps.find(app=>app.id.toLocaleLowerCase("en")===id.toLocaleLowerCase("en"));
+  if(!match&&nameKey)match=apps.find(app=>normalizeWingetBrand(app.name)===nameKey);
+  if(!match&&idTail.length>=4)match=apps.find(app=>normalizeWingetBrand(app.id.split(".").pop())===idTail);
+  if(!match){
+    const aliasSource=`${id} ${item?.name||""}`;
+    const aliases=[
+      {test:/epic.*online/i,logo:"assets/logos/epicgames.svg",icon:"EP",color:"#32343a"},
+      {test:/microsoft.*(?:\.net|net\s+(?:runtime|sdk|native))/i,logo:"assets/logos/dotnet.svg",icon:".N",color:"#6f4bd8"},
+      {test:/visual\s*c\+\+|vcredist/i,logo:"assets/logos/cplusplus-color.svg",icon:"C+",color:"#287bc0"},
+      {test:/github\s*cli|github\.cli/i,logo:"assets/logos/githubdesktop.svg",icon:"GH",color:"#59636f"}
+    ];
+    const alias=aliases.find(candidate=>candidate.test.test(aliasSource));
+    if(alias)return {...alias,app:null};
+  }
+  return match
+    ? {logo:match.logo||"",icon:match.icon||wingetInitials(item?.name),color:match.color||"#5794dd",app:match}
+    : {logo:"",icon:wingetInitials(item?.name),color:wingetFallbackColor(id||item?.name),app:null};
+}
+
+function mergeDiscoveredInstalledApps(details = []) {
+  const discovered = (Array.isArray(details) ? details : []).filter(item => (item?.discovered || !builtInCatalogIds.has(String(item?.id || "").toLocaleLowerCase("en"))) && isValidPackageId(item.id) && String(item.name || "").trim());
+  const nextIds = new Set(discovered.map(item => item.id));
+  for (let index = apps.length - 1; index >= 0; index -= 1) {
+    const app = apps[index];
+    if (app.discoveredInstalled && !nextIds.has(app.id)) {
+      apps.splice(index, 1);
+      selected.delete(app.id);
+      managedInstalled.delete(app.id);
+    }
+  }
+  discovered.forEach(item => {
+    let app = apps.find(entry => entry.id.toLocaleLowerCase("en") === item.id.toLocaleLowerCase("en"));
+    if (!app) {
+      const brand = resolveWingetBrand(item);
+      app = {
+        id: item.id,
+        name: String(item.name).trim(),
+        category: inferInstalledCategory(item,brand),
+        desc: item.version ? `Version ${item.version} · détectée par ${item.source === "winget" ? "WinGet" : "Windows"}` : `Détectée par ${item.source === "winget" ? "WinGet" : "Windows"}`,
+        icon: brand.icon,
+        logo: brand.logo || item.iconData || "",
+        color: brand.color,
+        site: "https://learn.microsoft.com/windows/package-manager/winget/",
+        externalWinget: true,
+        discoveredInstalled: true,
+        wingetVersion: item.version || ""
+      };
+      apps.push(app);
+    } else if (app.discoveredInstalled) {
+      app.name = String(item.name).trim();
+      app.wingetVersion = item.version || app.wingetVersion || "";
+      app.desc = item.version ? `Version ${item.version} · détectée par ${item.source === "winget" ? "WinGet" : "Windows"}` : `Détectée par ${item.source === "winget" ? "WinGet" : "Windows"}`;
+      app.category=inferInstalledCategory(item,resolveWingetBrand(item));
+      if(item.iconData&&!app.logo)app.logo=item.iconData;
+    }
+  });
+  discoveredInstalledIds = nextIds;
+  const catalogCount = document.querySelector("#homeCatalogCount");
+  if (catalogCount) catalogCount.textContent = apps.length;
+}
+function renderExtendedWingetSearch(){
+  const button=$("#searchWingetBtn"),state=$("#wingetSearchState"),container=$("#wingetSearchResults");
+  if(!button||!state||!container)return;
+  const query=searchTerm.trim();
+  button.disabled=extendedWingetPending;
+  button.classList.toggle("needs-query",query.length<2&&!extendedWingetPending);
+  button.title=query.length<2
+    ? extendedWingetText("Cliquez puis saisissez au moins 2 caractères dans la recherche.","Click, then enter at least 2 characters in the search field.")
+    : extendedWingetText(`Rechercher « ${query} » dans WinGet`,`Search WinGet for “${query}”`);
+  button.textContent=extendedWingetPending
+    ? extendedWingetText("Recherche en cours…","Searching…")
+    : extendedWingetText("Rechercher maintenant","Search now");
+  if(!extendedWingetQuery){state.classList.add("hidden");container.classList.add("hidden");container.innerHTML="";return;}
+  state.classList.remove("hidden","error");
+  if(extendedWingetPending){state.textContent=extendedWingetText(`Recherche de « ${extendedWingetQuery} » dans la source communautaire WinGet…`,`Searching the WinGet community source for “${extendedWingetQuery}”…`);container.classList.add("hidden");return;}
+  if(!extendedWingetResults.length){state.textContent=extendedWingetText(`Aucun paquet WinGet supplémentaire trouvé pour « ${extendedWingetQuery} ».`,`No additional WinGet package was found for “${extendedWingetQuery}”.`);container.classList.add("hidden");return;}
+  $("#emptyState")?.classList.add("hidden");
+  state.textContent=extendedWingetText(`${extendedWingetResults.length} résultat(s) externe(s). Vérifiez le nom et l’identifiant exact avant de l’ajouter.`,`${extendedWingetResults.length} external result(s). Check the name and exact package ID before adding one.`);
+  container.classList.remove("hidden");
+  container.innerHTML=extendedWingetResults.map(item=>{
+    const known=apps.some(app=>app.id.toLocaleLowerCase("en")===item.id.toLocaleLowerCase("en"));
+    const brand=resolveWingetBrand(item);
+    const visual=brand.logo?`<img src="${escapeHtml(brand.logo)}" alt="" loading="lazy" data-image-fallback="${escapeHtml(brand.icon)}"><span class="winget-result-fallback" hidden>${escapeHtml(brand.icon)}</span>`:`<span class="winget-result-fallback">${escapeHtml(brand.icon)}</span>`;
+    return `<article class="winget-result-card"><span class="winget-result-icon" style="--winget-brand:${escapeHtml(brand.color)}">${visual}</span><p class="winget-result-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.version?`${extendedWingetText("Version","Version")} ${item.version}`:extendedWingetText("Version non indiquée","Version not reported"))} · WinGet</small><code title="${escapeHtml(item.id)}">${escapeHtml(item.id)}</code></p><div class="winget-result-actions"><span class="winget-external-badge">${extendedWingetText("HORS CATALOGUE · À VÉRIFIER","OUTSIDE CATALOG · REVIEW")}</span><button class="secondary-dialog-button winget-add-result ${known?"added":""}" data-winget-add="${escapeHtml(item.id)}" ${known?"disabled":""}>${known?extendedWingetText("Déjà ajouté","Already added"):extendedWingetText("Ajouter","Add")}</button></div></article>`;
+  }).join("");
+}
+
+function requestExtendedWingetSearch(){
+  window.clearTimeout(extendedWingetSearchTimer);
+  const query=searchTerm.trim();
+  if(query.length<2){
+    const input=$("#searchInput");
+    input?.focus();
+    input?.scrollIntoView({behavior:"smooth",block:"center"});
+    return notify(extendedWingetText("Saisissez le nom du logiciel","Enter the software name"),extendedWingetText("Écrivez au moins 2 caractères dans la barre de recherche, puis relancez la recherche WinGet.","Enter at least 2 characters in the search field, then run the WinGet search again."));
+  }
+  if(!/^[\p{L}\p{N} ._+\-]+$/u.test(query))return notify(extendedWingetText("Recherche non valide","Invalid search"),extendedWingetText("Utilisez uniquement des lettres, chiffres, espaces, points, tirets ou signes +.","Use only letters, numbers, spaces, dots, hyphens or plus signs."));
+  if(!window.chrome?.webview){return notify(extendedWingetText("Recherche indisponible","Search unavailable"),extendedWingetText("Lancez la bêta Windows pour interroger WinGet.","Run the Windows beta to query WinGet."));}
+  extendedWingetQuery=query;extendedWingetResults=[];extendedWingetPending=true;renderExtendedWingetSearch();
+  window.chrome.webview.postMessage({action:"search-winget",payload:{query}});
+}
+
+function scheduleExtendedWingetSearch(){
+  window.clearTimeout(extendedWingetSearchTimer);
+  const query=searchTerm.trim();
+  if(query.length<2||query.length>80||!/^[\p{L}\p{N} ._+\-]+$/u.test(query)||!window.chrome?.webview){
+    extendedWingetQuery="";extendedWingetResults=[];extendedWingetPending=false;renderExtendedWingetSearch();
+    return;
+  }
+  if(query===extendedWingetQuery&&(extendedWingetPending||extendedWingetResults.length))return;
+  extendedWingetSearchTimer=window.setTimeout(()=>{
+    if(searchTerm.trim()!==query)return;
+    requestExtendedWingetSearch();
+  },650);
+}
+
+function addExtendedWingetResult(id){
+  const result=extendedWingetResults.find(item=>item.id===id);
+  if(!result||!/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(result.id))return;
+  let app=apps.find(item=>item.id.toLocaleLowerCase("en")===result.id.toLocaleLowerCase("en"));
+  if(!app){
+    const brand=resolveWingetBrand(result);
+    app={id:result.id,name:result.name,category:"Catalogue WinGet",desc:extendedWingetText("Résultat externe WinGet à vérifier avant installation","External WinGet result to review before installation"),icon:brand.icon,logo:brand.logo,color:brand.color,site:"https://github.com/microsoft/winget-pkgs",externalWinget:true,wingetVersion:result.version||""};
+    apps.push(app);
+  }
+  selected.add(app.id);activeCatalogScope="catalog";activeCategory="Tout";localStorage.setItem(catalogScopeStorageKey,activeCatalogScope);renderFilters();renderApps();renderSelection();renderExtendedWingetSearch();
+  notify(extendedWingetText("Ajouté à la sélection","Added to selection"),extendedWingetText(`${app.name} sera contrôlé par OwlSetup avant l’installation.`,`${app.name} will be checked by OwlSetup before installation.`));
+}
+
 function renderApps() {
   const query = searchTerm.toLocaleLowerCase("fr");
-  const visible = apps.filter(app => (activeCategory === "Tout" || (activeCategory === "Installés" ? installedApps.has(app.id) : app.category === activeCategory)) && `${app.name} ${app.desc} ${app.category}`.toLocaleLowerCase("fr").includes(query));
+  const visible = apps.filter(app => catalogScopeMatches(app) && (activeCategory === "Tout" || app.category === activeCategory) && `${app.name} ${app.desc} ${app.category}`.toLocaleLowerCase("fr").includes(query));
   $("#resultCount").textContent = `${visible.length} logiciel${visible.length > 1 ? "s" : ""}`;
   $("#appGrid").innerHTML = visible.map(app => {
     const installed=installedApps.has(app.id),detection=installedSourceInfo(app.id),related=relatedWindowsApps.has(app.id);
     const description=related ? "Un composant Windows au nom proche est présent, mais pas cette application exacte." : app.desc;
     const installedActions=detection.manageable?`<span class="installed-actions"><button class="manage-icon ${managedInstalled.has(app.id) ? "active" : ""}" data-manage-installed="${escapeHtml(app.id)}" aria-pressed="${managedInstalled.has(app.id)}" title="Sélectionner pour une désinstallation groupée">${managedInstalled.has(app.id) ? "✓" : "□"}</button><button class="repair-icon" data-repair="${escapeHtml(app.id)}" title="Réparer ${escapeHtml(app.name)}">⚙</button><button class="uninstall-icon" data-uninstall="${escapeHtml(app.id)}" title="Désinstaller ${escapeHtml(app.name)}">×</button></span>`:`<span class="installed-actions"><button class="windows-manage-icon" data-open-windows-apps title="Gérer ${escapeHtml(app.name)} dans les paramètres Windows">Gérer</button></span>`;
+    const sourceLink=app.externalWinget?`<span class="winget-catalog-source">${extendedWingetText("Source WinGet ↗","WinGet source ↗")}</span>`:`<a class="official-link" href="${escapeHtml(app.site)}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${escapeHtml(app.name)}">Site officiel ↗</a>`;
     return `
-    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""}" data-app="${escapeHtml(app.id)}" tabindex="0" aria-label="${escapeHtml(app.name)}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
-      ${icon(app)}<span class="app-copy"><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(description)}</small><span class="app-footer"><em>${escapeHtml(app.category)}</em><a class="official-link" href="${escapeHtml(app.site)}" target="_blank" rel="noopener" title="Ouvrir le site officiel de ${escapeHtml(app.name)}">Site officiel ↗</a></span></span>
+    <article class="app-card ${selected.has(app.id) ? "selected" : ""} ${installedApps.has(app.id) ? "installed" : ""} ${managedInstalled.has(app.id) ? "managed-selected" : ""} ${app.manualInstall ? "manual-install" : ""} ${app.discoveredInstalled ? "discovered-installed" : ""}" data-app="${escapeHtml(app.id)}" tabindex="0" aria-label="${escapeHtml(app.name)}${managedInstalled.has(app.id) ? ", sélectionné pour désinstallation" : ""}">
+      ${icon(app)}<span class="app-copy"><strong>${escapeHtml(app.name)}</strong><small>${escapeHtml(description)}</small><span class="app-footer"><em>${escapeHtml(app.category)}</em>${sourceLink}</span>${app.externalWinget&&!app.discoveredInstalled&&!installed?`<b class="external-catalog-notice">${extendedWingetText("Hors catalogue OwlSetup · vérification requise","Outside OwlSetup catalog · review required")}</b>`:""}</span>
       ${installed ? `${installedActions}<span class="repair-capability">${detection.manageable?(app.repairMode === "native" ? "Réparation native" : "Gérable par WinGet"):`Détectée via ${escapeHtml(detection.label)}`}</span><span class="installed-badge">✓ Installé</span>` : app.manualInstall ? `<span class="manual-install-badge">${app.webService ? "Service Web" : "Installation guidée"}</span><span class="add-icon">↗</span>` : `${related ? `<span class="related-component-badge" title="Un module ou complément portant un nom proche a été trouvé dans Windows. Il ne s’agit pas de l’application exacte.">ⓘ Composant associé</span>` : ""}<span class="add-icon">${selected.has(app.id) ? "✓" : "+"}</span>`}
     </article>`;
   }).join("");
@@ -735,7 +970,7 @@ function renderApps() {
   $("#managedCount").textContent = `${managedInstalled.size} logiciel${managedInstalled.size > 1 ? "s" : ""} sélectionné${managedInstalled.size > 1 ? "s" : ""}`;
   $("#batchUninstallBtn").disabled = batchUninstallSimulationPending || managedInstalled.size === 0;
   $("#clearInstalledSelection").disabled = managedInstalled.size === 0;
-  $(".results-line span:last-child").textContent = activeCategory === "Installés" ? "Cliquez sur une carte pour la sélectionner à désinstaller" : "Cliquez sur une carte pour l'ajouter";
+  $(".results-line span:last-child").textContent = activeCatalogScope === "catalog" ? "Cliquez sur une carte pour l'ajouter" : "Applications détectées localement sur ce PC";
   renderInstalledPage();
 }
 
@@ -921,7 +1156,7 @@ function showView(id) {
   document.querySelectorAll(".top-nav-item").forEach(item => item.classList.toggle("active", item.dataset.view === id));
   document.querySelectorAll(".top-nav-group").forEach(group => group.querySelector(".top-nav-toggle")?.classList.toggle("active", Boolean(group.querySelector(`.nav-item[data-view="${id}"]`))));
   closeTopNavigation();
-  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", installed:"Applications installées", updates:"Tout mettre à jour", operations:"Centre des opérations", cleanup:"Libérer de l'espace", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Aide et dépannage", queue:"Ma sélection", history:"Guide d'installation", settings:"Paramètres"}[id];
+  $("#currentView").textContent = {home:"Accueil", catalog:"Installer des logiciels", installed:"Applications installées", updates:"Tout mettre à jour", operations:"Centre des opérations", cleanup:"Libérer de l'espace", browsers:"Nettoyage des navigateurs", quarantine:"Quarantaine", tools:"Outils système", security:"Centre de sécurité", troubleshooting:"Aide et dépannage", queue:"Ma sélection", history:"Guide d'installation", settings:"Paramètres"}[id];
   document.body.classList.remove("menu-open");
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
   if (id === "quarantine") requestQuarantine();
@@ -929,6 +1164,7 @@ function showView(id) {
   if (id === "operations") { requestHistory(); renderOperations(); readInterruptedOperation(); }
   if (id === "security") requestSecurityStatus();
   if (id === "installed") renderInstalledPage();
+  if (id === "browsers" && !browserScanLoaded) requestBrowserScan();
   if (id === "troubleshooting") renderFeedbackFollowups();
   renderSelection();
   if (id === "catalog") {
@@ -937,6 +1173,75 @@ function showView(id) {
     localStorage.setItem("owlsetup-catalog-visited-v1", "1");
   }
   window.scrollTo({top: 0, behavior:"smooth"});
+}
+
+function selectedBrowserIds(){return [...document.querySelectorAll("[data-browser-id]:checked")].map(input=>input.dataset.browserId);}
+function selectedBrowserCategories(){return [...document.querySelectorAll("[data-browser-category]:checked")].map(input=>input.dataset.browserCategory);}
+function invalidateBrowserAnalysis(){browserAnalysisData=null;$("#browserAnalysisResult")?.classList.add("hidden");}
+function updateBrowserSummary(){
+  const selected=selectedBrowserIds().length,total=browserScanItems.length,profiles=browserScanItems.reduce((sum,item)=>sum+(Number(item.profiles)||0),0);
+  if($("#browserDetectedCount"))$("#browserDetectedCount").textContent=browserScanLoaded?total:"—";
+  if($("#browserSelectedCount"))$("#browserSelectedCount").textContent=selected;
+  if($("#browserProfileCount"))$("#browserProfileCount").textContent=browserScanLoaded?profiles:"—";
+  if($("#browserSelectionSummary"))$("#browserSelectionSummary").textContent=selected?`${selected} navigateur${selected>1?"s":""} sélectionné${selected>1?"s":""} sur ${total}`:"Aucun navigateur sélectionné";
+}
+function updateBrowserActionState(){
+  const categories=selectedBrowserCategories(),button=$("#analyzeBrowserData");
+  if(button)button.disabled=!selectedBrowserIds().length||!categories.length||browserCleanupRunning;
+  $("#browserHistorySyncWarning")?.classList.toggle("hidden",!categories.includes("history"));
+  updateBrowserSummary();
+}
+function setBrowserPreset(name){
+  const sets={recommended:["cache","media-cache","crash"],privacy:["cache","media-cache","crash","cookies","history"]};
+  document.querySelectorAll("[data-browser-preset]").forEach(button=>button.classList.toggle("active",button.dataset.browserPreset===name));
+  if(sets[name])document.querySelectorAll("[data-browser-category]").forEach(input=>input.checked=sets[name].includes(input.dataset.browserCategory));
+  invalidateBrowserAnalysis();updateBrowserActionState();
+}
+function requestBrowserScan(){
+  const list=$("#browserCards");
+  if(list)list.innerHTML='<div class="browser-empty"><span>↻</span><strong>Recherche des navigateurs…</strong><small>Analyse locale des profils connus.</small></div>';
+  invalidateBrowserAnalysis();
+  if(!window.chrome?.webview){if(list)list.innerHTML='<div class="browser-empty"><strong>Fonction disponible dans OwlSetup Windows</strong></div>';return;}
+  window.chrome.webview.postMessage({action:"scan-browser-data",payload:{}});
+}
+function renderBrowserScan(message){
+  browserScanLoaded=true;browserScanItems=message.items||[];
+  const list=$("#browserCards");if(!list)return;
+  if(!browserScanItems.length){list.innerHTML='<div class="browser-empty"><span>✓</span><strong>Aucun navigateur pris en charge détecté</strong><small>Les profils inconnus ne sont jamais parcourus automatiquement.</small></div>';updateBrowserActionState();return;}
+  list.innerHTML=browserScanItems.map(item=>{const logo=browserLogoFiles[item.id];return `<label class="browser-card selected${item.running?" running":""}"><input type="checkbox" data-browser-id="${escapeHtml(item.id)}" checked><span class="browser-card-icon">${logo?`<img src="assets/logos/${escapeHtml(logo)}" alt="">`:escapeHtml((item.name||"N").slice(0,2).toUpperCase())}</span><span class="browser-card-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.profiles)} profil(s) · ${escapeHtml(item.engine)}</small></span><em>${item.running?"Ouvert":"Prêt"}</em></label>`}).join("");
+  updateBrowserActionState();
+}
+function analyzeBrowserSelection(){
+  const browsers=selectedBrowserIds(),categories=selectedBrowserCategories();if(!browsers.length||!categories.length)return;
+  $("#analyzeBrowserData").disabled=true;$("#analyzeBrowserData").innerHTML="<span>↻</span> Analyse en cours…";
+  window.chrome?.webview?.postMessage({action:"analyze-browser-data",payload:{browsers,categories}});
+}
+function renderBrowserAnalysis(message){
+  browserAnalysisData=message;const panel=$("#browserAnalysisResult");panel?.classList.remove("hidden");
+  $("#browserAnalysisTitle").textContent=`${message.files||0} fichier(s) récupérables`;
+  $("#browserAnalysisDetail").textContent=`${(message.items||[]).length} groupe(s) analysé(s) · simulation valable 5 minutes`;
+  $("#browserAnalysisSize").textContent=message.size||"0 octet";
+  $("#browserAnalysisBreakdown").innerHTML=(message.items||[]).slice(0,8).map(item=>`<span><b>${escapeHtml(item.browser)}</b><small>${escapeHtml(item.categoryLabel)}</small><strong>${escapeHtml(item.size)}</strong></span>`).join("");
+  const selected=selectedBrowserCategories().map(id=>browserCategoryDetails[id]).filter(Boolean);
+  $("#browserAnalysisProtection").innerHTML=`<div><b>Sera nettoyé après confirmation</b>${selected.map(item=>`<span class="${item.risk}">${escapeHtml(item.label)}<small>${escapeHtml(item.detail)}</small></span>`).join("")}</div><div class="protected"><b>Ne sera jamais supprimé</b>${browserProtectedLabels.map(label=>`<span>✓ ${escapeHtml(label)}</span>`).join("")}</div>`;
+  $("#analyzeBrowserData").innerHTML='<span>⌕</span> Analyser la sélection';updateBrowserActionState();panel?.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function openBrowserCleanupReview(){
+  if(!browserAnalysisData?.token)return notify("Nouvelle analyse requise","Relancez l’analyse avant le nettoyage.");
+  $("#browserCleanupSummary").textContent=`${browserAnalysisData.size} · ${browserAnalysisData.files||0} fichier(s)`;
+  $("#browserCleanupReview").innerHTML=(browserAnalysisData.items||[]).map(item=>`<div><span><strong>${escapeHtml(item.browser)}</strong><small>${escapeHtml(item.categoryLabel)}</small></span><b>${escapeHtml(item.size)}</b></div>`).join("");
+  const includesHistory=selectedBrowserCategories().includes("history"),warning=$("#browserCleanupWarning");
+  if(warning)warning.innerHTML=includesHistory
+    ? '<span>!</span> L’historique est supprimé localement. Si la synchronisation du navigateur est active, il peut réapparaître après la réouverture. Utilisez aussi « Effacer les données de navigation » dans le navigateur pour le supprimer des appareils synchronisés.'
+    : '<span>!</span> Les cookies et données de sites sélectionnés peuvent vous déconnecter. Les mots de passe, favoris et extensions restent protégés.';
+  $("#browserCleanupConfirmView").classList.remove("hidden");$("#browserCleanupProgressView").classList.add("hidden");$("#browserCleanupModal").classList.remove("hidden");
+}
+function closeBrowserCleanup(){if(browserCleanupRunning)return;$("#browserCleanupModal")?.classList.add("hidden");}
+function confirmBrowserCleanup(){
+  if(!browserAnalysisData?.token)return;browserCleanupRunning=true;updateBrowserActionState();
+  $("#browserCleanupResultActions")?.classList.add("hidden");lastBrowserCleanupReport="";
+  $("#browserCleanupConfirmView").classList.add("hidden");$("#browserCleanupProgressView").classList.remove("hidden");$("#browserCleanupBar").style.width="12%";$("#browserCleanupPercent").textContent="12%";
+  window.chrome?.webview?.postMessage({action:"cleanup-browser-data",payload:{token:browserAnalysisData.token,browsers:selectedBrowserIds(),categories:selectedBrowserCategories(),closeBrowsers:$("#closeBrowsersBeforeCleanup").checked}});
 }
 
 function closeTopNavigation(except = null) {
@@ -1154,6 +1459,14 @@ function setActiveOperation(type,title,payload={}) {
 
 function recordOperation(operation) {
   if(!operation?.id)return;
+  if(operation.status==="failed"){
+    const fingerprint=operationFailureFingerprint(operation);
+    const duplicate=operationFeed.find(item=>item.id!==operation.id&&item.status==="failed"&&operationFailureFingerprint(item)===fingerprint);
+    if(duplicate){
+      operation={...operation,occurrences:(Number(duplicate.occurrences)||1)+1,firstSeenAt:duplicate.firstSeenAt||duplicate.completedAt||duplicate.startedAt};
+      operationFeed=operationFeed.filter(item=>item.id!==duplicate.id);
+    }
+  }
   operationFeed=[operation,...operationFeed.filter(item=>item.id!==operation.id)].slice(0,50);
   saveOperationFeed();renderOperations();
 }
@@ -1175,6 +1488,41 @@ function getOperationPackageIds(operation) {
   const selected=(operation?.payload?.packages||[]).filter(isValidPackageId);
   const values=operation?.status==="failed"&&failed.length?failed:selected;
   return [...new Set(values.map(canonicalOperationPackageId).filter(Boolean))];
+}
+
+function operationFailureFingerprint(operation) {
+  const packages=getOperationPackageIds(operation).sort().join(",");
+  return [operation?.type||"operation",operation?.failureKind||"",String(operation?.code??""),packages].join("|");
+}
+
+function resolveOperationFromDetection(item,detail,resolvedBy) {
+  return {...item,status:"resolved",verified:true,previousDetail:item.previousDetail||item.detail||"",detail,resolvedAt:new Date().toISOString(),resolvedBy};
+}
+
+function reconcileOperationsWithDetectedState({installedIds=null,availableUpdateIds=null,updateScanReliable=false}={}) {
+  const installed=installedIds?new Set([...installedIds].map(canonicalOperationPackageId).filter(Boolean)):null;
+  const pendingUpdates=availableUpdateIds?new Set([...availableUpdateIds].map(canonicalOperationPackageId).filter(Boolean)):null;
+  let changed=false;
+  operationFeed=operationFeed.map(item=>{
+    if(item.status!=="failed")return item;
+    const packageIds=getOperationPackageIds(item);
+    if(!packageIds.length)return item;
+    if(item.type==="installation"&&installed&&packageIds.every(id=>installed.has(id))){
+      changed=true;
+      return resolveOperationFromDetection(item,"Résolu automatiquement : les applications sont maintenant détectées comme installées sur ce PC.","installed-scan");
+    }
+    if(item.type==="update"&&updateScanReliable&&pendingUpdates&&packageIds.every(id=>!pendingUpdates.has(id))){
+      changed=true;
+      return resolveOperationFromDetection(item,"Résolu automatiquement : WinGet ne propose plus ces mises à jour après le nouveau contrôle.","update-scan");
+    }
+    return item;
+  });
+  if(changed){
+    saveOperationFeed();
+    [...new Set(operationFeed.filter(item=>item.status==="resolved").map(item=>item.type))].forEach(reconcileResolvedNotifications);
+    renderOperations();
+  }
+  return changed;
 }
 
 function reconcileResolvedNotifications(operationType) {
@@ -1274,7 +1622,7 @@ function renderOperations() {
   const success=operationFeed.filter(item=>item.status==="success"||item.status==="resolved").length;
   $("#operationsRunning").textContent=running;$("#operationsFailed").textContent=failed;$("#operationsSuccess").textContent=success;
   setNavAlert("#operationsNavBadge",running+failed,running+failed>0);
-  list.innerHTML=operationFeed.length?operationFeed.map(item=>`<article class="operation-row ${escapeHtml(item.status||"")}"><span class="operation-status">${item.status==="success"||item.status==="resolved"?"✓":item.status==="failed"?"!":item.status==="interrupted"?"—":"↻"}</span><div><strong>${escapeHtml(item.title||item.type)}</strong><small>${escapeHtml(item.detail||new Date(item.startedAt).toLocaleString("fr-FR"))}</small>${item.status==="resolved"?`<em>Ancienne erreur classée comme résolue</em>`:item.status==="interrupted"?`<em>Aucune action n’est actuellement exécutée</em>`:""}</div>${item.status==="failed"?`<button class="secondary-button" data-operation-fix="${escapeHtml(item.id)}">Corriger</button>`:""}</article>`).join(""):`<div class="empty-state">Aucune opération enregistrée pour le moment.</div>`;
+  list.innerHTML=operationFeed.length?operationFeed.map(item=>`<article class="operation-row ${escapeHtml(item.status||"")}"><span class="operation-status">${item.status==="success"||item.status==="resolved"?"✓":item.status==="failed"?"!":item.status==="interrupted"?"—":"↻"}</span><div><strong>${escapeHtml(item.title||item.type)}</strong><small>${escapeHtml(item.detail||new Date(item.startedAt).toLocaleString("fr-FR"))}</small>${Number(item.occurrences)>1?`<em>${Number(item.occurrences)} occurrences regroupées · dernière tentative affichée</em>`:""}${item.status==="resolved"?`<em>Résultat vérifié automatiquement sur ce PC</em>`:item.status==="success"&&item.verified?`<em>Résultat confirmé après contrôle</em>`:item.status==="interrupted"?`<em>Aucune action n’est actuellement exécutée</em>`:""}</div>${item.status==="failed"?`<button class="secondary-button" data-operation-fix="${escapeHtml(item.id)}">Corriger</button>`:""}</article>`).join(""):`<div class="empty-state">Aucune opération enregistrée pour le moment.</div>`;
 }
 
 function selectOperationFix(id) {
@@ -1375,7 +1723,7 @@ function updateExpertPreviews(){
 }
 
 function collectPreferences(){
-  const keys=["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey];
+  const keys=["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey];
   const values={};keys.forEach(key=>{const value=localStorage.getItem(key);if(value!==null)values[key]=value;});
   return JSON.stringify(values);
 }
@@ -1383,7 +1731,7 @@ function collectPreferences(){
 function restorePreferences(serialized){
   if(!serialized)return;
   try {
-    const values=JSON.parse(serialized);const allowed=new Set(["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey]);
+    const values=JSON.parse(serialized);const allowed=new Set(["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey]);
     Object.entries(values||{}).forEach(([key,value])=>{if(allowed.has(key)&&typeof value==="string"&&value.length<32768)localStorage.setItem(key,value);});
     applyThemePreference();applyAccessibilitySettings();refreshProfiles();
     $("#expertMode").checked=isExpertMode();$("#autoRestorePoint").checked=localStorage.getItem(autoRestoreStorageKey)==="true";updateExpertPreviews();
@@ -1650,6 +1998,156 @@ function renderHealth(message) {
   $("#quarantineNavCount").textContent = message.quarantineCount;
   setNavAlert("#updatesNavBadge", message.error ? "!" : message.updateCount, message.error || message.updateCount > 0);
   setNavAlert("#toolsNavBadge", message.error ? "!" : 0, true);
+  if (alphaOneClickPending) renderAlphaOneClickResults(message);
+}
+
+function getAlphaPreferences() {
+  const defaults={restore:true,scheduleEnabled:false,day:"5",time:"20:00",scheduleRestore:true};
+  try { return {...defaults,...JSON.parse(localStorage.getItem(alphaPreferencesStorageKey)||"{}")}; }
+  catch { return defaults; }
+}
+
+function saveAlphaPreferences(overrides={}) {
+  const next={...getAlphaPreferences(),...overrides};
+  localStorage.setItem(alphaPreferencesStorageKey,JSON.stringify(next));
+  return next;
+}
+
+function setAlphaExperienceEnabled(enabled) {
+  document.body.classList.toggle("alpha-build",enabled);
+  document.querySelectorAll(".alpha-only").forEach(element=>element.classList.toggle("hidden",!enabled));
+  if(!enabled)return;
+  const preferences=getAlphaPreferences();
+  $("#alphaRestoreBeforeFix").checked=Boolean(preferences.restore);
+  $("#alphaScheduleEnabled").checked=Boolean(preferences.scheduleEnabled);
+  $("#alphaScheduleDay").value=String(preferences.day);
+  $("#alphaScheduleTime").value=preferences.time||"20:00";
+  $("#alphaScheduleRestore").checked=Boolean(preferences.scheduleRestore);
+  renderAlphaScheduleStatus(preferences);
+}
+
+function runAlphaOneClickScan() {
+  if(currentBuildChannel!=="alpha")return;
+  alphaOneClickPending=true;
+  const button=$("#alphaOneClickScan");
+  button.disabled=true;
+  button.classList.add("scanning");
+  $("#alphaOneClickStatus").textContent="Analyse de WinGet, du stockage, du redémarrage et de la quarantaine…";
+  $("#alphaOneClickResults").classList.add("hidden");
+  requestHealth();
+}
+
+function renderAlphaOneClickResults(message) {
+  alphaOneClickPending=false;
+  const button=$("#alphaOneClickScan");
+  button.disabled=false;
+  button.classList.remove("scanning");
+  alphaLastScore=Number(message.score)||0;
+  const updateCount=Number(message.updateCount)||0;
+  const freePercent=Number(message.freePercent)||0;
+  const quarantineCount=Number(message.quarantineCount)||0;
+  const plan=[
+    {id:"integrity",level:message.error?"advanced":"safe",title:"Sources et intégrité",detail:message.error?"WinGet nécessite un diagnostic avant toute correction.":"Contrôler WinGet et ses sources officielles.",action:"diagnostic",duration:"Moins d’1 min",impact:"Lecture seule",reversible:"Aucune modification",actionable:true,selected:true},
+    {id:"updates",level:updateCount>0?"recommended":"safe",title:"Applications",detail:message.error?"Analyse incomplète.":updateCount?`${updateCount} mise(s) à jour sont disponibles.`:"Aucune mise à jour d’application détectée.",action:"updates",duration:updateCount?`${Math.max(3,updateCount*2)} à ${Math.max(8,updateCount*5)} min`:"Aucune",impact:updateCount?`${updateCount} application(s) concernée(s)`:"PC à jour",reversible:"Non annulable après démarrage",irreversible:updateCount>0,actionable:updateCount>0,selected:updateCount>0},
+    {id:"cleanup",level:freePercent<20?"recommended":"safe",title:"Espace disque",detail:freePercent<20?`Seulement ${message.freePercent} % sont libres sur C:.`:`${message.freeGb} Go libres : aucun nettoyage urgent.`,action:"cleanup",duration:"2 à 10 min",impact:"Fichiers temporaires recommandés",reversible:"Suppression après confirmation",irreversible:true,actionable:freePercent<20,selected:freePercent<20},
+    {id:"restart",level:message.pendingRestart?"recommended":"safe",title:"Redémarrage du PC",detail:message.pendingRestart?"Un redémarrage complet est conseillé avant l’entretien.":"Aucun redémarrage Windows en attente.",action:"restart",duration:"2 à 5 min",impact:"Ferme les applications ouvertes",reversible:"Aucune donnée supprimée",actionable:Boolean(message.pendingRestart),selected:Boolean(message.pendingRestart)},
+    {id:"quarantine",level:quarantineCount>0?"advanced":"safe",title:"Quarantaine",detail:quarantineCount>0?`${quarantineCount} élément(s) nécessitent une vérification manuelle.`:"Aucun élément en quarantaine à examiner.",action:"quarantine",duration:"1 à 5 min",impact:"Examen manuel uniquement",reversible:"Restauration disponible",actionable:quarantineCount>0,selected:false}
+  ];
+  alphaLastPlan=plan;
+  alphaSelectedPlanIds=new Set(plan.filter(item=>item.selected&&item.actionable).map(item=>item.id));
+  const counts={safe:0,recommended:0,advanced:0};
+  plan.forEach(item=>counts[item.level]++);
+  $("#alphaSafeCount").textContent=counts.safe;
+  $("#alphaRecommendedCount").textContent=counts.recommended;
+  $("#alphaAdvancedCount").textContent=counts.advanced;
+  $("#alphaResultScore").textContent=`${message.score} / 100`;
+  $("#alphaResultList").innerHTML=plan.map(item=>`<article class="${item.level}${item.actionable?" actionable":""}"><label class="alpha-plan-toggle"><input type="checkbox" data-alpha-plan="${item.id}" ${alphaSelectedPlanIds.has(item.id)?"checked":""} ${item.actionable?"":"disabled"}><span>${item.level==="safe"?"✓":item.level==="recommended"?"!":"◇"}</span></label><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><div class="alpha-plan-meta"><em>Durée : ${escapeHtml(item.duration)}</em><em>Impact : ${escapeHtml(item.impact)}</em><em class="${item.irreversible?"warn":""}">${escapeHtml(item.reversible)}</em></div></div></article>`).join("");
+  $("#alphaOneClickStatus").textContent=counts.recommended||counts.advanced?`${counts.recommended+counts.advanced} action(s) à examiner. Rien n’a été modifié.`:"Le PC ne nécessite aucune action urgente.";
+  $("#alphaOneClickResults").classList.remove("hidden");
+}
+
+function selectedAlphaPlan(levels) {
+  return alphaLastPlan.filter(item=>item.actionable&&alphaSelectedPlanIds.has(item.id)&&(!levels||levels.includes(item.level)));
+}
+
+function openAlphaReview(mode="recommended") {
+  if(!alphaLastPlan.length)return notify("Analyse requise","Lancez d’abord le diagnostic One-Click.");
+  alphaReviewMode=mode;
+  const levels=mode==="safe"?["safe"]:mode==="advanced"?["safe","recommended","advanced"]:["safe","recommended"];
+  const allowed=new Set(alphaLastPlan.filter(item=>item.actionable&&levels.includes(item.level)).map(item=>item.id));
+  alphaSelectedPlanIds=new Set([...alphaSelectedPlanIds].filter(id=>allowed.has(id)));
+  if(!alphaSelectedPlanIds.size){const first=alphaLastPlan.find(item=>item.actionable&&allowed.has(item.id));if(first)alphaSelectedPlanIds.add(first.id);}
+  const titles={safe:"Actions sûres",recommended:"Actions recommandées",advanced:"Mode avancé"};
+  $("#alphaReviewMode").textContent=titles[mode].toUpperCase();
+  $("#alphaReviewTitle").textContent=`Vérifier · ${titles[mode]}`;
+  $("#alphaReviewRestore").checked=$("#alphaRestoreBeforeFix").checked;
+  renderAlphaReview(levels);
+  $("#alphaReviewModal").classList.remove("hidden");
+}
+
+function renderAlphaReview(levels) {
+  const items=alphaLastPlan.filter(item=>item.actionable&&levels.includes(item.level));
+  $("#alphaReviewSummary").textContent=`${items.length} action(s) disponible(s). Une seule étape contrôlée sera préparée à la fois.`;
+  $("#alphaReviewList").innerHTML=items.map(item=>`<label class="alpha-review-row ${item.level}"><input type="checkbox" data-alpha-review-plan="${item.id}" ${alphaSelectedPlanIds.has(item.id)?"checked":""}><span>${item.level==="safe"?"✓":item.level==="recommended"?"!":"◇"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><em>${escapeHtml(item.duration)} · ${escapeHtml(item.impact)} · ${escapeHtml(item.reversible)}</em></div></label>`).join("");
+  updateAlphaReviewSafety();
+}
+
+function updateAlphaReviewSafety() {
+  const ids=new Set([...document.querySelectorAll("[data-alpha-review-plan]:checked")].map(input=>input.dataset.alphaReviewPlan));
+  alphaSelectedPlanIds=ids;
+  const selected=alphaLastPlan.filter(item=>ids.has(item.id));
+  $("#alphaIrreversibleWarning").classList.toggle("hidden",!selected.some(item=>item.irreversible));
+  $("#confirmAlphaPlan").disabled=!selected.length;
+}
+
+function closeAlphaReview() { $("#alphaReviewModal").classList.add("hidden"); }
+
+function recordAlphaPlan(items,status="prepared") {
+  let history=[];try{history=JSON.parse(localStorage.getItem(alphaHistoryStorageKey)||"[]");if(!Array.isArray(history))history=[];}catch{history=[];}
+  history.unshift({createdAt:new Date().toISOString(),scoreBefore:alphaLastScore,status,actions:items.map(item=>item.id)});
+  localStorage.setItem(alphaHistoryStorageKey,JSON.stringify(history.slice(0,20)));
+}
+
+function prepareAlphaSelectedActions(items) {
+  closeAlphaReview();
+  recordAlphaPlan(items);
+  const first=items[0];
+  $("#alphaOneClickStatus").textContent=`Étape 1/${items.length} préparée : ${first.title}. Les confirmations habituelles restent actives.`;
+  if(first.action==="diagnostic"){showView("tools");window.setTimeout(()=>$("#diagnoseWinget")?.click(),100);}
+  else if(first.action==="updates"){showView("updates");if(availableUpdates.length){selectedUpdates=new Set(availableUpdates.map(update=>update.id));renderAvailableUpdates();window.setTimeout(openUpdateModal,120);}else{window.setTimeout(()=>$("#scanUpdatesBtn")?.click(),120);notify("Vérification des versions","OwlSetup actualise la liste avant de proposer la confirmation.");}}
+  else if(first.action==="cleanup"){document.querySelectorAll("[data-cleanup]").forEach(input=>input.checked=["user-temp","windows-temp","delivery"].includes(input.dataset.cleanup));updateCleanupCount();showView("cleanup");window.setTimeout(openCleanupModal,120);}
+  else if(first.action==="quarantine")showView("quarantine");
+  else if(first.action==="restart")notify("Redémarrage du PC conseillé","Enregistrez votre travail puis redémarrez Windows depuis le menu Démarrer.");
+  notify("Plan One-Click préparé",`${first.title} est prêt. ${items.length>1?`${items.length-1} autre(s) étape(s) restent dans le récapitulatif.`:""}`);
+}
+
+function confirmAlphaPlan() {
+  const items=alphaLastPlan.filter(item=>alphaSelectedPlanIds.has(item.id));
+  if(!items.length)return;
+  const restore=$("#alphaReviewRestore").checked;
+  $("#alphaRestoreBeforeFix").checked=restore;saveAlphaPreferences({restore});
+  const modifiesSystem=items.some(item=>["updates","cleanup"].includes(item.action));
+  if(restore&&modifiesSystem&&window.chrome?.webview){
+    if(pendingProtectedAction)return notify("Protection déjà en cours","Attendez la fin de la création du point de restauration.");
+    pendingProtectedAction={action:()=>prepareAlphaSelectedActions(items),label:"le parcours One-Click"};
+    closeAlphaReview();notify("Protection en cours","Windows prépare un point de restauration avant la première modification.");
+    window.chrome.webview.postMessage({action:"create-restore-point",payload:{}});return;
+  }
+  prepareAlphaSelectedActions(items);
+}
+
+function renderAlphaScheduleStatus(preferences=getAlphaPreferences()) {
+  const status=$("#alphaScheduleStatus");
+  if(!status)return;
+  if(!preferences.scheduleEnabled){status.textContent="Planification désactivée. Aucune tâche Windows n’est créée dans Alpha 2.";return;}
+  const days=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+  status.textContent=`Préférence locale : chaque ${days[Number(preferences.day)]||"vendredi"} à ${preferences.time}. L’exécution automatique sera activée dans une prochaine Alpha.`;
+}
+
+function saveAlphaSchedule() {
+  const preferences=saveAlphaPreferences({scheduleEnabled:$("#alphaScheduleEnabled").checked,day:$("#alphaScheduleDay").value,time:$("#alphaScheduleTime").value||"20:00",scheduleRestore:$("#alphaScheduleRestore").checked});
+  renderAlphaScheduleStatus(preferences);
+  notify("Préparation enregistrée","Cette Alpha conserve le planning localement sans créer de tâche en arrière-plan.");
 }
 
 function openHealthDetails() {
@@ -2417,6 +2915,16 @@ function handleInstallMessage(message) {
     setNavAlert("#toolsNavBadge", message.available && message.sources ? 0 : "!", true);
     return;
   }
+  if (message.type === "winget-search-complete") {
+    const responseQuery=String(message.query||"").trim();
+    if(responseQuery!==searchTerm.trim())return;
+    extendedWingetPending=false;
+    extendedWingetQuery=responseQuery||extendedWingetQuery;
+    extendedWingetResults=message.success&&Array.isArray(message.items)?message.items.filter(item=>item&&/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(String(item.id||""))).slice(0,12):[];
+    renderExtendedWingetSearch();
+    if(!message.success){const state=$("#wingetSearchState");state.classList.remove("hidden");state.classList.add("error");state.textContent=message.message||extendedWingetText("La recherche WinGet n’a pas abouti.","The WinGet search did not complete.");}
+    return;
+  }
   if (message.type === "winget-repair-start") {
     $("#wingetDiagnosticText").textContent = "Réenregistrement d'App Installer et actualisation des sources...";
     return;
@@ -2573,12 +3081,13 @@ function handleInstallMessage(message) {
     if ($("#settingsBuildVersion")) $("#settingsBuildVersion").textContent = `${currentBuildVersion} · ${currentBuildChannel}`;
     if (message.beta) {
       $("#buildBadge").classList.remove("hidden");
-      $("#buildBadge").textContent = "BÊTA";
+      $("#buildBadge").textContent = currentBuildChannel === "alpha" ? "ALPHA" : "BÊTA";
       $("#buildSubtitle").textContent = message.version;
-      document.title = `OwlSetup BÊTA ${message.version}`;
+      document.title = `OwlSetup ${currentBuildChannel === "alpha" ? "ALPHA" : "BÊTA"} ${message.version}`;
       document.body.classList.add("beta-build");
       document.querySelectorAll(".beta-only").forEach(element=>element.classList.remove("hidden"));
     }
+    setAlphaExperienceEnabled(currentBuildChannel === "alpha");
     return;
   }
   if (message.type === "system-summary") {
@@ -2646,6 +3155,26 @@ function handleInstallMessage(message) {
     $("#confirmCleanup").disabled = true;
     return;
   }
+  if (message.type === "browser-scan-state") { renderBrowserScan(message); return; }
+  if (message.type === "browser-scan-error") {
+    browserScanLoaded=false;$("#browserCards").innerHTML=`<div class="browser-empty"><strong>Détection impossible</strong><small>${escapeHtml(message.message)}</small></div>`;updateBrowserActionState();return;
+  }
+  if (message.type === "browser-analysis-state") { renderBrowserAnalysis(message); return; }
+  if (message.type === "browser-analysis-error") {
+    $("#analyzeBrowserData").innerHTML='<span>⌕</span> Analyser la sélection';updateBrowserActionState();notify("Analyse impossible",message.message);return;
+  }
+  if (message.type === "browser-cleanup-start") {
+    $("#browserCleanupProgressTitle").textContent="Nettoyage en cours";$("#browserCleanupProgressDetail").textContent=message.detail||"Suppression des données analysées";$("#browserCleanupBar").style.width="45%";$("#browserCleanupPercent").textContent="45%";return;
+  }
+  if (message.type === "browser-cleanup-complete") {
+    browserCleanupRunning=false;browserAnalysisData=null;$("#browserCleanupBar").style.width="100%";$("#browserCleanupPercent").textContent="100%";
+    $("#browserCleanupProgressTitle").textContent=message.success?"Nettoyage terminé":"Nettoyage terminé avec avertissement";
+    $("#browserCleanupProgressDetail").textContent=`${message.deleted||0} élément(s) supprimé(s) · ${message.skipped||0} ignoré(s)`;
+    lastBrowserCleanupReport=message.logName||"";$("#browserCleanupResult").textContent=`${message.recovered||"0 octet"} récupérés · rapport ${message.logName||"local"}`;$("#openBrowserCleanupReport")?.classList.toggle("hidden",!lastBrowserCleanupReport);$("#browserCleanupResultActions").classList.remove("hidden");updateBrowserActionState();notify("Navigateurs nettoyés",$("#browserCleanupProgressDetail").textContent);return;
+  }
+  if (message.type === "browser-cleanup-error") {
+    browserCleanupRunning=false;$("#browserCleanupProgressTitle").textContent="Nettoyage interrompu";$("#browserCleanupProgressDetail").textContent=message.message;$("#browserCleanupResult").textContent="Aucune autre donnée n’a été supprimée.";$("#openBrowserCleanupReport")?.classList.add("hidden");$("#browserCleanupResultActions")?.classList.remove("hidden");updateBrowserActionState();return;
+  }
   if (message.type === "app-update-state") {
     renderAppUpdateState(message);
     return;
@@ -2679,6 +3208,7 @@ function handleInstallMessage(message) {
       notificationFeed = notificationFeed.filter(item => item.key !== "application-updates");
       saveNotificationFeed(); renderNotificationFeed();
     }
+    if(!message.error)reconcileOperationsWithDetectedState({availableUpdateIds:new Set(availableUpdates.map(update=>update.id)),updateScanReliable:true});
     if (message.error) notify("Analyse partielle", message.error);
     return;
   }
@@ -2815,17 +3345,19 @@ function handleInstallMessage(message) {
     return;
   }
   if (message.type === "update-complete") {
+    const applicationsVerified=message.appsSuccess===true;
+    const fullyCompleted=applicationsVerified&&message.windowsStarted===true;
     $("#updateModal").dataset.running = "false";
     $("#closeUpdateModal").disabled = false;
     $("#updateProgressBar").style.width = "100%";
     $("#updateProgressPercent").textContent = "100%";
-    $("#updateProgressTitle").textContent = message.success ? "Votre PC est à jour" : "Mise à jour terminée avec avertissement";
-    $("#updateProgressDetail").textContent = message.appsSuccess ? "Applications traitées avec succès" : (message.errorMessage || `Certaines applications sont à vérifier (code ${message.code})`);
-    setBackgroundUpdate(message.success ? "Mise à jour terminée" : "Mise à jour terminée avec avertissement", message.appsSuccess ? "Applications traitées avec succès" : (message.errorMessage || "Consultez le résultat pour les détails."), 100, message.success ? "complete" : "warning");
+    $("#updateProgressTitle").textContent = fullyCompleted ? "Votre PC est à jour" : applicationsVerified ? "Applications à jour" : "Mise à jour terminée avec avertissement";
+    $("#updateProgressDetail").textContent = applicationsVerified ? (message.windowsStarted ? "Applications vérifiées et recherche Windows Update lancée" : "Applications vérifiées. Ouvrez Windows Update pour contrôler le système.") : (message.errorMessage || `Certaines applications sont à vérifier (code ${message.code})`);
+    setBackgroundUpdate(fullyCompleted ? "Mise à jour terminée" : applicationsVerified ? "Applications mises à jour" : "Mise à jour terminée avec avertissement", applicationsVerified ? (message.windowsStarted ? "Applications traitées avec succès" : "Windows Update reste à contrôler séparément") : (message.errorMessage || "Consultez le résultat pour les détails."), 100, applicationsVerified ? "complete" : "warning");
     $("#updateSummary").textContent = `${message.windowsStarted ? "Recherche Windows Update lancée." : "Windows Update n'a pas pu être lancé."} Rapport : ${message.logName}`;
     document.querySelectorAll("[data-update-step]").forEach(step => { step.classList.remove("active"); step.classList.add("done"); });
-    lastUpdateIssue=message.success?null:{category:"Mise à jour d'une application",title:"La mise à jour des applications se termine avec un avertissement",description:message.errorMessage||`WinGet n’a pas terminé la mise à jour (code ${message.code ?? "non communiqué"}).`,steps:"1. Ouvrir Tout mettre à jour\n2. Sélectionner les mises à jour proposées\n3. Lancer l’opération et attendre la fin",technical:`Opération : mise à jour\nCode de sortie : ${message.code ?? "non communiqué"}\nJournal local : ${message.logName || "non indiqué"}\nWindows Update lancé : ${message.windowsStarted?"oui":"non"}\n\nLe journal complet reste sur le PC et n’est pas joint automatiquement.`};
-    if (message.success) resolveOperationalTelemetry("update");
+    lastUpdateIssue=applicationsVerified?null:{category:"Mise à jour d'une application",title:"La mise à jour des applications se termine avec un avertissement",description:message.errorMessage||`WinGet n’a pas terminé la mise à jour (code ${message.code ?? "non communiqué"}).`,steps:"1. Ouvrir Tout mettre à jour\n2. Sélectionner les mises à jour proposées\n3. Lancer l’opération et attendre la fin",technical:`Opération : mise à jour\nCode de sortie : ${message.code ?? "non communiqué"}\nJournal local : ${message.logName || "non indiqué"}\nWindows Update lancé : ${message.windowsStarted?"oui":"non"}\n\nLe journal complet reste sur le PC et n’est pas joint automatiquement.`};
+    if (applicationsVerified) resolveOperationalTelemetry("update");
     else reportOperationalTelemetry({
       operation:"updates",errorCategory:"update",failureStage:message.failureKind === "files-in-use" ? "process-lock" : "execution",
       targetPackage:(message.failedItems||[]).length === 1 ? message.failedItems[0].id : "",errorKind:message.failureKind || "winget",
@@ -2836,7 +3368,7 @@ function handleInstallMessage(message) {
     updateBlockerInspected=false;
     updateBlockerProcessNames=[];
     const blockerNames=(message.failedItems||[]).map(item=>item.name||item.id).filter(Boolean);
-    const canCloseBlocker=!message.success&&message.failureKind==="files-in-use"&&updateBlockerPackages.length>0;
+    const canCloseBlocker=!applicationsVerified&&message.failureKind==="files-in-use"&&updateBlockerPackages.length>0;
     $("#closeUpdateBlocker").classList.toggle("hidden",!canCloseBlocker);
     $("#closeUpdateBlocker").disabled=false;
     $("#closeUpdateBlocker").textContent="Détecter le processus bloquant";
@@ -2847,23 +3379,25 @@ function handleInstallMessage(message) {
     $("#updateResultActions").classList.remove("hidden");
     addNotification({
       key:`system-update-${Date.now()}`,
-      title:message.success ? "Mises à jour terminées" : "Mises à jour à vérifier",
-      detail:message.appsSuccess ? "Les applications sélectionnées ont été traitées." : (message.errorMessage || "Consultez le rapport OwlSetup."),
-      kind:message.success ? "success" : "warning", action:"updates", symbol:message.success ? "✓" : "!", operationType:"update",
-      packageIds:message.success?[...selectedUpdates]:(message.failedItems||[]).map(item=>item.id)
+      title:applicationsVerified ? "Applications mises à jour" : "Mises à jour à vérifier",
+      detail:applicationsVerified ? (message.windowsStarted ? "Les applications sélectionnées ont été vérifiées." : "Applications vérifiées · contrôle Windows Update à effectuer séparément.") : (message.errorMessage || "Consultez le rapport OwlSetup."),
+      kind:applicationsVerified ? "success" : "warning", action:"updates", symbol:applicationsVerified ? "✓" : "!", operationType:"update",
+      packageIds:applicationsVerified?[...selectedUpdates]:(message.failedItems||[]).map(item=>item.id)
     });
-    completeActiveOperation(message.success?"success":"failed",message.success?"Mise à jour terminée":(message.errorMessage||`Code ${message.code??"inconnu"}`),{logName:message.logName||"",code:message.code??null,failureKind:message.failureKind||"winget",failedPackages:message.failedItems||[]});
+    completeActiveOperation(applicationsVerified?"success":"failed",applicationsVerified?(message.windowsStarted?"Applications vérifiées · Windows Update lancé":"Applications vérifiées · Windows Update à contrôler"):(message.errorMessage||`Code ${message.code??"inconnu"}`),{verified:applicationsVerified,logName:message.logName||"",code:message.code??null,failureKind:message.failureKind||"winget",failedPackages:message.failedItems||[]});
     updatesLoaded = false; requestHealth();
     return;
   }
   if (message.type === "installed-state") {
+    mergeDiscoveredInstalledApps(message.details || []);
     installedApps = new Set(message.ids || []);
     wingetManageableApps = new Set(message.managedIds || message.ids || []);
     installedDetection = new Map((message.details||[]).map(item=>[item.id,item]));
     relatedWindowsApps = new Set(message.relatedIds || []);
     managedInstalled = new Set([...managedInstalled].filter(id => installedApps.has(id)&&wingetManageableApps.has(id)));
+    reconcileOperationsWithDetectedState({installedIds:installedApps});
     installedApps.forEach(id => selected.delete(id));
-    renderApps(); renderSelection();
+    renderFilters(); renderApps(); renderSelection();
     if (message.warning && message.method === "windows") {
       notify("Détection Windows active", `${message.count || 0} logiciel(s) reconnu(s) localement malgré l’indisponibilité de WinGet.`);
     }
@@ -3051,7 +3585,7 @@ function handleInstallMessage(message) {
       detail:`${message.success} application(s) installée(s) · ${message.failed} à vérifier`,
       kind:message.failed ? "warning" : "success", action:"install-result", symbol:message.failed ? "!" : "✓"
     });
-    completeActiveOperation(message.failed?"failed":"success",`${message.success} installée(s) · ${message.failed} à vérifier`,{logName:message.logName||"",failedPackages:lastFailedInstallPackages});
+    completeActiveOperation(message.failed?"failed":"success",`${message.success} installée(s) · ${message.failed} à vérifier`,{verified:!message.failed,logName:message.logName||"",failedPackages:lastFailedInstallPackages});
     requestHistory();
     requestHealth();
     requestInstalledScan();
@@ -3092,6 +3626,8 @@ document.addEventListener("click", event => {
   const openReport = event.target.closest("[data-open-report]");
   const topNavToggle = event.target.closest(".top-nav-toggle");
   const logHelp = event.target.closest("[data-log-help]");
+  const wingetAdd = event.target.closest("[data-winget-add]");
+  if(wingetAdd)addExtendedWingetResult(wingetAdd.dataset.wingetAdd);
   if (topNavToggle) toggleTopNavigation(topNavToggle);
   if (diskAction) {
     const path=decodeURIComponent(diskAction.dataset.diskPath||"");
@@ -3127,6 +3663,8 @@ document.addEventListener("click", event => {
     if (input) { input.checked = true; updateCleanupCount(); input.closest(".cleanup-option").scrollIntoView({behavior:"smooth", block:"center"}); }
   }
   if (category) { activeCategory = category.dataset.category; renderFilters(); renderApps(); }
+  const scope=event.target.closest("[data-catalog-scope]");
+  if(scope){activeCatalogScope=scope.dataset.catalogScope;activeCategory="Tout";localStorage.setItem(catalogScopeStorageKey,activeCatalogScope);renderFilters();renderApps();}
   if (preset) { apps.filter(app => app.tags?.includes(preset.dataset.preset)).forEach(app => selected.add(app.id)); renderApps(); renderSelection(); showView("queue"); }
   if (remove) { selected.delete(remove.dataset.remove); renderApps(); renderSelection(); }
   if (quarantineAction) confirmQuarantineAction(quarantineAction.dataset.quarantineAction, decodeURIComponent(quarantineAction.dataset.batch), decodeURIComponent(quarantineAction.dataset.item));
@@ -3161,7 +3699,8 @@ document.addEventListener("change", event => {
   renderAvailableUpdates();
 });
 
-$("#searchInput").addEventListener("input", event => { searchTerm = event.target.value; renderApps(); });
+$("#searchInput").addEventListener("input", event => { searchTerm = event.target.value; if(searchTerm.trim()!==extendedWingetQuery){extendedWingetQuery="";extendedWingetResults=[];extendedWingetPending=false;} renderApps();renderExtendedWingetSearch();scheduleExtendedWingetSearch(); });
+$("#searchWingetBtn").addEventListener("click",requestExtendedWingetSearch);
 $("#clearAll").addEventListener("click", () => { selected.clear(); renderApps(); renderSelection(); });
 $("#viewSelection").addEventListener("click", () => showView("queue"));
 $("#installBtn").addEventListener("click", openInstallModal);
@@ -3243,7 +3782,7 @@ document.addEventListener("keydown", event => {
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 });
-$("#selectAllInstalled").addEventListener("click", () => { managedInstalled = new Set([...installedApps].filter(id=>wingetManageableApps.has(id))); activeCategory = "Installés"; renderFilters(); renderApps(); });
+$("#selectAllInstalled").addEventListener("click", () => { managedInstalled = new Set([...installedApps].filter(id=>{const app=apps.find(entry=>entry.id===id);return wingetManageableApps.has(id)&&app&&!isSystemComponentApp(app);})); activeCatalogScope="installed";activeCategory = "Tout";localStorage.setItem(catalogScopeStorageKey,activeCatalogScope); renderFilters(); renderApps(); });
 $("#clearInstalledSelection").addEventListener("click", () => { managedInstalled.clear(); renderApps(); });
 $("#installedSearchInput").addEventListener("input", event => { installedSearchTerm = event.target.value; renderInstalledPage(); });
 $("#installedSort").addEventListener("change", event => { installedSortMode = event.target.value; renderInstalledPage(); });
@@ -3371,10 +3910,19 @@ $("#previewTelemetrySample").addEventListener("click",()=>{
 });
 $("#closeTelemetryPreview").addEventListener("click",()=>$("#telemetryPreviewDialog").close());
 $("#sendTelemetryPreview").addEventListener("click",async()=>{
+  const button=$("#sendTelemetryPreview");
+  button.disabled=true;
+  button.textContent="Envoi en cours…";
   const sent=await sendTelemetryPayload(pendingTelemetryReport);
-  $("#telemetryPreviewDialog").close();
-  pendingTelemetryReport=null;
-  notify(sent ? "Diagnostic envoyé" : "Envoi impossible", sent ? "Merci. Seules les informations affichées ont été transmises." : "Aucune donnée n’a été perdue. Vous pouvez réessayer plus tard.");
+  button.disabled=false;
+  button.textContent=sent ? "Diagnostic envoyé" : "Réessayer l’envoi";
+  if(sent){
+    $("#telemetryPreviewDialog").close();
+    pendingTelemetryReport=null;
+    notify("Diagnostic envoyé","Merci. Seules les informations affichées ont été transmises.");
+  }else{
+    notify("Envoi impossible",`${lastTelemetrySendError || "Le service ne répond pas pour le moment."} Le diagnostic reste affiché afin que vous puissiez réessayer.`);
+  }
 });
 $("#telemetryPreviewDialog").addEventListener("click",event=>{if(event.target===event.currentTarget)event.currentTarget.close();});
 $("#openFeedbackFollowup").addEventListener("click", () => window.open("https://github.com/OwlNetGeekFR/OwlSetup/issues?q=is%3Aissue+author%3A%40me","_blank","noopener"));
@@ -3441,6 +3989,18 @@ $("#reducedMotionMode").addEventListener("change",saveAccessibilitySettings);
 $("#appTheme").addEventListener("change",event=>saveThemePreference(event.target.value));
 $("#firstRunTheme").addEventListener("change",event=>applyThemePreference(event.target.value));
 $("#autoRestorePoint").addEventListener("change",event=>localStorage.setItem(autoRestoreStorageKey,String(event.target.checked)));
+$("#alphaOneClickScan")?.addEventListener("click",runAlphaOneClickScan);
+$("#alphaFixSafe")?.addEventListener("click",()=>openAlphaReview("safe"));
+$("#alphaReviewRecommended")?.addEventListener("click",()=>openAlphaReview("recommended"));
+$("#alphaOpenAdvanced")?.addEventListener("click",()=>openAlphaReview("advanced"));
+$("#alphaResultList")?.addEventListener("change",event=>{const input=event.target.closest("[data-alpha-plan]");if(!input)return;if(input.checked)alphaSelectedPlanIds.add(input.dataset.alphaPlan);else alphaSelectedPlanIds.delete(input.dataset.alphaPlan);});
+$("#alphaReviewList")?.addEventListener("change",updateAlphaReviewSafety);
+$("#confirmAlphaPlan")?.addEventListener("click",confirmAlphaPlan);
+$("#cancelAlphaPlan")?.addEventListener("click",closeAlphaReview);
+$("#closeAlphaReview")?.addEventListener("click",closeAlphaReview);
+$("#alphaReviewModal")?.addEventListener("click",event=>{if(event.target.id==="alphaReviewModal")closeAlphaReview();});
+$("#alphaRestoreBeforeFix")?.addEventListener("change",event=>saveAlphaPreferences({restore:event.target.checked}));
+$("#saveAlphaSchedule")?.addEventListener("click",saveAlphaSchedule);
 $("#runSelfDiagnostic").addEventListener("click",()=>{if(!window.chrome?.webview)return notify("Tests indisponibles","Lancez la version Windows.");$("#runSelfDiagnostic").disabled=true;$("#runSelfDiagnostic").textContent="Tests en cours…";window.chrome.webview.postMessage({action:"self-diagnostic",payload:{}});});
 $("#retryLogFailures").addEventListener("click",retryFailedInstallation);
 $("#confirmUpdate").addEventListener("click", () => runWithOptionalRestore(beginUpdate,"la mise à jour"));
@@ -3453,6 +4013,20 @@ $("#confirmCleanup").addEventListener("click", () => runWithOptionalRestore(begi
 $("#cancelCleanup").addEventListener("click", closeCleanupModal);
 $("#closeCleanupModal").addEventListener("click", closeCleanupModal);
 $("#finishCleanup").addEventListener("click", closeCleanupModal);
+$("#scanBrowsers")?.addEventListener("click",requestBrowserScan);
+$("#selectAllBrowsers")?.addEventListener("click",()=>{document.querySelectorAll("[data-browser-id]").forEach(input=>{input.checked=true;input.closest(".browser-card")?.classList.add("selected")});invalidateBrowserAnalysis();updateBrowserActionState();});
+$("#clearBrowsers")?.addEventListener("click",()=>{document.querySelectorAll("[data-browser-id]").forEach(input=>{input.checked=false;input.closest(".browser-card")?.classList.remove("selected")});invalidateBrowserAnalysis();updateBrowserActionState();});
+document.querySelectorAll("[data-browser-preset]").forEach(button=>button.addEventListener("click",()=>setBrowserPreset(button.dataset.browserPreset)));
+$("#analyzeBrowserData")?.addEventListener("click",analyzeBrowserSelection);
+$("#reviewBrowserCleanup")?.addEventListener("click",openBrowserCleanupReview);
+$("#confirmBrowserCleanup")?.addEventListener("click",confirmBrowserCleanup);
+$("#cancelBrowserCleanup")?.addEventListener("click",closeBrowserCleanup);
+$("#closeBrowserCleanup")?.addEventListener("click",closeBrowserCleanup);
+$("#finishBrowserCleanup")?.addEventListener("click",()=>{browserCleanupRunning=false;closeBrowserCleanup();requestBrowserScan();});
+$("#openBrowserCleanupReport")?.addEventListener("click",()=>{if(!lastBrowserCleanupReport)return;browserCleanupRunning=false;closeBrowserCleanup();openLogViewer(lastBrowserCleanupReport);});
+$("#browserCleanupModal")?.addEventListener("click",event=>{if(event.target.id==="browserCleanupModal")closeBrowserCleanup();});
+$("#browserCards")?.addEventListener("change",event=>{event.target.closest(".browser-card")?.classList.toggle("selected",event.target.checked);invalidateBrowserAnalysis();updateBrowserActionState();});
+document.querySelectorAll("[data-browser-category]").forEach(input=>input.addEventListener("change",()=>{document.querySelectorAll("[data-browser-preset]").forEach(button=>button.classList.toggle("active",button.dataset.browserPreset==="custom"));invalidateBrowserAnalysis();updateBrowserActionState();}));
 document.querySelectorAll("[data-cleanup]").forEach(input => input.addEventListener("change", updateCleanupCount));
 $("#recommendedCleanup").addEventListener("click", () => {
   document.querySelectorAll("[data-cleanup]").forEach(input => { input.checked = !["components", "app-leftovers"].includes(input.dataset.cleanup); });

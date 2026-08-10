@@ -23,6 +23,7 @@
     <symbol id="nav-selection" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 4.5m-4 7.5 1.5 1.5L7 10.5m-4 7.5 1.5 1.5L7 16.5"/></symbol>
     <symbol id="nav-update" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-5L3 9"/><path d="M3 4v5h5M4 13a8 8 0 0 0 14 5l3-3"/><path d="M21 20v-5h-5"/></symbol>
     <symbol id="nav-cleanup" viewBox="0 0 24 24"><path d="m4 20 6-6m1-1 6-6"/><path d="m15 3 .7 2.3L18 6l-2.3.7L15 9l-.7-2.3L12 6l2.3-.7zM6 8l.6 1.7 1.7.6-1.7.6L6 13l-.6-2.1-1.7-.6 1.7-.6zM18 14l.7 2.3 2.3.7-2.3.7L18 20l-.7-2.3-2.3-.7 2.3-.7z"/></symbol>
+    <symbol id="nav-browser" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18M7 6h.01M10 6h.01"/><path d="M8 13h8M9.5 16h5"/></symbol>
     <symbol id="nav-residue" viewBox="0 0 24 24"><path d="M4 7h16v13H4zM7 7V4h10v3"/><path d="m9 11 6 6m0-6-6 6"/></symbol>
     <symbol id="nav-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.6L16.5 9"/></symbol>
     <symbol id="nav-windows" viewBox="0 0 24 24"><path d="M3 4.5 10.5 3v8H3zM12.5 2.7 21 1v10h-8.5zM3 13h7.5v8L3 19.5zM12.5 13H21v10l-8.5-1.7z"/></symbol>
@@ -108,6 +109,7 @@
           <span class="top-nav-menu-title">ENTRETIEN DU PC</span>
           <button class="nav-item" data-view="updates"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><span class="nav-menu-copy"><strong>Tout mettre à jour</strong><small>Logiciels, Windows et pilotes</small></span><b class="new-badge hidden" id="updatesNavBadge">0</b></button>
           <button class="nav-item" data-view="cleanup"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span><span class="nav-menu-copy"><strong>Libérer de l'espace</strong><small>Fichiers temporaires et résidus</small></span></button>
+          <button class="nav-item" data-view="browsers"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-browser"/></svg></span><span class="nav-menu-copy"><strong>Nettoyer les navigateurs</strong><small>Cache, cookies et données de sites</small></span></button>
           <button class="nav-item" data-view="tools"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><span class="nav-menu-copy"><strong>Outils système</strong><small>Diagnostic, démarrage et stockage</small></span><b class="new-badge hidden" id="toolsNavBadge">!</b></button>
           <button class="nav-item" data-view="operations"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-guide"/></svg></span><span class="nav-menu-copy"><strong>Centre des opérations</strong><small>Suivi, reprise et corrections</small></span><b class="new-badge hidden" id="operationsNavBadge">0</b></button>
         </div>
@@ -147,6 +149,38 @@
           <button class="health-details-button" id="healthDetails" type="button">Voir le calcul</button>
         </div>
       </div>
+
+      <section class="alpha-command-center alpha-only hidden" id="alphaCommandCenter" aria-labelledby="alphaCommandTitle">
+        <div class="alpha-command-copy">
+          <span class="alpha-eyebrow"><i></i> OWLSETUP 4.0 ALPHA</span>
+          <h2 id="alphaCommandTitle">Un contrôle complet.<br><em>Un seul clic.</em></h2>
+          <p>OwlSetup analyse l’état du PC, classe les actions par niveau de risque et prépare un plan clair avant toute modification.</p>
+          <div class="alpha-safety-pills">
+            <span><svg aria-hidden="true"><use href="#nav-check"/></svg> Analyse locale</span>
+            <span><svg aria-hidden="true"><use href="#nav-shield"/></svg> Validation avant action</span>
+            <span><svg aria-hidden="true"><use href="#nav-residue"/></svg> Alpha 2 : confirmation obligatoire</span>
+          </div>
+        </div>
+        <div class="alpha-one-click-panel">
+          <button class="alpha-one-click-button" id="alphaOneClickScan" type="button">
+            <span><svg aria-hidden="true"><use href="#nav-tools"/></svg></span>
+            <strong>Analyser mon PC</strong>
+            <small>Diagnostic One-Click sans modification</small>
+          </button>
+          <div class="alpha-one-click-status" id="alphaOneClickStatus" aria-live="polite">Prêt pour une première analyse.</div>
+          <label class="alpha-restore-choice"><input id="alphaRestoreBeforeFix" type="checkbox"><span></span><p><strong>Protéger avant les corrections</strong><small>Un point de restauration sera créé avant les actions compatibles, si Windows le permet.</small></p></label>
+        </div>
+        <div class="alpha-results hidden" id="alphaOneClickResults">
+          <header><div><span class="label">RÉSULTAT ONE-CLICK</span><h3>Plan d’entretien proposé</h3></div><strong id="alphaResultScore">— / 100</strong></header>
+          <div class="alpha-result-metrics">
+            <article class="safe"><span id="alphaSafeCount">0</span><p><strong>Sûres</strong><small>Contrôles sans modification</small></p></article>
+            <article class="recommended"><span id="alphaRecommendedCount">0</span><p><strong>Conseillées</strong><small>À confirmer avant exécution</small></p></article>
+            <article class="advanced"><span id="alphaAdvancedCount">0</span><p><strong>Avancées</strong><small>Vérification manuelle</small></p></article>
+          </div>
+          <div class="alpha-result-list" id="alphaResultList"></div>
+          <footer><p><strong>Vous gardez le contrôle :</strong> sélectionnez les éléments, examinez leur impact, puis confirmez chaque opération dans l’écran OwlSetup habituel.</p><div class="alpha-mode-actions"><button id="alphaFixSafe" type="button">Actions sûres</button><button id="alphaReviewRecommended" type="button">Recommandées</button><button id="alphaOpenAdvanced" type="button">Mode avancé</button></div></footer>
+        </div>
+      </section>
 
       <div class="health-dashboard">
         <article><span class="health-metric-icon blue"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><div><small>MISES À JOUR</small><strong id="healthUpdates">Analyse...</strong><em id="healthUpdatesDetail">Interrogation de WinGet</em></div></article>
@@ -222,10 +256,23 @@
         </details>
         <div class="installed-manager hidden" id="installedManager"><div><strong id="managedCount">0 logiciel sélectionné</strong><small>Ouvrez le filtre « Installés », puis cliquez sur les cartes à désinstaller.</small></div><div class="installed-manager-actions"><button class="secondary-dialog-button" id="selectAllInstalled">Tout sélectionner</button><button class="secondary-dialog-button" id="clearInstalledSelection" disabled>Effacer</button><button class="danger-dialog-button" id="batchUninstallBtn" disabled>× Désinstaller la sélection</button></div></div>
         <div class="catalog-tools">
-          <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Rechercher un logiciel..." autocomplete="off" /></div>
+          <div class="catalog-search-intro">
+            <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Rechercher un logiciel..." autocomplete="off" /></div>
+            <small>Recherchez toutes les applications : OwlSetup consulte d’abord son catalogue, puis étend automatiquement la recherche à WinGet.</small>
+          </div>
+          <div class="catalog-scopes" id="catalogScopes" aria-label="Type de catalogue"></div>
           <div class="filters" id="filters"></div>
         </div>
         <div class="results-line"><span id="resultCount"></span><span>Cliquez sur une carte pour l'ajouter</span></div>
+        <section class="winget-discovery" id="wingetDiscovery" aria-labelledby="wingetDiscoveryTitle">
+          <div class="winget-discovery-copy">
+            <span class="winget-discovery-icon" aria-hidden="true">⌕</span>
+            <p><small>BÊTA · RECHERCHE AUTOMATIQUE</small><strong id="wingetDiscoveryTitle">Recherche automatique dans WinGet</strong><em>Saisissez un nom puis patientez un instant. Le catalogue OwlSetup reste prioritaire et les résultats externes sont clairement signalés.</em></p>
+          </div>
+          <button class="secondary-dialog-button" id="searchWingetBtn" type="button">Rechercher maintenant</button>
+        </section>
+        <div class="winget-search-state hidden" id="wingetSearchState" role="status" aria-live="polite"></div>
+        <section class="winget-search-results hidden" id="wingetSearchResults" aria-label="Résultats externes WinGet"></section>
         <div class="app-grid" id="appGrid"></div>
         <div class="empty hidden" id="emptyState"><span>⌕</span><h3>Aucun logiciel trouvé</h3><p>Essayez un autre mot-clé ou une autre catégorie.</p></div>
       </section>
@@ -355,6 +402,57 @@
       </div>
 
       <div class="danger-note"><span>!</span><div><strong>La Corbeille ne pourra pas être restaurée</strong><p>Décochez « Corbeille » si vous souhaitez vérifier son contenu avant le nettoyage.</p></div></div>
+    </section>
+
+    <section class="view" id="browsers">
+      <div class="page-intro browser-intro">
+        <div><span class="label">CONFIDENTIALITÉ ET STOCKAGE</span><h1>Nettoyage des navigateurs</h1><p>Détectez les navigateurs de ce compte Windows, mesurez leurs données temporaires puis choisissez précisément ce qui peut être supprimé.</p></div>
+        <div class="browser-overview" aria-label="Résumé de la détection">
+          <div class="browser-hero-icon" aria-hidden="true"><svg><use href="#nav-browser"/></svg></div>
+          <div class="browser-overview-stat"><strong id="browserDetectedCount">—</strong><small>navigateurs détectés</small></div>
+          <div class="browser-overview-stat"><strong id="browserSelectedCount">0</strong><small>sélectionnés</small></div>
+          <div class="browser-overview-stat"><strong id="browserProfileCount">—</strong><small>profils locaux</small></div>
+        </div>
+      </div>
+      <div class="browser-safety-banner"><span><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><div><strong>Données personnelles protégées</strong><small>OwlSetup ne touche jamais aux mots de passe, favoris, extensions, téléchargements, sessions ouvertes ni profils.</small></div><b>100 % local</b></div>
+      <div class="browser-workspace">
+        <div class="browser-panel">
+          <div class="section-heading browser-panel-heading"><div><span class="label">1 · NAVIGATEURS</span><h2>Sélectionnez les profils à analyser</h2></div><button class="secondary-dialog-button" id="scanBrowsers" type="button">↻ Détecter</button></div>
+          <div class="browser-selection-toolbar"><span id="browserSelectionSummary">Aucun navigateur sélectionné</span><div><button type="button" id="selectAllBrowsers">Tout sélectionner</button><button type="button" id="clearBrowsers">Tout désélectionner</button></div></div>
+          <div class="browser-list" id="browserCards"><div class="browser-empty"><span>↻</span><strong>Détection en attente</strong><small>Ouvrez cet onglet ou cliquez sur « Détecter ».</small></div></div>
+        </div>
+        <div class="browser-panel">
+          <div class="section-heading"><div><span class="label">2 · DONNÉES</span><h2>Choisissez les catégories</h2></div></div>
+          <div class="browser-presets" role="group" aria-label="Profils de nettoyage"><button class="active" type="button" data-browser-preset="recommended"><strong>Recommandé</strong><small>Rapide et sans déconnexion</small></button><button type="button" data-browser-preset="privacy"><strong>Confidentialité</strong><small>Ajoute cookies et historique</small></button><button type="button" data-browser-preset="custom"><strong>Personnalisé</strong><small>Choix manuel</small></button></div>
+          <div class="browser-category-grid">
+            <label class="browser-category safe"><input type="checkbox" data-browser-category="cache" checked><span><svg><use href="#nav-cleanup"/></svg></span><p><strong>Cache de navigation</strong><small>Images, scripts et fichiers temporaires</small></p><em>Recommandé</em></label>
+            <label class="browser-category safe"><input type="checkbox" data-browser-category="media-cache" checked><span><svg><use href="#nav-download"/></svg></span><p><strong>Cache multimédia</strong><small>Copies temporaires audio et vidéo</small></p><em>Recommandé</em></label>
+            <label class="browser-category safe"><input type="checkbox" data-browser-category="crash" checked><span><svg><use href="#nav-troubleshoot"/></svg></span><p><strong>Rapports de plantage</strong><small>Diagnostics locaux devenus inutiles</small></p><em>Recommandé</em></label>
+            <label class="browser-category warning"><input type="checkbox" data-browser-category="cookies"><span><svg><use href="#nav-shield"/></svg></span><p><strong>Cookies</strong><small>Peut vous déconnecter des sites</small></p><em>À vérifier</em></label>
+            <label class="browser-category warning"><input type="checkbox" data-browser-category="site-data"><span><svg><use href="#nav-browser"/></svg></span><p><strong>Données de sites</strong><small>Stockage local et données hors ligne</small></p><em>Avancé</em></label>
+            <label class="browser-category warning"><input type="checkbox" data-browser-category="history"><span><svg><use href="#nav-guide"/></svg></span><p><strong>Historique</strong><small>Pris en charge selon le navigateur</small></p><em>Avancé</em></label>
+          </div>
+          <div class="browser-sync-warning hidden" id="browserHistorySyncWarning" role="note">
+            <span aria-hidden="true">!</span>
+            <div><strong>Historique synchronisé : il peut réapparaître</strong><small>OwlSetup supprime uniquement la copie locale. Si la synchronisation du navigateur est active, l’ancien historique peut être restauré à la réouverture. Pour une suppression sur tous les appareils, utilisez « Effacer les données de navigation » dans le navigateur.</small></div>
+          </div>
+          <details class="browser-data-details">
+            <summary><span>?</span><strong>Que contient chaque catégorie ?</strong><small>Distinguer le cache des données personnelles</small></summary>
+            <div class="browser-data-details-grid">
+              <article><b>Cache de navigation</b><p>Copies temporaires d’images, polices, scripts et fichiers techniques. Il ne contient ni mots de passe, ni favoris, ni historique.</p></article>
+              <article><b>Cache multimédia</b><p>Fragments temporaires audio et vidéo utilisés pour accélérer la lecture. Vos fichiers téléchargés ne sont pas supprimés.</p></article>
+              <article><b>Rapports de plantage</b><p>Fichiers de diagnostic générés après un blocage du navigateur. Ils ne contiennent pas vos identifiants enregistrés.</p></article>
+              <article class="sensitive"><b>Cookies</b><p>Jetons de connexion et préférences de sites. Leur suppression peut vous déconnecter, mais ne supprime pas les mots de passe enregistrés.</p></article>
+              <article class="sensitive"><b>Données de sites</b><p>Stockage local, bases hors ligne et données techniques propres aux sites. Certaines applications Web peuvent être réinitialisées.</p></article>
+              <article class="sensitive"><b>Historique</b><p>Liste locale des pages visitées. Cette catégorie est séparée du cache et reste désactivée dans le profil recommandé. Si la synchronisation est active, le navigateur peut restaurer cet historique après le nettoyage.</p></article>
+            </div>
+            <div class="browser-protected-data"><strong>Toujours protégés</strong><span>Mots de passe</span><span>Favoris</span><span>Extensions</span><span>Téléchargements</span><span>Sessions ouvertes</span><span>Profils</span></div>
+          </details>
+          <div class="browser-action-row"><p><strong>Aucune suppression pendant l’analyse.</strong><small>Une nouvelle confirmation sera demandée avant le nettoyage.</small></p><button class="install-button" id="analyzeBrowserData" type="button" disabled><span>⌕</span> Analyser la sélection</button></div>
+        </div>
+      </div>
+      <div class="browser-analysis-panel hidden" id="browserAnalysisResult"><div class="browser-analysis-copy"><span class="label">RÉSULTAT DE L’ANALYSE</span><h2 id="browserAnalysisTitle">Données récupérables</h2><p id="browserAnalysisDetail"></p><div class="browser-analysis-breakdown" id="browserAnalysisBreakdown"></div><div class="browser-analysis-protection" id="browserAnalysisProtection"></div></div><div class="browser-analysis-actions"><strong id="browserAnalysisSize">0 Mo</strong><small>Estimation locale</small><button class="primary-dialog-button" id="reviewBrowserCleanup" type="button">Vérifier avant nettoyage</button></div></div>
+      <div class="danger-note"><span>!</span><div><strong>Fermez les navigateurs avant le nettoyage</strong><p>OwlSetup peut demander leur fermeture normale, mais ne forcera jamais l’arrêt d’un navigateur ni la perte d’un formulaire non enregistré.</p></div></div>
     </section>
 
     <section class="view" id="quarantine">
@@ -517,6 +615,19 @@
         <article class="settings-panel">
           <div class="settings-panel-heading"><span class="settings-heading-icon expert"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><div><strong>Mode expert <button class="help-hint" type="button" data-help-title="Mode expert" data-help-text="Affiche les commandes et détails techniques en lecture seule. Ce mode n’ajoute aucun droit administrateur et n’enregistre aucun mot de passe.">?</button></strong><small>Affichez les commandes WinGet et les détails techniques avant exécution.</small></div></div>
           <div class="protection-setting"><label class="settings-toggle"><input id="expertMode" type="checkbox"><span></span><b>Afficher les détails techniques</b></label><p>Les commandes sont affichées en lecture seule. Aucun mot de passe n’est enregistré.</p></div>
+        </article>
+        <article class="settings-panel alpha-schedule-panel alpha-only hidden">
+          <div class="settings-panel-heading"><span class="settings-heading-icon alpha-clock"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span><div><strong>Automatisation One-Click <span class="alpha-chip">ALPHA</span></strong><small>Préparez votre rythme d’entretien. Alpha 1 enregistre uniquement votre préférence locale.</small></div></div>
+          <div class="alpha-schedule-settings">
+            <label class="settings-toggle"><input id="alphaScheduleEnabled" type="checkbox"><span></span><b>Préparer un entretien récurrent</b></label>
+            <div class="alpha-schedule-grid">
+              <label>Jour<select id="alphaScheduleDay"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5" selected>Vendredi</option><option value="6">Samedi</option><option value="0">Dimanche</option></select></label>
+              <label>Heure<input id="alphaScheduleTime" type="time" value="20:00"></label>
+            </div>
+            <label class="settings-toggle compact"><input id="alphaScheduleRestore" type="checkbox" checked><span></span><b>Proposer une protection avant l’entretien</b></label>
+            <button class="primary-dialog-button" id="saveAlphaSchedule" type="button">Enregistrer la préparation</button>
+            <p class="alpha-schedule-status" id="alphaScheduleStatus">Aucune tâche Windows n’est créée dans Alpha 1.</p>
+          </div>
         </article>
         <article class="settings-panel">
           <div class="settings-panel-heading"><span class="settings-heading-icon"><svg aria-hidden="true"><use href="#nav-selection"/></svg></span><div><strong>Sauvegarde complète</strong><small>Conservez la langue, l’accessibilité, les profils et les préférences avec votre liste de logiciels.</small></div></div>
@@ -713,6 +824,14 @@
     </div>
   </div>
 
+  <div class="install-modal hidden" id="browserCleanupModal" role="dialog" aria-modal="true" aria-labelledby="browserCleanupTitle">
+    <div class="install-dialog browser-cleanup-dialog">
+      <div class="dialog-header"><span class="dialog-logo browser-dialog-logo"><svg aria-hidden="true"><use href="#nav-browser"/></svg></span><div><span class="label">NETTOYAGE DES NAVIGATEURS</span><h2 id="browserCleanupTitle">Vérifier la suppression</h2></div><button class="dialog-close" id="closeBrowserCleanup" type="button" aria-label="Fermer">×</button></div>
+      <div class="dialog-confirm" id="browserCleanupConfirmView"><div class="simulation-badge"><span>✓</span><div><strong>ANALYSE TERMINÉE</strong><small id="browserCleanupSummary">Aucune donnée ne sera supprimée sans confirmation</small></div></div><div class="browser-cleanup-review" id="browserCleanupReview"></div><label class="browser-close-choice"><input type="checkbox" id="closeBrowsersBeforeCleanup" checked><span><strong>Demander la fermeture normale des navigateurs ouverts</strong><small>OwlSetup n’utilise pas de fermeture forcée. Enregistrez vos formulaires avant de continuer.</small></span></label><div class="dialog-warning" id="browserCleanupWarning"><span>!</span> Les cookies et données de sites sélectionnés peuvent vous déconnecter. Les mots de passe, favoris et extensions restent protégés.</div><div class="dialog-actions"><button class="secondary-dialog-button" id="cancelBrowserCleanup" type="button">Annuler</button><button class="primary-dialog-button" id="confirmBrowserCleanup" type="button"><span>▶</span> Nettoyer maintenant</button></div></div>
+      <div class="dialog-progress hidden" id="browserCleanupProgressView"><div class="progress-status"><span class="pulse-dot"></span><div><strong id="browserCleanupProgressTitle">Nettoyage en cours</strong><small id="browserCleanupProgressDetail">Suppression des données analysées</small></div><b id="browserCleanupPercent">0%</b></div><div class="progress-track"><i id="browserCleanupBar"></i></div><div class="progress-summary" id="browserCleanupResult">Ne fermez pas OwlSetup pendant l’opération.</div><div class="dialog-actions browser-result-actions hidden" id="browserCleanupResultActions"><button class="secondary-dialog-button" id="openBrowserCleanupReport" type="button">Voir le rapport</button><button class="primary-dialog-button" id="finishBrowserCleanup" type="button">Terminer</button></div></div>
+    </div>
+  </div>
+
   <div class="install-modal hidden" id="repairModal" role="dialog" aria-modal="true" aria-labelledby="repairTitle">
     <div class="install-dialog repair-dialog">
       <div class="dialog-header"><span class="dialog-logo repair-logo">⚙</span><div><span class="label">MAINTENANCE DU LOGICIEL</span><h2 id="repairTitle">Réparer</h2></div><button class="dialog-close" id="closeRepairModal">×</button></div>
@@ -827,6 +946,20 @@
         <div class="health-details-list" id="healthDetailsList"></div>
         <div class="dialog-warning"><span>i</span> Ce score reste uniquement sur ce PC. Il évolue après une nouvelle analyse d’OwlSetup.</div>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="refreshHealthFromDetails" type="button">Actualiser l’analyse</button><button class="primary-dialog-button" id="finishHealthDetails" type="button">Terminer</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="install-modal hidden" id="alphaReviewModal" role="dialog" aria-modal="true" aria-labelledby="alphaReviewTitle">
+    <div class="install-dialog alpha-review-dialog">
+      <div class="dialog-glow alpha-review-glow"></div>
+      <div class="dialog-header"><span class="dialog-logo alpha-review-logo"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><div><span class="label" id="alphaReviewMode">PLAN ONE-CLICK</span><h2 id="alphaReviewTitle">Vérifier les actions</h2></div><button class="dialog-close" id="closeAlphaReview" type="button" aria-label="Fermer">×</button></div>
+      <div class="alpha-review-body">
+        <p id="alphaReviewSummary">OwlSetup prépare une étape à la fois et conserve les confirmations normales.</p>
+        <div class="alpha-review-list" id="alphaReviewList"></div>
+        <label class="alpha-review-restore"><input id="alphaReviewRestore" type="checkbox"><span></span><p><strong>Créer un point de restauration avant une modification</strong><small>Facultatif. Windows peut demander les droits administrateur.</small></p></label>
+        <div class="alpha-review-warning hidden" id="alphaIrreversibleWarning"><span>!</span><p><strong>Action non annulable par OwlSetup</strong><small>Une mise à jour ou une suppression de fichiers temporaires ne possède pas de bouton « Annuler » après son démarrage.</small></p></div>
+        <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelAlphaPlan" type="button">Annuler</button><button class="primary-dialog-button" id="confirmAlphaPlan" type="button">Préparer la première étape</button></div>
       </div>
     </div>
   </div>
