@@ -1,99 +1,109 @@
 <div align="center">
-  <img src="assets/branding/owlsetup-logo-512.png" width="150" alt="Logo OwlSetup">
+  <img src="assets/branding/owlsetup-logo-512.png" width="150" alt="OwlSetup logo">
 
   # OwlSetup
 
-  **Installer, mettre à jour et entretenir Windows depuis une seule application.**
+  **An open-source Windows maintenance center to install, update, uninstall and clean software with WinGet.**
 
   [![Version](https://img.shields.io/github/v/release/OwlNetGeekFR/OwlSetup?display_name=tag&sort=semver)](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest)
-  [![Publication](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml/badge.svg)](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml)
-  [![Licence MIT](https://img.shields.io/github/license/OwlNetGeekFR/OwlSetup)](LICENSE)
-  [![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-1473e6)](#configuration-requise)
+  [![Release build](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml/badge.svg)](https://github.com/OwlNetGeekFR/OwlSetup/actions/workflows/release.yml)
+  [![MIT License](https://img.shields.io/github/license/OwlNetGeekFR/OwlSetup)](LICENSE)
+  [![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-1473e6)](#requirements)
 
-  [Télécharger](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest) · [Site officiel](https://owlsetup.owlnetgeek.fr/) · [Signaler un problème](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) · [Confidentialité](PRIVACY.md)
+  [Download](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest) · [Official website](https://owlsetup.owlnetgeek.fr/) · [Report an issue](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) · [Privacy](PRIVACY.md)
+
+  **English** · [Français](README.fr.md)
 </div>
 
 ---
 
-OwlSetup est une application Windows open source qui centralise l’installation et la désinstallation de logiciels, les mises à jour, le nettoyage du disque et plusieurs outils de maintenance. Les actions sensibles sont présentées à l’utilisateur avant leur exécution.
+OwlSetup is a free, open-source and ad-free Windows maintenance application. It brings software installation and removal, updates, disk cleanup and useful system tools together in one interface. Sensitive actions are always shown to the user before they run.
 
-## Installation rapide
+## Why OwlSetup?
 
-1. Téléchargez **`OwlSetup-Setup.exe`** depuis la [dernière Release officielle](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest).
-2. Vérifiez, si vous le souhaitez, son empreinte avec le fichier `SHA256.txt` fourni dans la même Release.
-3. Lancez l’installateur et suivez les instructions.
+- Install and update applications through Microsoft WinGet.
+- Detect installed applications and manage them from one catalog.
+- Clean temporary files and application leftovers with a confirmation step.
+- Keep reports and settings locally on the computer.
+- Use the application without an account, advertising or mandatory telemetry.
 
-> OwlSetup n’est pas encore signé numériquement. Windows SmartScreen peut afficher un avertissement au premier lancement. Ne téléchargez l’application que depuis ce dépôt officiel.
+## Quick installation
 
-## Fonctionnalités principales
+1. Download **`OwlSetup-Setup.exe`** from the [latest official release](https://github.com/OwlNetGeekFR/OwlSetup/releases/latest).
+2. If desired, verify its checksum against the `SHA256.txt` file included in the same release.
+3. Run the installer and follow the instructions.
 
-| Domaine | Fonctionnalités |
+> OwlSetup is not digitally signed yet. Windows SmartScreen may display a warning on first launch. Only download the application from this official repository.
+
+## Main features
+
+| Area | Features |
 | --- | --- |
-| Logiciels | Catalogue WinGet, liens officiels, profils, détection des applications installées |
-| Gestion | Installation, réparation, désinstallation individuelle ou groupée |
-| Mises à jour | Comparaison des versions, sélection individuelle, Windows Update et pilotes certifiés |
-| Nettoyage | Fichiers temporaires, caches, Corbeille, composants Windows et résidus d’applications |
-| Sécurité | Simulation et confirmation des actions sensibles, quarantaine restaurable, contrôles de chemins |
-| Diagnostic | WinGet, point de restauration, démarrage Windows, occupation du disque et rapports locaux |
+| Software | WinGet catalog, official links, profiles and installed-application detection |
+| Management | Individual or batch installation, repair and uninstallation |
+| Updates | Version comparison, individual selection, Windows Update and Microsoft-provided drivers |
+| Cleanup | Temporary files, caches, Recycle Bin, Windows components and application leftovers |
+| Security | Preview and confirmation of sensitive actions, restorable quarantine and path validation |
+| Diagnostics | WinGet, restore points, startup applications, disk usage and local reports |
 
-Les journaux et données de travail restent sur l’ordinateur, dans `%LOCALAPPDATA%\PCSetup`. OwlSetup ne contient aucune publicité. L’envoi d’un diagnostic minimal est facultatif, désactivé par défaut et contrôlé par l’utilisateur dans les Paramètres.
+Logs and working data stay on the computer in `%LOCALAPPDATA%\PCSetup`. OwlSetup contains no advertising. Optional minimal diagnostic reporting is disabled by default and controlled by the user in Settings.
 
-## Configuration requise
+## Requirements
 
-- Windows 10 version 1809 ou ultérieure, ou Windows 11 ;
-- processeur 64 bits ;
-- Microsoft Edge WebView2 Runtime ;
-- WinGet / App Installer ;
-- droits administrateur pour certaines opérations système.
+- Windows 10 version 1809 or later, or Windows 11;
+- a 64-bit processor;
+- Microsoft Edge WebView2 Runtime;
+- WinGet / App Installer;
+- administrator privileges for some system operations.
 
-## Compiler le projet
+## Build the project
 
-Prérequis : Windows PowerShell, .NET Framework et [Inno Setup 6](https://jrsoftware.org/isinfo.php) pour produire l’installateur.
+Prerequisites: Windows PowerShell, .NET Framework and [Inno Setup 6](https://jrsoftware.org/isinfo.php) to build the installer.
 
 ```powershell
 ./build.ps1
 ./build-installer.ps1 -Version 3.7.0
 ```
 
-Pour préparer tous les fichiers d’une version stable sans les publier :
+To prepare all stable-release files without publishing them:
 
 ```powershell
 ./build-stable.ps1 -Version 3.7.0
 ```
 
-Pour produire une bêta locale clairement identifiée :
+To produce a clearly identified local beta:
 
 ```powershell
 ./build-beta.ps1 -Version "3.7.1-beta.1"
 ```
 
-Les constructions locales sont placées dans `artifacts/` et ne sont pas suivies par Git.
+Local builds are placed in `artifacts/` and are not tracked by Git.
 
-## Vérifier le catalogue
+## Validate the catalog
 
-Le script suivant contrôle les identifiants WinGet sans installer ni supprimer de logiciel :
+The following script validates WinGet package identifiers without installing or removing software:
 
 ```powershell
 ./tools/Test-OwlSetupCatalog.ps1
 ```
 
-Le mode destructif est réservé à une machine de test ou une machine virtuelle. Consultez le [guide de validation du catalogue](CATALOG-TEST-GUIDE.md) avant de l’utiliser.
+Destructive testing is intended only for a dedicated test computer or virtual machine. Read the [catalog validation guide](CATALOG-TEST-GUIDE.md) before using it.
 
-## Contribuer et obtenir de l’aide
+## Contributing and support
 
-- Consultez [CONTRIBUTING.md](CONTRIBUTING.md) avant de proposer une modification.
-- Utilisez les [modèles de signalement](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) pour un bug ou une suggestion.
-- Pour une vulnérabilité, suivez impérativement [SECURITY.md](SECURITY.md) et ne publiez pas les détails dans une Issue publique.
-- L’historique fonctionnel est disponible dans [CHANGELOG.md](CHANGELOG.md).
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
+- Use the [issue templates](https://github.com/OwlNetGeekFR/OwlSetup/issues/new/choose) for bugs and feature requests.
+- For a vulnerability, follow [SECURITY.md](SECURITY.md) and do not disclose details in a public issue.
+- Release history is available in [CHANGELOG.md](CHANGELOG.md).
 
-## Soutenir le projet
+## Support the project
 
-OwlSetup reste gratuit, open source et sans fonctionnalité payante. Les dons facultatifs contribuent aux tests, à l’hébergement et à la future signature numérique de l’application.
+OwlSetup remains free, open source and without paid features. Optional donations help fund testing, hosting and a future digital code-signing certificate.
 
-[![Soutenir OwlSetup sur Ko-fi](https://img.shields.io/badge/Ko--fi-Soutenir%20OwlSetup-ff5e5b?logo=kofi&logoColor=white)](https://ko-fi.com/owlsetup)
+[![Support OwlSetup on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20OwlSetup-ff5e5b?logo=kofi&logoColor=white)](https://ko-fi.com/owlsetup)
 
-## Licence et marques
+## License and trademarks
 
-OwlSetup est distribué sous [licence MIT](LICENSE). Copyright © 2026 OwlNetGeekFR.
+OwlSetup is distributed under the [MIT License](LICENSE). Copyright © 2026 OwlNetGeekFR.
 
-Les noms, marques et logos des applications du catalogue appartiennent à leurs éditeurs respectifs. Leur présence sert uniquement à identifier les logiciels proposés.
+Application names, trademarks and logos belong to their respective owners. They are displayed only to identify the software available in the catalog.
