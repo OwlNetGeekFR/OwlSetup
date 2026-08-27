@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { parseWingetTable, stripAnsi } from "../src/modules/winget-table.js";
+import { parseWingetTable, stripAnsi, wingetTableHasId } from "../src/modules/winget-table.js";
 
 const fixture = (name) =>
   readFileSync(fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url)), "utf8");
@@ -87,6 +87,32 @@ describe("parseWingetTable — winget list (FR, ids non-winget)", () => {
     expect(rows.length).toBeGreaterThan(3);
     expect(rows.some((r) => r.id.startsWith("ARP\\Machine\\"))).toBe(true);
     expect(rows.some((r) => r.id.startsWith("MSIX\\"))).toBe(true);
+  });
+});
+
+describe("wingetTableHasId", () => {
+  const upgrade = fixture("winget-upgrade-fr.txt");
+
+  it("reconnaît un id présent dans la colonne ID (casse ignorée)", () => {
+    expect(wingetTableHasId(upgrade, "Ubisoft.Connect")).toBe(true);
+    expect(wingetTableHasId(upgrade, "blizzard.battlenet")).toBe(true);
+  });
+
+  it("rejette un id absent et les entrées vides", () => {
+    expect(wingetTableHasId(upgrade, "Nope.Missing")).toBe(false);
+    expect(wingetTableHasId("", "Ubisoft.Connect")).toBe(false);
+    expect(wingetTableHasId(upgrade, "")).toBe(false);
+  });
+
+  it("ne confond pas l'id avec la même chaîne apparue dans une autre colonne", () => {
+    const table = [
+      "Name              Id             Version   Source",
+      "----              --             -------   ------",
+      "Acme.Helper tool  Acme.RealPkg   1.0.0     winget",
+    ].join("\n");
+    // "Acme.Helper" figure dans le Nom mais n'est l'ID d'aucune ligne.
+    expect(wingetTableHasId(table, "Acme.Helper")).toBe(false);
+    expect(wingetTableHasId(table, "Acme.RealPkg")).toBe(true);
   });
 });
 

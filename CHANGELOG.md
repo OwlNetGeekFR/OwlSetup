@@ -1,5 +1,27 @@
 # Historique des versions
 
+## [4.0.0-beta.13] - 2026-08-27
+
+### WinGet : les vérifications d'installation passent par la colonne ID
+
+- Suite du chantier « analyseur unique » : les derniers points qui lisaient la
+  sortie de `winget list` à la main sont migrés sur `ParseWingetTable`.
+  - `ParseWingetListPackageIds` (résolution de l'identifiant à désinstaller)
+    n'utilise plus `Regex.Split(\s{2,})` — fragile dès qu'un nom contient deux
+    espaces consécutifs.
+  - `VerifyPackageInstallation`, `IsPackageStillInstalled` et
+    `PromoteVerifiedWingetPackages` ne cherchent plus l'identifiant par
+    `IndexOf` / regex sur le texte brut mais via un nouveau contrôle
+    `WingetTableContainsId` qui compare **la colonne ID** ligne par ligne.
+    Un identifiant apparaissant dans un nom d'application ou un chemin ne
+    déclenche plus de faux positif.
+- Miroir JS : `wingetTableHasId(output, id)` dans
+  `beta/src/modules/winget-table.js` (+ 3 tests). 137 tests beta.
+- `tests/Test-WingetParsing.ps1` étendu : marqueurs des sites migrés +
+  vérification par réflexion de `WingetTableContainsId` sur une capture réelle.
+- Vérifié : la bêta démarre, intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.12] - 2026-08-27
 
 ### WinGet : un seul analyseur de sortie tabulaire

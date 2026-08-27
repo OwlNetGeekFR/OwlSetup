@@ -24,7 +24,7 @@ fonctionner à l'identique.
 ```bash
 cd beta
 npm install
-npm run check      # lint + format + 121 tests + catalogue synchronisé
+npm run check      # lint + format + 137 tests + catalogue synchronisé
 ```
 
 Scripts utiles :
@@ -40,7 +40,7 @@ npm run format            # applique Prettier sur beta/
 
 ### Lot 0 — fondations
 
-- Outillage lint/format/test opérationnel, **134 tests verts**.
+- Outillage lint/format/test opérationnel, **137 tests verts**.
 - 8 modules purs extraits de `app.js` / `OwlSetupWebView.cs` : `escape-html`,
   `package-id`, `winget-brand`, `redaction` (anonymisation des journaux),
   `theme`, `update-heuristics` (lanceurs auto-gérés), `operations-reconcile`
