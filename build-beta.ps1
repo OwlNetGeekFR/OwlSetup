@@ -23,6 +23,13 @@ if (-not (Test-Path -LiteralPath $output)) {
     throw "L'exécutable bêta n'a pas été créé."
 }
 
+$shim = [IO.Path]::ChangeExtension($output, ".com")
+$shimLine = if (Test-Path -LiteralPath $shim) {
+    "Shim console (a garder a cote de l'exe) : $shim"
+} else {
+    "Shim console : absent (OwlSetupCli.cs introuvable au build)"
+}
+
 $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
 $commit = try { (& git -C $PSScriptRoot rev-parse --short HEAD 2>$null) } catch { "inconnu" }
 $info = @(
@@ -33,6 +40,7 @@ $info = @(
     "SHA-256 : $hash"
     ""
     "Fichier à tester : $output"
+    $shimLine
 )
 $info | Set-Content -LiteralPath (Join-Path $artifactFolder "BETA-INFO.txt") -Encoding UTF8
 
