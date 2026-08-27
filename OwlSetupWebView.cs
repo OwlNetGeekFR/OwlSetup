@@ -4025,7 +4025,7 @@ internal static class Bootstrap
     {
         var principal=new WindowsPrincipal(WindowsIdentity.GetCurrent());
         if(!principal.IsInRole(WindowsBuiltInRole.Administrator))return 740;
-        string[] allowed={"user-temp","windows-temp","recycle-bin","delivery","components","app-leftovers"};
+        string[] allowed={"user-temp","windows-temp","recycle-bin","delivery","components"};
         string[] choices=(choicesValue??"").Split(new[]{','},StringSplitOptions.RemoveEmptyEntries).Where(value=>allowed.Contains(value)).Distinct().ToArray();
         if(choices.Length==0 || String.Join(",",choices)!=(choicesValue??""))return 87;
         string logRoot=Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PCSetup","Logs"))+Path.DirectorySeparatorChar;

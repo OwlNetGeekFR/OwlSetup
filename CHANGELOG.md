@@ -1,5 +1,22 @@
 # Historique des versions
 
+## [4.0.0-beta.10] - 2026-08-27
+
+### Consolidation + tests
+
+- Ajoute des tests de comportement pour les correctifs des bêtas précédentes :
+  - `beta/` : nouveau module pur `operations-reconcile` (résolution automatique
+    des faux échecs du Centre des opérations) avec tests unitaires + parité avec
+    `app.js` ; la liste des lanceurs auto-gérés est désormais vérifiée en
+    **triple parité** (module ≡ hôte C# ≡ `app.js`). 121 tests.
+  - `tests/Test-MaintenanceHardening.ps1` et `tests/Test-SecurityHardening.ps1`
+    gardent la présence des correctifs (identifiants durcis, `--include-unknown`,
+    lanceurs auto-gérés, liste d'ignorés, réconciliation des opérations,
+    détection AV/pare-feu indéterminée, suppression robuste de quarantaine,
+    `longPathAware`, etc.). Exécutés par la suite de préparation, donc en CI.
+- Retire `app-leftovers` de la dernière liste où elle subsistait
+  (`RunElevatedCleanupWorker`).
+
 ## [4.0.0-beta.9] - 2026-08-27
 
 ### Consolidation : trois finitions
