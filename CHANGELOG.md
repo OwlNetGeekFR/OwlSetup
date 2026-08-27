@@ -1,5 +1,21 @@
 # Historique des versions
 
+## [4.0.0-beta.12] - 2026-08-27
+
+### WinGet : un seul analyseur de sortie tabulaire
+
+- Les analyseurs regex maison de `winget upgrade` et `winget search` sont
+  remplacés par **un analyseur unique** (`ParseWingetTable`) qui lit la ligne
+  d'en-tête pour retrouver la position de chaque colonne, puis découpe par
+  positions. Miroir JS testé sur de vraies captures
+  (`beta/src/modules/winget-table.js`, 12 tests).
+- Corrige au passage : les paquets dont la **version installée contient un
+  espace** (`< 173.0.0.13316`, ex. Ubisoft Connect) n'étaient pas listés du tout
+  par l'ancienne regex ; ils apparaissent maintenant (et sont gérés comme les
+  autres lanceurs auto-gérés).
+- Gère les en-têtes localisés (Nom/ID/Version/Disponible/Source/Correspondance),
+  `Unknown`, les colonnes vides et les identifiants `MSIX\` / `ARP\`.
+
 ## [4.0.0-beta.11] - 2026-08-27
 
 ### Catalogue : `apps.json` devient la source de vérité

@@ -1193,6 +1193,84 @@ internal sealed class WebAppForm : Form
         throw new FileNotFoundException("WinGet officiel est introuvable. Installez ou réparez App Installer depuis Microsoft Store.");
     }
 
+    // --- Analyse de la sortie tabulaire de winget -----------------------------
+    // Portage fidèle de beta/src/modules/winget-table.js (testé sur de vraies
+    // captures). Lit la ligne d'en-tête pour retrouver la position de chaque
+    // colonne, puis découpe par positions : tolère les valeurs à espaces
+    // (« < 1.2.3 »), les colonnes vides, « Unknown », les en-têtes FR/EN et ANSI.
+
+    static readonly Dictionary<string,string> WingetHeaderAliases = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase)
+    {
+        {"name","name"},{"nom","name"},
+        {"id","id"},
+        {"version","version"},
+        {"available","available"},{"disponible","available"},
+        {"source","source"},
+        {"match","match"},{"correspondance","match"},
+    };
+
+    static string StripWingetAnsi(string line)
+    {
+        string value=Regex.Replace(line ?? "","\x1B\\[[0-9;?]*[ -/]*[@-~]","");
+        if(value.Length>0 && value[0]=='﻿')value=value.Substring(1);
+        return value;
+    }
+
+    struct WingetColumn { public string Key; public int Start; }
+
+    static List<WingetColumn> WingetHeaderColumns(string headerLine)
+    {
+        var result=new List<WingetColumn>();
+        var seen=new HashSet<string>(StringComparer.Ordinal);
+        foreach(Match token in Regex.Matches(headerLine,@"\S+(?:\s\S+)*?(?=\s{2,}|$)"))
+        {
+            string key;
+            if(!WingetHeaderAliases.TryGetValue(token.Value.Trim(),out key))continue;
+            if(!seen.Add(key))continue;
+            result.Add(new WingetColumn{Key=key,Start=token.Index});
+        }
+        result.Sort((a,b)=>a.Start.CompareTo(b.Start));
+        return result;
+    }
+
+    static List<Dictionary<string,string>> ParseWingetTable(string output)
+    {
+        var rows=new List<Dictionary<string,string>>();
+        string[] lines=(output ?? "").Split(new[]{"\r\n","\r","\n"},StringSplitOptions.None)
+            .Select(StripWingetAnsi).ToArray();
+
+        int headerIdx=-1;List<WingetColumn> cols=null;
+        for(int i=0;i<lines.Length;i++)
+        {
+            var candidate=WingetHeaderColumns(lines[i]);
+            if(candidate.Count>=2 && candidate.Any(c=>c.Key=="id")){headerIdx=i;cols=candidate;break;}
+        }
+        if(headerIdx<0 || cols==null)return rows;
+
+        int secondColStart=cols.Count>1?cols[1].Start:0;
+        for(int i=headerIdx+1;i<lines.Length;i++)
+        {
+            string line=lines[i];
+            if(Regex.IsMatch(line,@"^\s*[-–—]{3,}"))continue;
+            if(line.Trim().Length==0){if(rows.Count>0)break;continue;}
+            if(secondColStart>0 && line.Length<=secondColStart)break;
+
+            var row=new Dictionary<string,string>(StringComparer.Ordinal);
+            for(int c=0;c<cols.Count;c++)
+            {
+                int from=cols[c].Start;
+                int to=c+1<cols.Count?cols[c+1].Start:line.Length;
+                if(from>line.Length)from=line.Length;
+                if(to>line.Length)to=line.Length;
+                row[cols[c].Key]=from<to?line.Substring(from,to-from).Trim():"";
+            }
+            string name=row.ContainsKey("name")?row["name"]:"";
+            string id=row.ContainsKey("id")?row["id"]:"";
+            if(name.Length>0 && id.Length>0)rows.Add(row);
+        }
+        return rows;
+    }
+
     void ScanInstalled(Dictionary<string, object> payload)
     {
         if (scanRunning) return;
@@ -2302,39 +2380,15 @@ internal sealed class WebAppForm : Form
 
     IEnumerable<object> ParseWingetSearchResults(string output)
     {
-        string[] lines=(output??"").Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries)
-            .Select(line=>Regex.Replace(line,@"\x1B\[[0-9;?]*[ -/]*[@-~]","").TrimEnd()).ToArray();
-        int headerIndex=-1,idStart=-1,versionStart=-1,sourceStart=-1;
-        for(int index=0;index<lines.Length;index++)
+        var results=new List<object>();
+        var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach(var row in ParseWingetTable(output))
         {
-            string line=lines[index];
-            int candidateId=line.IndexOf("Id",StringComparison.OrdinalIgnoreCase);
-            int candidateVersion=line.IndexOf("Version",StringComparison.OrdinalIgnoreCase);
-            if(candidateId>0&&candidateVersion>candidateId)
-            {
-                headerIndex=index;idStart=candidateId;versionStart=candidateVersion;
-                sourceStart=line.IndexOf("Source",StringComparison.OrdinalIgnoreCase);
-                break;
-            }
-        }
-        if(headerIndex<0)return new object[0];
-        var results=new List<object>();var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        for(int index=headerIndex+1;index<lines.Length;index++)
-        {
-            string line=lines[index];
-            if(String.IsNullOrWhiteSpace(line)||Regex.IsMatch(line,@"^\s*-{3,}"))continue;
-            if(line.Length<=idStart)continue;
-            string name=line.Substring(0,Math.Min(idStart,line.Length)).Trim();
-            int idEnd=Math.Min(versionStart,line.Length);
-            string id=line.Substring(idStart,Math.Max(0,idEnd-idStart)).Trim();
-            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||String.IsNullOrWhiteSpace(name)||!seen.Add(id))continue;
-            string version="";
-            if(line.Length>versionStart)
-            {
-                int versionEnd=sourceStart>versionStart?Math.Min(sourceStart,line.Length):line.Length;
-                string versionArea=line.Substring(versionStart,Math.Max(0,versionEnd-versionStart)).Trim();
-                version=Regex.Match(versionArea,@"^\S+").Value;
-            }
+            string name=row.ContainsKey("name")?row["name"]:"";
+            string id=row.ContainsKey("id")?row["id"]:"";
+            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||name.Length==0||!seen.Add(id))continue;
+            string versionArea=row.ContainsKey("version")?row["version"]:"";
+            string version=Regex.Match(versionArea,@"^\S+").Value;
             results.Add(new {name=name,id=id,version=version,source="winget"});
         }
         return results;
@@ -2964,15 +3018,12 @@ internal sealed class WebAppForm : Form
         RunHiddenProcess("winget.exe","upgrade --include-unknown --accept-source-agreements --disable-interactivity",report);
         var results=new List<Dictionary<string,object>>();
         var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach(string raw in report.ToString().Split(new[]{"\r\n","\n"},StringSplitOptions.RemoveEmptyEntries))
+        foreach(var row in ParseWingetTable(report.ToString()))
         {
-            string line=Regex.Replace(raw,"\x1B\\[[0-9;?]*[ -/]*[@-~]","").Trim();
-            Match match=Regex.Match(line,@"^(.+?)\s{2,}([^\s]+)\s{2,}([^\s]+)\s{2,}([^\s]+)(?:\s{2,}([^\s]+))?$");
-            if(!match.Success)continue;
-            string name=match.Groups[1].Value.Trim();
-            string id=match.Groups[2].Value.Trim();
-            string current=match.Groups[3].Value.Trim();
-            string available=match.Groups[4].Value.Trim();
+            string name=row.ContainsKey("name")?row["name"]:"";
+            string id=row.ContainsKey("id")?row["id"]:"";
+            string current=row.ContainsKey("version")?row["version"]:"";
+            string available=row.ContainsKey("available")?row["available"]:"";
             if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
             bool unknownVersion=!Regex.IsMatch(current,"[0-9]");
             if(unknownVersion)current="inconnue";

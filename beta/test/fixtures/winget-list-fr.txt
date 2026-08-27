@@ -1,0 +1,22 @@
+Nom                                                            ID                                                                                      Version             Disponible     Source
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Actualités                                                     MSIX\Microsoft.BingNews_4.56.21872.0_x64__8wekyb3d8bbwe                                 4.56.21872.0                       
+AMD Chat                                                       ARP\Machine\X64\{5DC68D04-58D8-415E-B4F7-3480E4469F29}                                  1.3.0                              
+AMD Chipset Software                                           ARP\Machine\X86\AMD_Chipset_IODrivers                                                   8.08.12.551                        
+AMD Image Inspector                                            ARP\Machine\X64\{A369F6FF-BFF4-445F-A60C-A895B5E54BB5}                                  2.00.0001                          
+AMD Install Manager                                            ARP\Machine\X64\{8A00FD08-9537-4471-8E72-095BBBDFB43A}                                  26.10.26223.2118                   
+AMD Privacy View                                               ARP\Machine\X64\{D8E24EA6-807B-48D0-86D6-A9C5E74B8F2C}                                  1.02.0001                          
+AMD Radeon Software                                            MSIX\AdvancedMicroDevicesInc-RSXCMCHAT_22.10.0.0_x64__v2es6h43hjn86                     22.10.0.0                          
+AMD Radeon Software                                            MSIX\AdvancedMicroDevicesInc-RSXCM_22.10.0.0_x64__v2es6h43hjn86                         22.10.0.0                          
+AMD Ryzen Master                                               ARP\Machine\X64\AMD Ryzen Master                                                        3.1.1.5502                         
+AMD Software                                                   ARP\Machine\X64\AMD Catalyst Install Manager                                            26.8.1                             
+Améliorations de la compatibilité des applications Windows     MSIX\Microsoft.ApplicationCompatibilityEnhancements_1.2511.9.0_x64__8wekyb3d8bbwe       1.2511.9.0                         
+Ankama Launcher 3.15.2                                         Ankama.AnkamaLauncher                                                                   3.15.2              3.15.2.20509   winget
+Antigravity 2.11.0                                             Google.Antigravity                                                                      2.11.0                             winget
+Appareils mobiles                                              MSIX\MicrosoftWindows.CrossDevice_0.26071.84.0_x64__cw5n1h2txyewy                       0.26071.84.0                       
+Application Start Experiences                                  MSIX\Microsoft.StartExperiencesApp_1.380.2.0_x64__8wekyb3d8bbwe                         1.380.2.0                          
+Assistance rapide                                              MSIX\MicrosoftCorporationII.QuickAssist_2.0.35.0_x64__8wekyb3d8bbwe                     2.0.35.0                           
+AV1 Video Extension                                            MSIX\Microsoft.AV1VideoExtension_2.0.24.0_x64__8wekyb3d8bbwe                            2.0.24.0                           
+Battle.net                                                     Blizzard.BattleNet                                                                      Unknown             1.19.3.3219    winget
+Bitwarden                                                      Bitwarden.Bitwarden                                                                     2026.8.0                           winget
+Bitwarden 
