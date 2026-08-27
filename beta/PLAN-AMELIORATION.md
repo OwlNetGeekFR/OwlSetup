@@ -40,7 +40,7 @@ comportement de l'application.
 | Prettier                                                                  | `beta/.prettierrc.json`                             |
 | Vitest + seuils de couverture                                             | `beta/vitest.config.js`                             |
 | Type-check éditeur (JSDoc + `checkJs`)                                    | `beta/jsconfig.json`                                |
-| 5 modules purs extraits + testés (97 tests)                               | `beta/src/modules/*.js`, `beta/test/*`              |
+| 7 modules purs extraits + testés (121 tests)                              | `beta/src/modules/*.js`, `beta/test/*`              |
 | Test de **parité** avec `app.js` (le module doit égaler l'inline)         | `beta/test/parity.test.js`                          |
 | Catalogue externalisé en JSON + schéma + vérif. de dérive                 | `beta/catalog/`, `beta/scripts/extract-catalog.mjs` |
 | Projet MSBuild pour l'hôte C# (traduction fidèle de `build.ps1`)          | `beta/csharp/OwlSetup.csproj`                       |
@@ -50,7 +50,7 @@ comportement de l'application.
 `winget-brand`, `redaction` (anonymisation des journaux — sensible vie privée),
 `theme`.
 
-**Critères d'acceptation :** `npm run check` vert (lint + format + 97 tests +
+**Critères d'acceptation :** `npm run check` vert (lint + format + 121 tests +
 catalogue synchronisé). ✅ atteint. `Test-ReleaseCandidateReadiness.ps1` reste
 verte. ✅
 

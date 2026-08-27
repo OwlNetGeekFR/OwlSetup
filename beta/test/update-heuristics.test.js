@@ -50,8 +50,10 @@ describe("isSelfManagedUpdate", () => {
   });
 });
 
-describe("parité de la liste avec OwlSetupWebView.cs", () => {
-  it("SELF_MANAGED_UPDATERS == SelfManagedUpdaters (C#)", () => {
+describe("parité de la liste (module <-> C# <-> app.js)", () => {
+  const expected = [...SELF_MANAGED_UPDATERS].map((id) => id.toLowerCase()).sort();
+
+  it("== SelfManagedUpdaters (OwlSetupWebView.cs)", () => {
     const cs = readFileSync(
       fileURLToPath(new URL("../../OwlSetupWebView.cs", import.meta.url)),
       "utf8"
@@ -60,7 +62,19 @@ describe("parité de la liste avec OwlSetupWebView.cs", () => {
       cs.indexOf("SelfManagedUpdaters = new HashSet<string>"),
       cs.indexOf("};", cs.indexOf("SelfManagedUpdaters = new HashSet<string>"))
     );
-    const csIds = [...block.matchAll(/"([A-Za-z0-9][A-Za-z0-9.+_-]*)"/g)].map((m) => m[1]);
-    expect(csIds.sort()).toEqual([...SELF_MANAGED_UPDATERS].sort());
+    const csIds = [...block.matchAll(/"([A-Za-z0-9][A-Za-z0-9.+_-]*)"/g)].map((m) =>
+      m[1].toLowerCase()
+    );
+    expect(csIds.sort()).toEqual(expected);
+  });
+
+  it("== SELF_MANAGED_UPDATER_IDS (app.js, 4.0.0-beta.6)", () => {
+    const js = readFileSync(fileURLToPath(new URL("../../app.js", import.meta.url)), "utf8");
+    const start = js.indexOf("const SELF_MANAGED_UPDATER_IDS = new Set([");
+    const block = js.slice(start, js.indexOf("].map(", start));
+    const jsIds = [...block.matchAll(/"([A-Za-z0-9][A-Za-z0-9.+_-]*)"/g)].map((m) =>
+      m[1].toLowerCase()
+    );
+    expect(jsIds.sort()).toEqual(expected);
   });
 });

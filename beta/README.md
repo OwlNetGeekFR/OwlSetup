@@ -6,25 +6,25 @@ fonctionner à l'identique.
 
 ## Contenu
 
-| Chemin                                 | Rôle                                                                        |
-| -------------------------------------- | --------------------------------------------------------------------------- |
-| `PLAN-AMELIORATION.md`                 | Plan d'amélioration complet vers la 4.0 (lots 0 → 7).                       |
-| `COMPETITIVE-ANALYSIS.md`              | Comparaison avec UniGetUI, WinUtil, Winhance, Ninite, Patch My PC.          |
-| `package.json`                         | Scripts qualité (`lint`, `format`, `test`, `catalog:*`, `check`).           |
-| `eslint.config.js`, `.prettierrc.json` | Lint + format JavaScript.                                                   |
-| `vitest.config.js`, `test/`            | Tests unitaires + **test de parité** avec `../app.js`.                      |
-| `src/modules/`                         | Fonctions pures extraites de `../app.js`, testées à 100 %.                  |
-| `catalog/`                             | Catalogue des 93 applications externalisé en JSON + schéma.                 |
-| `scripts/`                             | Extraction / génération / vérification du catalogue.                        |
-| `csharp/OwlSetup.csproj`               | Projet MSBuild équivalent à l'appel `csc` de `build.ps1`.                   |
-| `ci/quality.yml`                       | Copie de référence ; le workflow actif est `.github/workflows/quality.yml`. |
+| Chemin                                 | Rôle                                                                             |
+| -------------------------------------- | -------------------------------------------------------------------------------- |
+| `PLAN-AMELIORATION.md`                 | Plan d'amélioration complet vers la 4.0 (lots 0 → 7).                            |
+| `COMPETITIVE-ANALYSIS.md`              | Comparaison avec UniGetUI, WinUtil, Winhance, Ninite, Patch My PC.               |
+| `package.json`                         | Scripts qualité (`lint`, `format`, `test`, `catalog:*`, `check`).                |
+| `eslint.config.js`, `.prettierrc.json` | Lint + format JavaScript.                                                        |
+| `vitest.config.js`, `test/`            | Tests unitaires + **test de parité** avec `../app.js`.                           |
+| `src/modules/`                         | 7 fonctions pures extraites de `../app.js` (dont réconciliation des opérations). |
+| `catalog/`                             | Catalogue des 93 applications externalisé en JSON + schéma.                      |
+| `scripts/`                             | Extraction / génération / vérification du catalogue.                             |
+| `csharp/OwlSetup.csproj`               | Projet MSBuild équivalent à l'appel `csc` de `build.ps1`.                        |
+| `ci/quality.yml`                       | Copie de référence ; le workflow actif est `.github/workflows/quality.yml`.      |
 
 ## Démarrage
 
 ```bash
 cd beta
 npm install
-npm run check      # lint + format + 97 tests + catalogue synchronisé
+npm run check      # lint + format + 121 tests + catalogue synchronisé
 ```
 
 Scripts utiles :
@@ -40,15 +40,26 @@ npm run format            # applique Prettier sur beta/
 
 ### Lot 0 — fondations
 
-- Outillage lint/format/test opérationnel, **97 tests verts**.
-- 5 modules purs extraits de `app.js` : `escape-html`, `package-id`,
-  `winget-brand`, `redaction` (anonymisation des journaux), `theme`.
+- Outillage lint/format/test opérationnel, **121 tests verts**.
+- 7 modules purs extraits de `app.js` : `escape-html`, `package-id`,
+  `winget-brand`, `redaction` (anonymisation des journaux), `theme`,
+  `update-heuristics` (lanceurs auto-gérés), `operations-reconcile`
+  (résolution automatique des faux échecs du Centre des opérations).
 - **Test de parité** : chaque module doit produire exactement le même résultat
   que la version encore présente dans `app.js`. Il échoue à la moindre
   divergence — c'est le garde-fou pendant la modularisation (lot 2).
+- Listes critiques (lanceurs auto-gérés) vérifiées **triple parité** :
+  module ≡ `OwlSetupWebView.cs` ≡ `app.js`.
 - `csharp/OwlSetup.csproj` : traduction fidèle de `build.ps1` pour obtenir
   IntelliSense, analyseurs Roslyn et restauration NuGet.
 - Workflow CI qualité **activé** (`.github/workflows/quality.yml`).
+
+### Consolidation (4.0.0-beta.10)
+
+- Deux garde-fous côté racine : `tests/Test-MaintenanceHardening.ps1` et
+  `tests/Test-SecurityHardening.ps1` — vérifient que les correctifs des
+  bêtas 2 → 9 sont toujours présents (exécutés par
+  `Test-ReleaseCandidateReadiness.ps1`, donc en CI).
 
 ### Lot 1 (amorcé, 4.0.0-beta.2) — catalogue externalisé et branché
 
