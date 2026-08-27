@@ -1186,7 +1186,26 @@ function updateBrowserSummary(){
   if($("#browserProfileCount"))$("#browserProfileCount").textContent=browserScanLoaded?profiles:"—";
   if($("#browserSelectionSummary"))$("#browserSelectionSummary").textContent=selected?`${selected} navigateur${selected>1?"s":""} sélectionné${selected>1?"s":""} sur ${total}`:"Aucun navigateur sélectionné";
 }
+// Catégories sans effet selon le moteur : côté Firefox, OwlSetup ne touche ni
+// au cache multimédia ni à l'historique (places.sqlite mêle historique et
+// favoris). On désactive alors la case au lieu de proposer un no-op.
+const engineUnsupportedCategories={Firefox:["media-cache","history"]};
+function syncBrowserCategoryAvailability(){
+  const engines=[...new Set(browserScanItems.filter(item=>selectedBrowserIds().includes(item.id)).map(item=>item.engine))];
+  document.querySelectorAll("[data-browser-category]").forEach(input=>{
+    const cat=input.dataset.browserCategory;
+    const unsupported=engines.length>0&&engines.every(engine=>(engineUnsupportedCategories[engine]||[]).includes(cat));
+    input.disabled=unsupported;
+    if(unsupported)input.checked=false;
+    const label=input.closest(".browser-category");
+    if(label){
+      label.classList.toggle("unsupported",unsupported);
+      label.title=unsupported?"Non pris en charge par les navigateurs sélectionnés (Firefox et dérivés)":"";
+    }
+  });
+}
 function updateBrowserActionState(){
+  syncBrowserCategoryAvailability();
   const categories=selectedBrowserCategories(),button=$("#analyzeBrowserData");
   if(button)button.disabled=!selectedBrowserIds().length||!categories.length||browserCleanupRunning;
   $("#browserHistorySyncWarning")?.classList.toggle("hidden",!categories.includes("history"));
@@ -1708,7 +1727,7 @@ function closeUpdateBlockingProcesses(force=false) {
   $("#closeUpdateBlocker").disabled=true;
   $("#forceCloseUpdateBlocker").disabled=true;
   if(!updateBlockerInspected&&!force) {
-    $("#updateProgressDetail").textContent="Recherche du processus qui verrouille les fichiers OBS…";
+    $("#updateProgressDetail").textContent="Recherche du processus qui verrouille les fichiers du logiciel…";
     window.chrome?.webview?.postMessage({action:"inspect-package-processes",payload:{packages:updateBlockerPackages}});
     return;
   }
@@ -2337,7 +2356,6 @@ function generateCleanupScript() {
   if (choices.has("recycle-bin")) actions.push(`Run-Step "Corbeille" { Clear-RecycleBin -Force -ErrorAction Stop }`);
   if (choices.has("delivery")) actions.push(`Run-Step "Cache d'optimisation de livraison" { if (Get-Command Delete-DeliveryOptimizationCache -ErrorAction SilentlyContinue) { Delete-DeliveryOptimizationCache -Force } else { Write-Host "Fonction non disponible sur cette version de Windows." } }`);
   if (choices.has("components")) actions.push(`Run-Step "Anciens composants Windows" { Start-Process dism.exe -ArgumentList "/Online","/Cleanup-Image","/StartComponentCleanup","/NoRestart" -Wait -NoNewWindow }`);
-  if (choices.has("app-leftovers")) actions.push(`Find-AppLeftovers`);
 
   const script = `# OwlSetup - Liberation d'espace disque
 $ErrorActionPreference = "Continue"
@@ -2989,7 +3007,9 @@ function handleInstallMessage(message) {
     const reason=message.reason||(Number(message.code)===1223?"uac-cancelled":"system-protection-disabled");
     const failureText=reason==="uac-cancelled"
       ? "Création annulée : la demande administrateur Windows a été refusée ou fermée."
-      : "Création impossible : vérifiez que la protection du système est activée sur le lecteur C:.";
+      : reason==="not-created"
+        ? "Windows n’a pas créé de nouveau point (un point très récent existe peut-être déjà). Ouvrez la protection du système pour vérifier."
+        : "Création impossible : vérifiez que la protection du système est activée sur le lecteur C:.";
     $("#restorePointText").textContent = message.success ? "Point de restauration créé avec succès." : failureText;
     notify(message.success ? "Point créé" : "Protection non disponible", $("#restorePointText").textContent);
     if(pendingProtectedAction){
@@ -3051,7 +3071,8 @@ function handleInstallMessage(message) {
     $("#diskList").innerHTML = (message.items || []).map(item => {
       const path=encodeURIComponent(item.path);
       const name=encodeURIComponent(item.name);
-      return `<article class="disk-item"><div class="disk-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.path)} · ${Number(item.files)||0} fichiers</small><i style="width:${Math.min(100,Math.max(2,Number(item.bytes)/max*100))}%"></i></div><div class="disk-item-side"><b>${escapeHtml(item.size)}</b><div class="disk-item-actions"><button data-disk-action="open" data-disk-path="${path}" title="Ouvrir ce dossier dans l'Explorateur"><svg aria-hidden="true"><use href="#tool-open-folder"/></svg><span>Ouvrir</span></button>${item.canClean?`<button class="disk-clean-button" data-disk-action="clean" data-disk-path="${path}" data-disk-name="${name}" title="Placer ce cache en quarantaine réversible"><svg aria-hidden="true"><use href="#tool-safe-clean"/></svg><span>Nettoyer</span></button>`:""}</div></div></article>`;
+      const fileNote=item.partial?`${Number(item.files)||0}+ fichiers · mesure partielle`:`${Number(item.files)||0} fichiers`;
+      return `<article class="disk-item"><div class="disk-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.path)} · ${fileNote}</small><i style="width:${Math.min(100,Math.max(2,Number(item.bytes)/max*100))}%"></i></div><div class="disk-item-side"><b>${escapeHtml(item.size)}${item.partial?" +":""}</b><div class="disk-item-actions"><button data-disk-action="open" data-disk-path="${path}" title="Ouvrir ce dossier dans l'Explorateur"><svg aria-hidden="true"><use href="#tool-open-folder"/></svg><span>Ouvrir</span></button>${item.canClean?`<button class="disk-clean-button" data-disk-action="clean" data-disk-path="${path}" data-disk-name="${name}" title="Placer ce cache en quarantaine réversible"><svg aria-hidden="true"><use href="#tool-safe-clean"/></svg><span>Nettoyer</span></button>`:""}</div></div></article>`;
     }).join("");
     return;
   }
@@ -3311,15 +3332,15 @@ function handleInstallMessage(message) {
       updateBlockerProcessNames=[...new Set(processes.map(item=>item.name).filter(Boolean))];
       if(!processes.length&&message.recognized!==false) {
         updateBlockerReady=true;
-        $("#updateProgressDetail").textContent="Aucun processus ne verrouille encore OBS. La nouvelle tentative est prête.";
+        $("#updateProgressDetail").textContent="Plus aucun processus ne verrouille les fichiers du logiciel. La nouvelle tentative est prête.";
         $("#closeUpdateBlocker").textContent="Réessayer la mise à jour";
       } else if(!processes.length) {
-        $("#updateProgressDetail").textContent="Le processus n'a pas été reconnu. Fermez manuellement l'application qui utilise OBS Virtual Camera.";
+        $("#updateProgressDetail").textContent="Le processus n'a pas été reconnu. Fermez manuellement l'application qui utilise ces fichiers.";
         $("#closeUpdateBlocker").textContent="Vérifier de nouveau";
         updateBlockerInspected=false;
       } else {
         const names=updateBlockerProcessNames.join(", ");
-        $("#updateProgressDetail").textContent=`${names} utilise encore des fichiers OBS. Enregistrez votre travail avant de le fermer.`;
+        $("#updateProgressDetail").textContent=`${names} utilise encore des fichiers du logiciel à mettre à jour. Enregistrez votre travail avant de le fermer.`;
         $("#closeUpdateBlocker").textContent=`Fermer ${names} et relancer`;
       }
       $("#closeUpdateBlocker").disabled=false;
@@ -4087,7 +4108,7 @@ $("#browserCards")?.addEventListener("change",event=>{event.target.closest(".bro
 document.querySelectorAll("[data-browser-category]").forEach(input=>input.addEventListener("change",()=>{document.querySelectorAll("[data-browser-preset]").forEach(button=>button.classList.toggle("active",button.dataset.browserPreset==="custom"));invalidateBrowserAnalysis();updateBrowserActionState();}));
 document.querySelectorAll("[data-cleanup]").forEach(input => input.addEventListener("change", updateCleanupCount));
 $("#recommendedCleanup").addEventListener("click", () => {
-  document.querySelectorAll("[data-cleanup]").forEach(input => { input.checked = !["components", "app-leftovers"].includes(input.dataset.cleanup); });
+  document.querySelectorAll("[data-cleanup]").forEach(input => { input.checked = input.dataset.cleanup !== "components"; });
   updateCleanupCount();
 });
 $("#mobileMenu").addEventListener("click", () => document.body.classList.toggle("menu-open"));

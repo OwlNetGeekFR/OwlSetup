@@ -2380,22 +2380,46 @@ internal sealed class WebAppForm : Form
         Task.Run(delegate {
             var report=new StringBuilder();int code=-1;string logName="PC-Setup-Point-Restauration-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
+            string marker="";
             try
             {
                 string label="OwlSetup "+BuildInfo.DisplayVersion+" - "+DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                string script="$ErrorActionPreference='Stop'; Checkpoint-Computer -Description '"+label.Replace("'","''")+"' -RestorePointType 'MODIFY_SETTINGS'";
+                // 1) Vérifie que la protection système est active. 2) Neutralise
+                // temporairement la limite Windows de 1 point / 24 h (sinon
+                // Checkpoint-Computer ne fait rien tout en renvoyant 0).
+                // 3) Confirme la création en comparant le nombre de points.
+                string script=
+                    "$ErrorActionPreference='Stop';"+
+                    "$k='HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore';"+
+                    "$disabled=$false; try{ $disabled=((Get-ItemProperty $k -Name DisableSR -EA SilentlyContinue).DisableSR -eq 1) }catch{};"+
+                    "if($disabled){ Write-Output 'PCSETUP_SR|disabled'; exit 3 };"+
+                    "$freq=$null; try{ $freq=(Get-ItemProperty $k -Name 'SystemRestorePointCreationFrequency' -EA SilentlyContinue).SystemRestorePointCreationFrequency }catch{};"+
+                    "$restore=$false; if($null -eq $freq -or $freq -ne 0){ try{ New-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -Value 0 -PropertyType DWord -Force | Out-Null; $restore=$true }catch{} };"+
+                    "$before=@(Get-ComputerRestorePoint -EA SilentlyContinue).Count;"+
+                    "try{ Checkpoint-Computer -Description '"+label.Replace("'","''")+"' -RestorePointType 'MODIFY_SETTINGS' }"+
+                    "finally{ if($restore){ if($null -eq $freq){ Remove-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -EA SilentlyContinue } else { Set-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -Value $freq -EA SilentlyContinue } } };"+
+                    "$after=@(Get-ComputerRestorePoint -EA SilentlyContinue).Count;"+
+                    "if($after -gt $before){ Write-Output 'PCSETUP_SR|created'; exit 0 } else { Write-Output 'PCSETUP_SR|not-created'; exit 4 }";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
                 SendToWeb(new { type="tool-progress", tool="restore", percent=40, status="Creation par Windows..." });
                 code=RunElevatedProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
                 SendToWeb(new { type="tool-progress", tool="restore", percent=90, status="Verification du point..." });
+                Match m=Regex.Match(report.ToString(),@"PCSETUP_SR\|([a-z-]+)");
+                if(m.Success)marker=m.Groups[1].Value;
             }
             catch(Exception ex){report.AppendLine("ERREUR : "+ex.Message);}
             finally
             {
                 try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
-                SendToWeb(new { type="tool-progress", tool="restore", percent=100, status=code==0?"Point cree.":"Creation a verifier." });
-                string reason=code==0?"created":(code==1223?"uac-cancelled":"system-protection-disabled");
-                SendToWeb(new { type="restore-point-complete",success=code==0,code=code,reason=reason,logName=logName });
+                bool created=code==0 && marker!="not-created";
+                SendToWeb(new { type="tool-progress", tool="restore", percent=100, status=created?"Point cree.":"Creation a verifier." });
+                string reason;
+                if(created)reason="created";
+                else if(code==1223)reason="uac-cancelled";
+                else if(marker=="disabled")reason="system-protection-disabled";
+                else if(marker=="not-created")reason="not-created";
+                else reason="system-protection-disabled";
+                SendToWeb(new { type="restore-point-complete",success=created,code=code,reason=reason,logName=logName });
             }
         });
     }
@@ -2697,8 +2721,9 @@ internal sealed class WebAppForm : Form
                 {
                     string folder=folders[i];
                     long bytes,files;MeasurePath(folder,out bytes,out files);
+                    bool partial=lastMeasureTruncated;
                     bool canClean=IsSafeDiskCleanupFolder(folder);
-                    results.Add(new {name=Path.GetFileName(folder),path=folder,bytes=bytes,size=FormatBytes(bytes),files=files,canClean=canClean});
+                    results.Add(new {name=Path.GetFileName(folder),path=folder,bytes=bytes,size=FormatBytes(bytes),files=files,canClean=canClean,partial=partial});
                     authorizedTargets[Path.GetFullPath(folder)]=canClean;
                     int percent=folders.Length==0?95:10+(int)Math.Round(((i+1)/(double)folders.Length)*85);
                     SendToWeb(new { type="tool-progress", tool="disk", percent=percent, status="Analyse de "+Path.GetFileName(folder)+"..." });
@@ -2764,6 +2789,9 @@ internal sealed class WebAppForm : Form
     void RunUpdate(Dictionary<string, object> payload)
     {
         var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct().Take(100).ToArray();
+        // Paquets que l'interface a marqués « géré par l'éditeur » ou « version
+        // installée inconnue » : un échec winget n'est pas compté comme tel.
+        var lenientPackages=new HashSet<string>(ReadArray(payload,"lenient").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")),StringComparer.OrdinalIgnoreCase);
         if(updateRunning) throw new InvalidOperationException("Une mise à jour est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         updateRunning=true;
@@ -2800,7 +2828,7 @@ internal sealed class WebAppForm : Form
                         report.AppendLine("Résultat validé : aucune mise à jour applicable, le logiciel est déjà à jour.");
                         lastCode=0;
                     }
-                    if(lastCode!=0 && SelfManagedUpdaters.Contains(id))
+                    if(lastCode!=0 && (SelfManagedUpdaters.Contains(id) || lenientPackages.Contains(id)))
                     {
                         report.AppendLine("Logiciel à mise à jour intégrée : WinGet ne peut pas la piloter. Ouvrez l'application pour qu'elle se mette à jour elle-même.");
                         selfManagedItems.Add(new Dictionary<string,object>{{"id",id},{"name",LoadApplicationName(id)}});
@@ -2836,7 +2864,7 @@ internal sealed class WebAppForm : Form
                     report.AppendLine("A MISE A JOUR INTEGREE (ouvrir le logiciel pour finaliser) : "+String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["id"]))));
                 }
 
-                SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Recherche Windows Update", detail="Composants Windows et pilotes certifiés" });
+                SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Ouverture de Windows Update", detail="Composants et pilotes proposés par Microsoft" });
                 windowsStarted=TriggerWindowsUpdate(report);
             }
             catch(Exception ex)
@@ -2901,7 +2929,10 @@ internal sealed class WebAppForm : Form
     List<Dictionary<string,object>> QueryAvailableUpdates()
     {
         var report=new StringBuilder();
-        RunHiddenProcess("winget.exe","upgrade --accept-source-agreements --disable-interactivity",report);
+        // --include-unknown : ne pas masquer les paquets dont WinGet ne connaît
+        // pas la version installée (jeux, lanceurs, installeurs maison). Aligné
+        // sur ce que ferait « winget upgrade --all ».
+        RunHiddenProcess("winget.exe","upgrade --include-unknown --accept-source-agreements --disable-interactivity",report);
         var results=new List<Dictionary<string,object>>();
         var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach(string raw in report.ToString().Split(new[]{"\r\n","\n"},StringSplitOptions.RemoveEmptyEntries))
@@ -2913,8 +2944,13 @@ internal sealed class WebAppForm : Form
             string id=match.Groups[2].Value.Trim();
             string current=match.Groups[3].Value.Trim();
             string available=match.Groups[4].Value.Trim();
-            if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(current,"[0-9]") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
-            results.Add(new Dictionary<string,object>{{"name",name},{"id",id},{"current",current},{"available",available},{"selfManaged",IsSelfManagedUpdate(id,current,available)}});
+            if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
+            bool unknownVersion=!Regex.IsMatch(current,"[0-9]");
+            if(unknownVersion)current="inconnue";
+            // Version installée inconnue = même traitement prudent que les
+            // lanceurs auto-updatés : WinGet la reproposera peut-être en boucle.
+            bool selfManaged=unknownVersion || IsSelfManagedUpdate(id,current,available);
+            results.Add(new Dictionary<string,object>{{"name",name},{"id",id},{"current",current},{"available",available},{"selfManaged",selfManaged},{"unknownVersion",unknownVersion}});
         }
         return results;
     }
@@ -3597,7 +3633,7 @@ internal sealed class WebAppForm : Form
 
     void AnalyzeCleanup(Dictionary<string, object> payload)
     {
-        string[] allowed={"user-temp","windows-temp","recycle-bin","delivery","components","app-leftovers"};
+        string[] allowed={"user-temp","windows-temp","recycle-bin","delivery","components"};
         var choices=ReadArray(payload,"choices").Where(x=>allowed.Contains(x)).Distinct().ToArray();
         if(choices.Length==0)throw new InvalidOperationException("Aucune zone à analyser.");
         SendToWeb(new { type="cleanup-analysis-start" });
@@ -3607,13 +3643,13 @@ internal sealed class WebAppForm : Form
                 var items=new List<object>();long total=0;
                 foreach(string id in choices)
                 {
-                    string label=id,path="",note="";long bytes=0,files=0;
-                    if(id=="user-temp"){label="Fichiers temporaires utilisateur";path=Path.GetTempPath();MeasurePath(path,out bytes,out files);}
-                    else if(id=="windows-temp"){label="Fichiers temporaires Windows";path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"Temp");MeasurePath(path,out bytes,out files);}
+                    string label=id,path="",note="";long bytes=0,files=0;bool partial=false;
+                    if(id=="user-temp"){label="Fichiers temporaires utilisateur";path=Path.GetTempPath();MeasurePath(path,out bytes,out files);partial=lastMeasureTruncated;}
+                    else if(id=="windows-temp"){label="Fichiers temporaires Windows";path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"Temp");MeasurePath(path,out bytes,out files);partial=lastMeasureTruncated;}
                     else if(id=="recycle-bin"){label="Corbeille";path="Corbeilles des lecteurs locaux";note="Suppression définitive après confirmation";MeasureRecycleBin(out bytes,out files);}
-                    else if(id=="delivery"){label="Cache d'optimisation de livraison";path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),@"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache");MeasurePath(path,out bytes,out files);}
+                    else if(id=="delivery"){label="Cache d'optimisation de livraison";path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),@"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache");MeasurePath(path,out bytes,out files);partial=lastMeasureTruncated;}
                     else if(id=="components"){label="Anciens composants Windows";path="Magasin de composants Windows (WinSxS)";note="Taille déterminée par DISM pendant l'opération";}
-                    else if(id=="app-leftovers"){label="Résidus d'applications";path="%APPDATA% et %LOCALAPPDATA%";note="Chaque dossier sera confirmé puis placé en quarantaine";}
+                    if(partial)note=(note.Length>0?note+" · ":"")+"mesure partielle : au moins 200 000 fichiers";
                     total+=bytes;
                     items.Add(new { id=id,label=label,path=path,bytes=bytes,size=FormatBytes(bytes),files=files,note=note });
                 }
@@ -3624,20 +3660,25 @@ internal sealed class WebAppForm : Form
         });
     }
 
+    const int MeasurePathFileCap=200000;
+    bool lastMeasureTruncated;
+
     void MeasurePath(string root,out long bytes,out long files)
     {
-        bytes=0;files=0;if(String.IsNullOrWhiteSpace(root)||!Directory.Exists(root))return;
+        bytes=0;files=0;lastMeasureTruncated=false;
+        if(String.IsNullOrWhiteSpace(root)||!Directory.Exists(root))return;
         if(IsReparsePoint(root))return;
         var folders=new Stack<string>();folders.Push(root);int visited=0;
-        while(folders.Count>0&&visited<200000)
+        while(folders.Count>0&&visited<MeasurePathFileCap)
         {
             string folder=folders.Pop();
             try
             {
-                foreach(string file in Directory.GetFiles(folder)){if(visited++>=200000)break;try{bytes+=new FileInfo(file).Length;files++;}catch{}}
+                foreach(string file in Directory.GetFiles(folder)){if(visited++>=MeasurePathFileCap){lastMeasureTruncated=true;break;}try{bytes+=new FileInfo(file).Length;files++;}catch{}}
                 foreach(string child in Directory.GetDirectories(folder))if(!IsReparsePoint(child))folders.Push(child);
             }catch{}
         }
+        if(folders.Count>0)lastMeasureTruncated=true;
     }
 
     bool IsReparsePoint(string path)
@@ -3686,7 +3727,7 @@ internal sealed class WebAppForm : Form
 
     void RunCleanup(Dictionary<string, object> payload)
     {
-        string[] allowed = {"user-temp","windows-temp","recycle-bin","delivery","components","app-leftovers"};
+        string[] allowed = {"user-temp","windows-temp","recycle-bin","delivery","components"};
         var choices = ReadArray(payload, "choices").Where(x => allowed.Contains(x)).Distinct().ToArray();
         if (choices.Length == 0) throw new InvalidOperationException("Aucune zone de nettoyage n'est sélectionnée.");
         string simulationKey=String.Join("|",choices.OrderBy(value=>value));
