@@ -534,7 +534,7 @@ internal sealed class WebAppForm : Form
         int code=RunHiddenProcess("winget.exe","list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",verification);
         report.AppendLine("Vérification après installation : "+(code==0?"terminée":"échec"));
         report.Append(verification.ToString());
-        return code==0&&verification.ToString().IndexOf(packageId,StringComparison.OrdinalIgnoreCase)>=0;
+        return code==0&&WingetTableContainsId(verification.ToString(),packageId);
     }
 
     bool VerifyPackageInstallationWithRetry(string packageId,bool portable,StringBuilder report)
@@ -1271,6 +1271,20 @@ internal sealed class WebAppForm : Form
         return rows;
     }
 
+    // Vrai si l'identifiant apparait dans la colonne ID d'une sortie tabulaire winget
+    // (list/upgrade). Remplace les IndexOf/Regex qui pouvaient reconnaitre l'id dans
+    // un nom ou un chemin.
+    static bool WingetTableContainsId(string output,string id)
+    {
+        if(String.IsNullOrWhiteSpace(output)||String.IsNullOrWhiteSpace(id))return false;
+        foreach(var row in ParseWingetTable(output))
+        {
+            string value=row.ContainsKey("id")?row["id"]:"";
+            if(String.Equals(value,id,StringComparison.OrdinalIgnoreCase))return true;
+        }
+        return false;
+    }
+
     void ScanInstalled(Dictionary<string, object> payload)
     {
         if (scanRunning) return;
@@ -1425,45 +1439,17 @@ internal sealed class WebAppForm : Form
         {
             int code=RunHiddenProcess("winget.exe","list --accept-source-agreements --disable-interactivity",capture);
             report.AppendLine(capture.ToString());
-            string[] lines=capture.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries)
-                .Select(line=>Regex.Replace(line,@"\x1B\[[0-9;?]*[ -/]*[@-~]","").TrimEnd()).ToArray();
-            int headerIndex=-1,idStart=-1,versionStart=-1,sourceStart=-1;
-            for(int index=0;index<lines.Length;index++)
-            {
-                string line=lines[index];
-                int candidateId=line.IndexOf("Id",StringComparison.OrdinalIgnoreCase);
-                int candidateVersion=line.IndexOf("Version",StringComparison.OrdinalIgnoreCase);
-                if(candidateId>0&&candidateVersion>candidateId)
-                {
-                    headerIndex=index;idStart=candidateId;versionStart=candidateVersion;
-                    sourceStart=line.IndexOf("Source",StringComparison.OrdinalIgnoreCase);
-                    break;
-                }
-            }
             var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if(headerIndex>=0)
+            foreach(var row in ParseWingetTable(capture.ToString()))
             {
-                for(int index=headerIndex+1;index<lines.Length;index++)
-                {
-                    string line=lines[index];
-                    if(String.IsNullOrWhiteSpace(line)||Regex.IsMatch(line,@"^\s*-{3,}")||line.Length<=idStart)continue;
-                    string name=line.Substring(0,Math.Min(idStart,line.Length)).Trim();
-                    int idEnd=Math.Min(versionStart,line.Length);
-                    string id=line.Substring(idStart,Math.Max(0,idEnd-idStart)).Trim();
-                    if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||String.IsNullOrWhiteSpace(name)||!seen.Add(id))continue;
-                    string version="",source="windows";
-                    if(line.Length>versionStart)
-                    {
-                        int versionEnd=sourceStart>versionStart?Math.Min(sourceStart,line.Length):line.Length;
-                        version=Regex.Match(line.Substring(versionStart,Math.Max(0,versionEnd-versionStart)).Trim(),@"^\S+").Value;
-                    }
-                    if(sourceStart>0&&line.Length>sourceStart)
-                    {
-                        string sourceValue=line.Substring(sourceStart).Trim();
-                        if(sourceValue.StartsWith("winget",StringComparison.OrdinalIgnoreCase)||sourceValue.StartsWith("msstore",StringComparison.OrdinalIgnoreCase))source="winget";
-                    }
-                    results.Add(new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){{"id",id},{"name",name},{"version",version},{"source",source}});
-                }
+                string name=row.ContainsKey("name")?row["name"]:"";
+                string id=row.ContainsKey("id")?row["id"]:"";
+                // \ dans les ids MSIX\ / ARP\ : exclus par cette regex, comme avant.
+                if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||name.Length==0||!seen.Add(id))continue;
+                string version=Regex.Match(row.ContainsKey("version")?row["version"]:"",@"^\S+").Value;
+                string sourceValue=row.ContainsKey("source")?row["source"]:"";
+                string source=(sourceValue.StartsWith("winget",StringComparison.OrdinalIgnoreCase)||sourceValue.StartsWith("msstore",StringComparison.OrdinalIgnoreCase))?"winget":"windows";
+                results.Add(new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){{"id",id},{"name",name},{"version",version},{"source",source}});
             }
             EnrichInstalledPackageIcons(results,report);
             if(code!=0)warning="WinGet n'a pas pu terminer l'inventaire complet des applications installées.";
@@ -1571,7 +1557,7 @@ internal sealed class WebAppForm : Form
             {
                 int code=RunHiddenProcess("winget.exe","list --id \""+id+"\" --exact --accept-source-agreements --disable-interactivity",verification);
                 string output=verification.ToString();
-                bool exact=code==0 && Regex.IsMatch(output,@"(^|\s)"+Regex.Escape(id)+@"(\s|$)",RegexOptions.IgnoreCase|RegexOptions.Multiline);
+                bool exact=code==0 && WingetTableContainsId(output,id);
                 report.AppendLine("Verification exacte WinGet "+id+" : "+(exact?"confirmee":"non confirmee")+" (code "+code+")");
                 if(exact)wingetInstalled.Add(id);
             }
@@ -1748,7 +1734,7 @@ internal sealed class WebAppForm : Form
             int listCode=RunHiddenProcess("winget.exe","list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",wingetReport);
             string listOutput=wingetReport.ToString();
             report.AppendLine("Verification WinGet apres desinstallation : "+listCode);
-            if(listCode==0 && listOutput.IndexOf(packageId,StringComparison.OrdinalIgnoreCase)>=0)return true;
+            if(listCode==0 && WingetTableContainsId(listOutput,packageId))return true;
         }
         catch(Exception ex){report.AppendLine("Verification WinGet impossible : "+ex.Message);}
         try
@@ -1784,24 +1770,16 @@ internal sealed class WebAppForm : Form
 
     IEnumerable<string> ParseWingetListPackageIds(string output)
     {
-        if(String.IsNullOrWhiteSpace(output))yield break;
-        bool afterSeparator=false;
-        foreach(string rawLine in output.Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries))
+        foreach(var row in ParseWingetTable(output))
         {
-            string line=rawLine.Trim();
-            if(Regex.IsMatch(line,@"^-{3,}(\s+-{3,})+\s*$")){afterSeparator=true;continue;}
-            if(!afterSeparator || line.StartsWith("-"))continue;
-            string[] columns=Regex.Split(line,@"\s{2,}");
-            if(columns.Length<2)continue;
-            string candidate=columns[1].Trim();
+            string candidate=row.ContainsKey("id")?row["id"]:"";
             if(Regex.IsMatch(candidate,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))yield return candidate;
         }
     }
 
     bool OutputContainsExactPackageId(string output,string packageId)
     {
-        if(String.IsNullOrWhiteSpace(output)||String.IsNullOrWhiteSpace(packageId))return false;
-        return Regex.IsMatch(output,@"(^|\s)"+Regex.Escape(packageId)+@"(?=\s|$)",RegexOptions.IgnoreCase|RegexOptions.Multiline);
+        return WingetTableContainsId(output,packageId);
     }
 
     string ResolveInstalledWingetPackage(string packageId,string appName,StringBuilder report)

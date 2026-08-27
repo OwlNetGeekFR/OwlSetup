@@ -113,4 +113,18 @@ export function parseWingetTable(output) {
   return { columns, rows };
 }
 
+/**
+ * Vrai si `id` apparait dans la colonne ID d'une sortie tabulaire winget.
+ * Remplace les `indexOf` / regex qui pouvaient reconnaitre l'identifiant dans
+ * un nom d'application ou un chemin. Portage C# : `WingetTableContainsId`.
+ * @param {string} output sortie brute de `winget list` / `winget upgrade`
+ * @param {string} id identifiant de paquet recherche
+ * @returns {boolean}
+ */
+export function wingetTableHasId(output, id) {
+  if (!output || !id) return false;
+  const needle = String(id).toLowerCase();
+  return parseWingetTable(output).rows.some((row) => (row.id || "").toLowerCase() === needle);
+}
+
 export { stripAnsi, BOM };

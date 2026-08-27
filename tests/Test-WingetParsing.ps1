@@ -21,6 +21,23 @@ if ($native -match 'Regex\.Match\(line,@"\^\(\.\+\?\)\\s\{2,\}') {
     throw "L'ancienne regex positionnelle de QueryAvailableUpdates est de retour."
 }
 
+# 1b) Increment 2 : les vérifications d'installation/désinstallation passent par la
+# colonne ID (WingetTableContainsId), plus par un IndexOf/Regex sur la sortie brute.
+Assert-Has $native 'static bool WingetTableContainsId(string output,string id)' "Le contrôle par colonne ID (WingetTableContainsId) a disparu."
+Assert-Has $native 'return code==0&&WingetTableContainsId(verification.ToString(),packageId);' "VerifyPackageInstallation n'utilise plus WingetTableContainsId."
+Assert-Has $native 'if(listCode==0 && WingetTableContainsId(listOutput,packageId))return true;' "IsPackageStillInstalled n'utilise plus WingetTableContainsId."
+Assert-Has $native 'bool exact=code==0 && WingetTableContainsId(output,id);' "PromoteVerifiedWingetPackages n'utilise plus WingetTableContainsId."
+Assert-Has $native 'return WingetTableContainsId(output,packageId);' "OutputContainsExactPackageId ne délègue plus à WingetTableContainsId."
+if ($native -match 'verification\.ToString\(\)\.IndexOf\(packageId,StringComparison\.OrdinalIgnoreCase\)>=0') {
+    throw "L'ancien IndexOf de VerifyPackageInstallation est de retour."
+}
+if ($native -match 'listOutput\.IndexOf\(packageId,StringComparison\.OrdinalIgnoreCase\)>=0') {
+    throw "L'ancien IndexOf de IsPackageStillInstalled est de retour."
+}
+if ($native -match 'Regex\.Split\(line,@"\\s\{2,\}"\)') {
+    throw "L'ancienne regex \s{2,} de ParseWingetListPackageIds est de retour."
+}
+
 # 2) Résultats sur une vraie capture (si l'exécutable compilé et les fixtures existent)
 $exe = Join-Path $root "OwlSetup.exe"
 $upgradeFixture = Join-Path $fixtures "winget-upgrade-fr.txt"
@@ -41,6 +58,14 @@ if ((Test-Path $exe) -and (Test-Path $upgradeFixture)) {
     if ($dotnet["name"] -ne "Microsoft Windows Desktop Runtime - 8.0.28 (x64)") {
         throw "Nom long à espaces multiples tronqué : '$($dotnet["name"])'."
     }
+
+    $hasId = $asm.GetType("WebAppForm").GetMethod("WingetTableContainsId", [System.Reflection.BindingFlags]"NonPublic,Static")
+    if (-not $hasId) { throw "WingetTableContainsId introuvable par réflexion." }
+    $yes = [object[]]::new(2); $yes[0] = $content; $yes[1] = "Blizzard.BattleNet"
+    if (-not $hasId.Invoke($null, $yes)) { throw "WingetTableContainsId ne reconnaît pas un id présent (version Unknown)." }
+    $no = [object[]]::new(2); $no[0] = $content; $no[1] = "Nope.Missing"
+    if ($hasId.Invoke($null, $no)) { throw "WingetTableContainsId : faux positif sur un id absent." }
+
     Write-Host "Analyseur winget : marqueurs présents + résultats corrects sur capture réelle." -ForegroundColor Green
 }
 else {
