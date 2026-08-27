@@ -1,0 +1,59 @@
+# Controle qualite front-end + catalogue.
+#
+# Fichier prepare mais NON active : le copier vers
+# `.github/workflows/quality.yml` a la racine du depot quand la couche `beta/`
+# est adoptee (voir PLAN-AMELIORATION.md, lot 1).
+#
+# Complementaire de `release.yml` (build C# + installateur) : ici on ne compile
+# rien, on verifie le JavaScript, le formatage et la coherence du catalogue.
+
+name: Qualite (front-end)
+
+on:
+  pull_request:
+    paths:
+      - "beta/**"
+      - "app.js"
+      - "i18n.js"
+  push:
+    branches: [main]
+    paths:
+      - "beta/**"
+      - "app.js"
+      - "i18n.js"
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: beta
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+
+      - run: npm ci
+
+      - name: Verifier la syntaxe de app.js / i18n.js (racine)
+        run: npm run lint:root
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: Tests unitaires + parite
+        run: npm run test
+
+      - name: Catalogue synchronise avec app.js et conforme au schema
+        run: npm run catalog:verify

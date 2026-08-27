@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Projet MSBuild "classique" equivalent a l'appel csc.exe code en dur dans
+  ../../build.ps1. But : pouvoir ouvrir/compiler l'hote dans Visual Studio ou
+  `msbuild` / `dotnet build`, obtenir IntelliSense, l'analyse Roslyn et la
+  restauration NuGet automatique — sans changer le binaire produit.
+
+  Le fichier source et les ressources restent a la RACINE du depot ; ce projet
+  ne fait que les referencer via des liens.
+
+    msbuild beta/csharp/OwlSetup.csproj /p:Configuration=Release ^
+      /p:DisplayVersion=3.7.1-beta.1 /p:Channel=beta
+
+  Etat : traduction fidele de build.ps1, a valider par un premier build cote
+  mainteneur (voir PLAN-AMELIORATION.md, lot 1).
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Optimize>true</Optimize>
+    <Deterministic>true</Deterministic>
+    <AssemblyName>OwlSetup</AssemblyName>
+    <RootNamespace>OwlSetup</RootNamespace>
+    <ApplicationManifest>..\..\OwlSetup.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\OwlSetup.ico</ApplicationIcon>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Surchargables en ligne de commande, comme les parametres de build.ps1. -->
+    <AppVersion Condition="'$(AppVersion)' == ''">0.0.0</AppVersion>
+    <Channel Condition="'$(Channel)' == ''">stable</Channel>
+    <PrereleaseLabel Condition="'$(PrereleaseLabel)' == ''"></PrereleaseLabel>
+    <DisplayVersion Condition="'$(DisplayVersion)' == '' and '$(Channel)' == 'stable'">$(AppVersion)</DisplayVersion>
+    <DisplayVersion Condition="'$(DisplayVersion)' == '' and '$(Channel)' != 'stable'">$(AppVersion)-$(PrereleaseLabel)</DisplayVersion>
+    <Version>$(AppVersion)</Version>
+    <FileVersion>$(AppVersion).0</FileVersion>
+    <AssemblyVersion>$(AppVersion).0</AssemblyVersion>
+    <InformationalVersion>$(DisplayVersion)</InformationalVersion>
+    <Company>OwlNetGeekFR</Company>
+    <Product>OwlSetup</Product>
+    <Description>Installation, mise a jour et entretien de Windows</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\OwlSetupWebView.cs">
+      <Link>OwlSetupWebView.cs</Link>
+    </Compile>
+    <Compile Include="$(IntermediateOutputPath)PCSetup.BuildInfo.g.cs" Condition="Exists('$(IntermediateOutputPath)PCSetup.BuildInfo.g.cs')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\index.html"><LogicalName>index.html</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\i18n.js"><LogicalName>i18n.js</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\app.js"><LogicalName>app.js</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\styles.css"><LogicalName>styles.css</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\Mettre-a-jour-mon-PC.ps1"><LogicalName>Mettre-a-jour-mon-PC.ps1</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\Liberer-espace-disque.ps1"><LogicalName>Liberer-espace-disque.ps1</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\Nettoyer-residus-applications.ps1"><LogicalName>Nettoyer-residus-applications.ps1</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\Installer-selection.ps1"><LogicalName>Installer-selection.ps1</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\assets\branding\owlsetup-logo-512.png"><LogicalName>app-logo.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\OwlSetup.ico"><LogicalName>app-icon.ico</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\assets\logos\*.*">
+      <LogicalName>logos.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Equivalent du bloc PCSetup.BuildInfo.cs genere par build.ps1. -->
+  <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_IsBeta Condition="'$(Channel)' != 'stable'">true</_IsBeta>
+      <_IsBeta Condition="'$(Channel)' == 'stable'">false</_IsBeta>
+      <_BuildInfoFile>$(IntermediateOutputPath)PCSetup.BuildInfo.g.cs</_BuildInfoFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <_BuildInfoLines Include="using System.Reflection%3B" />
+      <_BuildInfoLines Include="[assembly: AssemblyInformationalVersion(&quot;$(DisplayVersion)&quot;)]" />
+      <_BuildInfoLines Include="internal static class BuildInfo {" />
+      <_BuildInfoLines Include="    public const string Channel = &quot;$(Channel)&quot;%3B" />
+      <_BuildInfoLines Include="    public const string DisplayVersion = &quot;$(DisplayVersion)&quot;%3B" />
+      <_BuildInfoLines Include="    public static readonly bool IsBeta = $(_IsBeta)%3B" />
+      <_BuildInfoLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_BuildInfoFile)" Lines="@(_BuildInfoLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(_BuildInfoFile)" Condition="!@(Compile->AnyHaveMetadataValue('Identity', '$(_BuildInfoFile)'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>
