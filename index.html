@@ -119,7 +119,7 @@
         <div class="top-nav-menu">
           <span class="top-nav-menu-title">PROTECTION ET ASSISTANCE</span>
           <button class="nav-item" data-view="security"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-shield"/></svg></span><span class="nav-menu-copy"><strong>Centre de sécurité</strong><small>Contrôles et recommandations locales</small></span><b class="new-badge hidden" id="securityNavBadge">0</b></button>
-          <button class="nav-item" data-view="quarantine"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-quarantine"/></svg></span><span class="nav-menu-copy"><strong>Quarantaine</strong><small>Éléments isolés et récupérables</small></span><b id="quarantineNavCount">0</b></button>
+          <button class="nav-item" data-view="quarantine"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-quarantine"/></svg></span><span class="nav-menu-copy"><strong>Quarantaine</strong><small>Éléments isolés et récupérables</small></span><b class="new-badge hidden" id="quarantineNavCount">0</b></button>
           <button class="nav-item" data-view="troubleshooting"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-troubleshoot"/></svg></span><span class="nav-menu-copy"><strong>Aide et dépannage</strong><small>Diagnostic, signalement et suivi</small></span><b class="new-badge hidden" id="troubleshootingNavBadge">0</b></button>
         </div>
       </div>
@@ -456,7 +456,7 @@
         <div><span class="label">RÉCUPÉRATION SÉCURISÉE</span><h1>Quarantaine</h1><p>Restaurez les anciens dossiers déplacés par OwlSetup ou supprimez-les définitivement après vérification.</p></div>
         <div class="quarantine-shield" aria-hidden="true"><svg><use href="#nav-quarantine"/></svg></div>
       </div>
-      <div class="quarantine-toolbar"><div><strong id="quarantineCount">0 élément</strong><small>Les éléments sont conservés dans le dossier local sécurisé de OwlSetup.</small></div><button class="text-button" id="refreshQuarantine">↻ Actualiser</button></div>
+      <div class="quarantine-toolbar"><div><strong id="quarantineCount">0 élément</strong><small>Les éléments sont conservés dans le dossier local sécurisé de OwlSetup.</small></div><div class="quarantine-toolbar-actions"><button class="text-button hidden" id="purgeOldQuarantine">Supprimer les anciens</button><button class="text-button" id="refreshQuarantine">↻ Actualiser</button></div></div>
       <div class="quarantine-list" id="quarantineList"><div class="quarantine-loading"><span>↻</span> Analyse de la quarantaine...</div></div>
       <div class="quarantine-empty hidden" id="quarantineEmpty"><span>✓</span><h3>La quarantaine est vide</h3><p>Aucun ancien dossier n'attend votre décision.</p></div>
       <div class="danger-note"><span>!</span><div><strong>Vérifiez le fonctionnement de vos applications avant une suppression définitive</strong><p>La restauration remet le dossier à son emplacement d'origine. La suppression définitive ne pourra pas être annulée.</p></div></div>
