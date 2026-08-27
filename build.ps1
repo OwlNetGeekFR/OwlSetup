@@ -104,6 +104,15 @@ try {
     Write-Host "Compilation terminée : $outputPath" -ForegroundColor Green
     Write-Host "Canal : $Channel | Version : $displayVersion"
     Write-Host "SHA-256 : $($hash.Hash)"
+
+    # Shim console (.com) : « OwlSetup --install X » scriptable depuis PowerShell.
+    $shimSource = Join-Path $root "OwlSetupCli.cs"
+    if (Test-Path $shimSource) {
+        $shimOut = [IO.Path]::ChangeExtension($outputPath, ".com")
+        & $csc @("/nologo", "/target:exe", "/optimize+", "/platform:x64", "/out:$shimOut", $shimSource)
+        if ($LASTEXITCODE -ne 0) { throw "Compilation du shim console (.com) a échoué avec le code $LASTEXITCODE." }
+        Write-Host "Shim console : $shimOut" -ForegroundColor Green
+    }
 } finally {
     Pop-Location
 }

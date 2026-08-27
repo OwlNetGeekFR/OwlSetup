@@ -4401,11 +4401,17 @@ internal static class Bootstrap
     {
         try
         {
+            // Sortie déjà branchée sur un tube ou un fichier (ex. lancé par le
+            // shim OwlSetup.com, ou « OwlSetup.exe ... > sortie.txt ») : ne rien
+            // toucher, on écrirait sinon dans un tampon console invisible.
+            bool outRedirected=Console.IsOutputRedirected;
+            bool errRedirected=Console.IsErrorRedirected;
+            if(outRedirected && errRedirected)return;
             if(!AttachConsole(ATTACH_PARENT_PROCESS))return;
-            var stdout=new StreamWriter(Console.OpenStandardOutput()){AutoFlush=true};
-            Console.SetOut(stdout);
-            var stderr=new StreamWriter(Console.OpenStandardError()){AutoFlush=true};
-            Console.SetError(stderr);
+            if(!outRedirected)
+                Console.SetOut(new StreamWriter(Console.OpenStandardOutput()){AutoFlush=true});
+            if(!errRedirected)
+                Console.SetError(new StreamWriter(Console.OpenStandardError()){AutoFlush=true});
         }
         catch{}
     }
@@ -4504,7 +4510,8 @@ internal static class Bootstrap
         Console.Out.WriteLine();
         Console.Out.WriteLine("  OwlSetup.exe --install <id>[,<id>...]    Installe des logiciels via WinGet");
         Console.Out.WriteLine("  OwlSetup.exe --uninstall <id>[,<id>...]  Désinstalle des logiciels");
-        Console.Out.WriteLine("  OwlSetup.exe --list [filtre]             Liste le catalogue intégré");
+        Console.Out.WriteLine("  OwlSetup.exe --apply <config.pcsetup.json>  Rejoue une configuration exportée par l'interface");
+        Console.Out.WriteLine("  OwlSetup.exe --list [filtre] [--json]    Liste le catalogue intégré");
         Console.Out.WriteLine("  OwlSetup.exe --search <terme>            Recherche dans la source WinGet");
         Console.Out.WriteLine("  OwlSetup.exe --version                   Version d'OwlSetup");
         Console.Out.WriteLine("  OwlSetup.exe --help                      Cette aide");
@@ -4517,21 +4524,30 @@ internal static class Bootstrap
         Console.Out.WriteLine("  Start-Process OwlSetup.exe -ArgumentList '--install VideoLAN.VLC' -Wait -NoNewWindow -PassThru");
     }
 
-    static int CliList(string filter)
+    static int CliList(string filter,bool asJson)
     {
         List<Dictionary<string,object>> apps;
         try{apps=CliCatalog();}
         catch(Exception ex){Console.Error.WriteLine("Catalogue illisible : "+ex.Message);return 3;}
-        int shown=0;
+        var rows=new List<Dictionary<string,object>>();
         foreach(var entry in apps)
         {
             string id=CliField(entry,"id"),name=CliField(entry,"name"),category=CliField(entry,"category");
             if(!String.IsNullOrEmpty(filter) && (id+" "+name+" "+category).IndexOf(filter,StringComparison.OrdinalIgnoreCase)<0)continue;
-            Console.Out.WriteLine((id.Length<36?id.PadRight(36):id+" ")+name+(String.IsNullOrEmpty(category)?"":"  ["+category+"]"));
-            shown++;
+            rows.Add(new Dictionary<string,object>{{"id",id},{"name",name},{"category",category}});
+        }
+        if(asJson)
+        {
+            Console.Out.WriteLine(new JavaScriptSerializer().Serialize(rows));
+            return 0;
+        }
+        foreach(var row in rows)
+        {
+            string id=Convert.ToString(row["id"]);
+            Console.Out.WriteLine((id.Length<36?id.PadRight(36):id+" ")+row["name"]+(String.IsNullOrEmpty(Convert.ToString(row["category"]))?"":"  ["+row["category"]+"]"));
         }
         Console.Out.WriteLine();
-        Console.Out.WriteLine(shown+" application(s). Installer : OwlSetup.exe --install <id>");
+        Console.Out.WriteLine(rows.Count+" application(s). Installer : OwlSetup.exe --install <id>");
         return 0;
     }
 
@@ -4552,6 +4568,11 @@ internal static class Bootstrap
             Console.Error.WriteLine("Aucun identifiant valide. Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip");
             return 2;
         }
+        return CliRunInstallLoop(ids,remove);
+    }
+
+    static int CliRunInstallLoop(string[] ids,bool remove)
+    {
         string winget=CliResolveWinget();
         if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez « App Installer » depuis le Microsoft Store.");return 3;}
         if(!remove && !CliIsAdmin())
@@ -4583,21 +4604,70 @@ internal static class Bootstrap
         return failed==0 ? 0 : 1;
     }
 
+    // --apply <fichier.pcsetup.json> : rejoue une configuration exportée par
+    // l'interface (champ « selectedPackages », repli sur « installedPackages »).
+    static int CliApply(string[] rest)
+    {
+        string path=String.Join(" ",rest).Trim().Trim('"');
+        if(path.Length==0){Console.Error.WriteLine("Usage : OwlSetup.exe --apply <fichier.pcsetup.json>");return 2;}
+        if(!File.Exists(path)){Console.Error.WriteLine("Fichier introuvable : "+path);return 2;}
+        try
+        {
+            var info=new FileInfo(path);
+            if(info.Length>1024*1024){Console.Error.WriteLine("Fichier de configuration trop volumineux (max 1 Mo).");return 2;}
+            var root=new JavaScriptSerializer().DeserializeObject(File.ReadAllText(path,Encoding.UTF8)) as Dictionary<string,object>;
+            if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")
+            {
+                Console.Error.WriteLine("Ce fichier n'est pas une configuration OwlSetup (champ « format » attendu).");
+                return 2;
+            }
+            var ids=CliConfigIds(root,"selectedPackages");
+            string source="selectedPackages";
+            if(ids.Length==0){ids=CliConfigIds(root,"installedPackages");source="installedPackages";}
+            if(ids.Length==0){Console.Error.WriteLine("La configuration ne contient aucun identifiant exploitable.");return 2;}
+            var cleanup=root.ContainsKey("cleanupChoices") ? CliConfigIds(root,"cleanupChoices") : new string[0];
+            Console.Out.WriteLine("Configuration : "+Path.GetFileName(path)+" — "+ids.Length+" application(s) ("+source+").");
+            if(cleanup.Length>0)
+                Console.Out.WriteLine(cleanup.Length+" zone(s) de nettoyage ignorée(s) en mode CLI (utilisez l'interface).");
+            Console.Out.WriteLine();
+            return CliRunInstallLoop(ids,false);
+        }
+        catch(Exception ex)
+        {
+            Console.Error.WriteLine("Configuration illisible : "+ex.Message);
+            return 2;
+        }
+    }
+
+    static string[] CliConfigIds(Dictionary<string,object> root,string key)
+    {
+        object value;
+        if(root==null || !root.TryGetValue(key,out value))return new string[0];
+        var array=value as object[];
+        if(array==null)return new string[0];
+        return array.Select(item=>Convert.ToString(item).Trim())
+            .Where(id=>Regex.IsMatch(id, key=="cleanupChoices" ? "^[a-z-]+$" : @"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     static int RunCli(string[] commandLine)
     {
         CliAttachConsole();
         string verb=commandLine[1];
-        var rest=commandLine.Skip(2).ToArray();
+        bool asJson=commandLine.Skip(2).Any(a=>a=="--json");
+        var rest=commandLine.Skip(2).Where(a=>a!="--json").ToArray();
         switch(verb)
         {
             case "--help": case "-h": case "/?": CliHelp(); return 0;
             case "--version": case "-v":
                 Console.Out.WriteLine("OwlSetup "+BuildInfo.DisplayVersion+" ("+BuildInfo.Channel+")");
                 return 0;
-            case "--list": return CliList(rest.Length>0?String.Join(" ",rest):null);
+            case "--list": return CliList(rest.Length>0?String.Join(" ",rest):null,asJson);
             case "--search": return CliSearch(rest);
             case "--install": return CliInstallOrRemove(rest,false);
             case "--uninstall": return CliInstallOrRemove(rest,true);
+            case "--apply": return CliApply(rest);
             default:
                 Console.Error.WriteLine("Option inconnue : "+verb);
                 CliHelp();

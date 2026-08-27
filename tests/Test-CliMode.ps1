@@ -1,8 +1,9 @@
 $ErrorActionPreference = "Stop"
 
-# Mode ligne de commande (4.4 / beta.18) : --install / --uninstall / --list /
-# --search / --help / --version. Vérifie les marqueurs source puis, si
-# l'exécutable compilé est présent, exécute réellement les verbes sûrs.
+# Mode ligne de commande (4.4-4.5 / beta.18-19) : --install / --uninstall /
+# --apply / --list [--json] / --search / --help / --version + shim console
+# OwlSetup.com. Vérifie les marqueurs source puis, si l'exécutable compilé est
+# présent, exécute réellement les verbes sans effet de bord.
 
 $root = Split-Path -Parent $PSScriptRoot
 $native = Get-Content -LiteralPath (Join-Path $root "OwlSetupWebView.cs") -Raw -Encoding UTF8
@@ -20,10 +21,22 @@ Assert-Has $native 'case "--install": return CliInstallOrRemove(rest,false);' "L
 Assert-Has $native 'case "--uninstall": return CliInstallOrRemove(rest,true);' "Le verbe --uninstall a disparu."
 Assert-Has $native 'case "--list": return CliList(' "Le verbe --list a disparu."
 Assert-Has $native 'case "--search": return CliSearch(rest);' "Le verbe --search a disparu."
+Assert-Has $native 'case "--apply": return CliApply(rest);' "Le verbe --apply a disparu."
 # Les identifiants CLI sont valides par la meme regex que le reste de l'hote.
 Assert-Has $native '^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$' "La validation d'identifiant du mode CLI a disparu."
 # --install passe toujours les drapeaux silencieux WinGet.
 Assert-Has $native '--silent --accept-package-agreements --accept-source-agreements --disable-interactivity' "Le mode CLI n'installe plus en silencieux."
+# --apply n'accepte qu'une configuration exportee par l'interface.
+Assert-Has $native 'Convert.ToString(root["format"])!="pc-setup-configuration"' "--apply ne valide plus le format de configuration."
+Assert-Has $native 'CliConfigIds(root,"selectedPackages")' "--apply ne lit plus selectedPackages."
+# Sortie deja redirigee : on ne rattache pas de console (sinon tampon invisible).
+Assert-Has $native 'Console.IsOutputRedirected' "CliAttachConsole ne detecte plus une sortie deja redirigee."
+
+# 1b) Shim console OwlSetup.com (4.5 / beta.19)
+$shimSource = Join-Path $root "OwlSetupCli.cs"
+Assert-Has (Get-Content -LiteralPath $shimSource -Raw -Encoding UTF8) 'Path.ChangeExtension(self, ".exe")' "Le shim .com ne relaie plus vers l'exe voisin."
+$buildPs1 = Get-Content -LiteralPath (Join-Path $root "build.ps1") -Raw -Encoding UTF8
+Assert-Has $buildPs1 'ChangeExtension($outputPath, ".com")' "build.ps1 ne compile plus le shim console (.com)."
 
 # 2) Execution reelle des verbes sans effet de bord, si l'exe est present.
 # L'exe est compile en /target:winexe : PowerShell '&' n'attend pas sa fin, on
@@ -57,7 +70,35 @@ if (Test-Path $exe) {
     $n = Invoke-Cli @('--install', '../evil')
     if ($n.Code -ne 2) { throw "--install avec identifiant invalide devrait sortir en code 2 (obtenu $($n.Code))." }
 
-    Write-Host "Mode CLI : marqueurs presents + verbes surs verifies sur l'executable." -ForegroundColor Green
+    $j = Invoke-Cli @('--list', 'navigateur', '--json')
+    if ($j.Code -ne 0) { throw "--list --json : code $($j.Code)." }
+    try { $parsed = $j.Text.Trim() | ConvertFrom-Json } catch { throw "--list --json : JSON invalide." }
+    if (-not ($parsed | Where-Object { $_.id -eq 'Mozilla.Firefox' })) { throw "--list --json : Firefox absent du JSON." }
+
+    # --apply : fichier absent -> code 2 ; mauvais format -> code 2 (aucune install).
+    $missing = Invoke-Cli @('--apply', 'Z:\nexiste-pas\config.pcsetup.json')
+    if ($missing.Code -ne 2) { throw "--apply fichier absent : code attendu 2 (obtenu $($missing.Code))." }
+
+    $badFmt = New-TemporaryFile
+    Set-Content -LiteralPath $badFmt -Value '{"format":"autre-chose","selectedPackages":["VideoLAN.VLC"]}' -Encoding UTF8
+    try {
+        $bad = Invoke-Cli @('--apply', $badFmt)
+        if ($bad.Code -ne 2) { throw "--apply format invalide : code attendu 2 (obtenu $($bad.Code))." }
+        if ($bad.Text -match 'Installation de ') { throw "--apply format invalide : ne doit rien installer." }
+    }
+    finally { Remove-Item -LiteralPath $badFmt -Force -ErrorAction SilentlyContinue }
+
+    # Shim console : compile a cote de l'exe, doit relayer et attendre.
+    $shim = [IO.Path]::ChangeExtension($exe, ".com")
+    if (Test-Path $shim) {
+        $sv = & $shim --version 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "OwlSetup.com --version : code $LASTEXITCODE." }
+        if (($sv -join "`n") -notmatch 'OwlSetup') { throw "OwlSetup.com --version : sortie inattendue." }
+        Write-Host "Mode CLI : marqueurs + verbes surs + shim .com verifies." -ForegroundColor Green
+    }
+    else {
+        Write-Host "Mode CLI : marqueurs + verbes surs verifies (shim .com absent)." -ForegroundColor Green
+    }
 }
 else {
     Write-Host "Mode CLI : marqueurs presents (execution ignoree, exe absent)." -ForegroundColor Green

@@ -1,5 +1,34 @@
 # Historique des versions
 
+## [4.0.0-beta.19] - 2026-08-27
+
+### CLI : `--apply`, `--list --json`, et un shim console qui « juste marche »
+
+Deuxième incrément du mode ligne de commande.
+
+- **`OwlSetup.exe --apply <config.pcsetup.json>`** rejoue une configuration
+  exportée par l'interface : installe `selectedPackages` (repli sur
+  `installedPackages`), ignore les zones de nettoyage avec un message. Le
+  format `pc-setup-configuration` est validé ; les identifiants passent la même
+  regex que partout ailleurs.
+- **`OwlSetup.exe --list --json`** : catalogue intégré en JSON compact
+  (`[{"id","name","category"}, …]`), pour MDM / scripts.
+- **`OwlSetup.com`** — nouveau shim console livré à côté de `OwlSetup.exe`.
+  `.com` passe avant `.exe` dans `PATHEXT`, donc `OwlSetup --install X` exécute
+  le shim, qui relaie vers l'exe voisin et **attend sa fin** : depuis
+  PowerShell, `& OwlSetup …` renseigne enfin `$LASTEXITCODE` sans
+  `Start-Process -Wait`. `build.ps1` le compile ; `build-beta.ps1` le signale
+  dans `BETA-INFO.txt`.
+- `CliAttachConsole` ne rattache plus de console quand la sortie est déjà
+  redirigée (tube / fichier / shim) — sinon l'affichage partait dans un tampon
+  invisible.
+- `tests/Test-CliMode.ps1` étendu : `--apply` (fichier absent / mauvais format
+  → code 2, aucune installation), `--list --json` (JSON valide), shim `.com`
+  (`& OwlSetup.com --version` → `$LASTEXITCODE` = 0).
+- Vérifié : les verbes fonctionnent (`--apply` a installé puis désinstallé
+  7zr + Notepad++ en test), l'interface démarre toujours sans argument,
+  intégrité des 5 ressources OK, `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.18] - 2026-08-27
 
 ### Mode ligne de commande (sans interface) — style Ninite
