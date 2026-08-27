@@ -62,6 +62,16 @@ Assert-Has $markup 'id="windowsUpdateRebootBar"' "La banniere de redemarrage req
 # Les pilotes ne doivent pas etre coches par defaut.
 Assert-Has $frontend 'u.kind !== "driver"' "Les pilotes ne sont plus exclus de la selection par defaut."
 
+# 2c) Preversions / optionnelles "seeker" + verification post-installation (beta.17)
+Assert-Has $native 'browseOnly=[bool]$u.BrowseOnly' "L'inventaire n'expose plus le drapeau BrowseOnly."
+Assert-Has $native 'if($u.BrowseOnly){ $skipped++; continue }' "Le script d'installation n'ecarte plus les mises a jour BrowseOnly."
+Assert-Has $native 'Microsoft.Update.SystemInfo' "La detection de redemarrage ne croise plus SystemInfo.RebootRequired."
+Assert-Has $native 'installedNow=$done' "Le script d'installation ne remonte plus l'etat IsInstalled reel."
+Assert-Has $native 'bool notApplied=resultCode==2 && !installedNow && !rebootRequired' "L'hote ne detecte plus le faux succes (non applique)."
+Assert-Has $native "n'est pas appliqu" "Le message 'succes annonce mais non applique' a disparu."
+Assert-Has $frontend '!u.browseOnly' "app.js ne filtre plus les mises a jour optionnelles hors de la selection."
+Assert-Has $frontend 'message.notApplied' "app.js ne traite plus le cas 'non applique'."
+
 # 3) Execution reelle si l'exe compile est present
 $exe = Join-Path $root "OwlSetup.exe"
 if (Test-Path $exe) {

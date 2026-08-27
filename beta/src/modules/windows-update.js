@@ -14,7 +14,7 @@
 const ITEM_PREFIX = "PCSETUP_WU_ITEM|";
 const END_PREFIX = "PCSETUP_WU_END|";
 
-/** @typedef {{updateId:string, title:string, kb:string, kind:"driver"|"software", bytes:number, downloaded:boolean, severity:string, mandatory:boolean}} WindowsUpdateItem */
+/** @typedef {{updateId:string, title:string, kb:string, kind:"driver"|"software", bytes:number, downloaded:boolean, severity:string, mandatory:boolean, browseOnly:boolean}} WindowsUpdateItem */
 
 function toItem(raw) {
   const title = String(raw && raw.title != null ? raw.title : "").trim();
@@ -32,6 +32,9 @@ function toItem(raw) {
     downloaded: Boolean(raw && raw.downloaded),
     severity: String(raw && raw.severity != null ? raw.severity : ""),
     mandatory: Boolean(raw && raw.mandatory),
+    // Préversion / optionnelle « seeker » : installable seulement depuis
+    // Windows Update, pas via IUpdateInstaller.
+    browseOnly: Boolean(raw && raw.browseOnly),
   };
 }
 
@@ -128,6 +131,7 @@ export function defaultWindowsUpdateSelection(updates, opts) {
   const includeDrivers = Boolean(opts && opts.includeDrivers);
   return (Array.isArray(updates) ? updates : [])
     .filter((u) => u && typeof u.updateId === "string" && u.updateId.length === 36)
+    .filter((u) => !u.browseOnly)
     .filter((u) => includeDrivers || u.kind !== "driver")
     .map((u) => u.updateId);
 }
@@ -138,30 +142,26 @@ const WUA_RESULT_PARTIAL = 3;
 
 /**
  * Lit le journal du script d'installation élevé.
+ *
+ * `ok` n'est vrai que si Windows a annoncé un succès (resultCode 2) ET que la
+ * mise à jour est réellement installée ou qu'un redémarrage la finalisera.
+ * `notApplied` = Windows a dit « réussi » mais rien n'a été appliqué (cas des
+ * préversions / cumulatives « seeker »).
  * @param {string} output
- * @returns {{items: Array<{updateId:string, ok:boolean, partial:boolean, resultCode:number, hresult:number}>, rebootRequired:boolean, installed:number, failed:number, error:string|null}}
+ * @returns {{items: Array<{updateId:string, ok:boolean, partial:boolean, notApplied:boolean, installedNow:boolean, resultCode:number, hresult:number}>, rebootRequired:boolean, installed:number, notApplied:number, failed:number, error:string|null}}
  */
 export function parseWindowsUpdateInstallMarkers(output) {
-  const items = [];
+  const raws = [];
   let rebootRequired = false;
   let error = null;
   let sawEnd = false;
   for (const line of String(output ?? "").split(/\r\n|\r|\n/)) {
     if (line.startsWith("PCSETUP_WUI_ITEM|")) {
-      let raw;
       try {
-        raw = JSON.parse(line.slice("PCSETUP_WUI_ITEM|".length));
+        raws.push(JSON.parse(line.slice("PCSETUP_WUI_ITEM|".length)));
       } catch {
-        continue;
+        /* ligne corrompue ignorée */
       }
-      const resultCode = Number(raw && raw.resultCode) || 0;
-      items.push({
-        updateId: String(raw && raw.updateId != null ? raw.updateId : ""),
-        ok: resultCode === WUA_RESULT_OK,
-        partial: resultCode === WUA_RESULT_PARTIAL,
-        resultCode,
-        hresult: Number(raw && raw.hresult) || 0,
-      });
     } else if (line.startsWith("PCSETUP_WUI_END|")) {
       sawEnd = true;
       const parts = line.split("|");
@@ -169,7 +169,28 @@ export function parseWindowsUpdateInstallMarkers(output) {
       for (const seg of parts) if (seg === "reboot=1") rebootRequired = true;
     }
   }
+  const items = raws.map((raw) => {
+    const resultCode = Number(raw && raw.resultCode) || 0;
+    const installedNow = Boolean(raw && raw.installedNow);
+    return {
+      updateId: String(raw && raw.updateId != null ? raw.updateId : ""),
+      ok: resultCode === WUA_RESULT_OK && (installedNow || rebootRequired),
+      partial: resultCode === WUA_RESULT_PARTIAL,
+      notApplied: resultCode === WUA_RESULT_OK && !installedNow && !rebootRequired,
+      installedNow,
+      resultCode,
+      hresult: Number(raw && raw.hresult) || 0,
+    };
+  });
   const installed = items.filter((i) => i.ok).length;
+  const notApplied = items.filter((i) => i.notApplied).length;
   if (!sawEnd && !error) error = "L'installation Windows Update ne s'est pas terminée.";
-  return { items, rebootRequired, installed, failed: items.length - installed, error };
+  return {
+    items,
+    rebootRequired,
+    installed,
+    notApplied,
+    failed: items.length - installed,
+    error,
+  };
 }
