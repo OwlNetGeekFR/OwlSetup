@@ -685,3 +685,5 @@ label.windows-update-row{cursor:pointer}
 .windows-update-reboot-bar>span:first-child{font-size:11px}
 .windows-update-reboot-bar .text-button{margin-left:auto;color:#e0a94b}
 .windows-update-install-bar.hidden,.windows-update-reboot-bar.hidden{display:none}
+.windows-update-row.wu-browseonly{opacity:.75}
+.wu-sev.wu-optional{border-color:#3a5c86;background:#16283f;color:#8fb6e6}

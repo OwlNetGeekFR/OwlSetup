@@ -3041,7 +3041,7 @@ internal sealed class WebAppForm : Form
             "foreach($u in $r.Updates){"+
             "$drv=$false; foreach($c in $u.Categories){ if($c.Name -eq 'Drivers'){ $drv=$true } };"+
             "$kb=@(); foreach($k in $u.KBArticleIDs){ $kb+=('KB'+$k) };"+
-            "$o=[ordered]@{ updateId=[string]$u.Identity.UpdateID; title=[string]$u.Title; kb=($kb -join ','); kind=$(if($drv){'driver'}else{'software'}); bytes=[int64]$u.MaxDownloadSize; downloaded=[bool]$u.IsDownloaded; severity=[string]$u.MsrcSeverity; mandatory=[bool]$u.IsMandatory };"+
+            "$o=[ordered]@{ updateId=[string]$u.Identity.UpdateID; title=[string]$u.Title; kb=($kb -join ','); kind=$(if($drv){'driver'}else{'software'}); bytes=[int64]$u.MaxDownloadSize; downloaded=[bool]$u.IsDownloaded; severity=[string]$u.MsrcSeverity; mandatory=[bool]$u.IsMandatory; browseOnly=[bool]$u.BrowseOnly };"+
             "Out-Ascii ('PCSETUP_WU_ITEM|'+($o | ConvertTo-Json -Compress)); };"+
             "Out-Ascii ('PCSETUP_WU_END|ok|'+$r.Updates.Count);"+
             "}catch{ Out-Ascii ('PCSETUP_WU_END|error|'+$_.Exception.Message); }";
@@ -3071,7 +3071,11 @@ internal sealed class WebAppForm : Form
                         {"bytes",bytes},
                         {"downloaded",item.ContainsKey("downloaded") && Convert.ToBoolean(item["downloaded"])},
                         {"severity",Convert.ToString(item.ContainsKey("severity")?item["severity"]:"")},
-                        {"mandatory",item.ContainsKey("mandatory") && Convert.ToBoolean(item["mandatory"])}
+                        {"mandatory",item.ContainsKey("mandatory") && Convert.ToBoolean(item["mandatory"])},
+                        // BrowseOnly : mise à jour optionnelle / préversion « seeker ».
+                        // WUA la renvoie mais son installation réelle passe par
+                        // l'orchestrateur de Windows Update, pas par IUpdateInstaller.
+                        {"browseOnly",item.ContainsKey("browseOnly") && Convert.ToBoolean(item["browseOnly"])}
                     });
                 }
                 catch{}
@@ -3166,13 +3170,19 @@ internal sealed class WebAppForm : Form
                     "$searcher=$s.CreateUpdateSearcher();"+
                     "$r=$searcher.Search('IsInstalled=0 AND IsHidden=0');"+
                     "$coll=New-Object -ComObject Microsoft.Update.UpdateColl;"+
-                    "foreach($u in $r.Updates){ if($ids -contains [string]$u.Identity.UpdateID){ if(-not $u.EulaAccepted){ try{ $u.AcceptEula() }catch{} }; [void]$coll.Add($u) } };"+
-                    "if($coll.Count -eq 0){ W 'PCSETUP_WUI_END|error|Aucune des mises a jour selectionnees n''a ete retrouvee.'; exit 2 };"+
+                    "$skipped=0;"+
+                    // BrowseOnly = préversion/optionnelle « seeker » : IUpdateInstaller
+                    // ne la pilote pas réellement, on ne l'ajoute pas.
+                    "foreach($u in $r.Updates){ if($ids -contains [string]$u.Identity.UpdateID){ if($u.BrowseOnly){ $skipped++; continue }; if(-not $u.EulaAccepted){ try{ $u.AcceptEula() }catch{} }; [void]$coll.Add($u) } };"+
+                    "if($coll.Count -eq 0){ if($skipped -gt 0){ W 'PCSETUP_WUI_END|error|Mise a jour optionnelle : installez-la depuis Windows Update.' } else { W 'PCSETUP_WUI_END|error|Aucune des mises a jour selectionnees n''a ete retrouvee.' }; exit 2 };"+
                     "$dl=$s.CreateUpdateDownloader(); $dl.Updates=$coll; [void]$dl.Download();"+
                     "$inst=$s.CreateUpdateInstaller(); $inst.Updates=$coll; $ir=$inst.Install();"+
-                    "for($i=0;$i -lt $coll.Count;$i++){ $u=$coll.Item($i); $res=$ir.GetUpdateResult($i); $o=@{ updateId=[string]$u.Identity.UpdateID; hresult=[int]$res.HResult; resultCode=[int]$res.ResultCode } | ConvertTo-Json -Compress; W ('PCSETUP_WUI_ITEM|'+$o) };"+
-                    "W ('PCSETUP_WUI_END|ok|reboot='+[int]$ir.RebootRequired+'|installed='+$coll.Count);"+
-                    "if($ir.RebootRequired){ exit 3010 } else { exit 0 };"+
+                    "for($i=0;$i -lt $coll.Count;$i++){ $u=$coll.Item($i); $res=$ir.GetUpdateResult($i); $done=$false; try{ $done=[bool]$u.IsInstalled }catch{}; $o=@{ updateId=[string]$u.Identity.UpdateID; hresult=[int]$res.HResult; resultCode=[int]$res.ResultCode; installedNow=$done } | ConvertTo-Json -Compress; W ('PCSETUP_WUI_ITEM|'+$o) };"+
+                    "$sysReboot=$false; try{ $sysReboot=[bool](New-Object -ComObject Microsoft.Update.SystemInfo).RebootRequired }catch{};"+
+                    "$regReboot=Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired';"+
+                    "$reboot=([bool]$ir.RebootRequired -or $sysReboot -or $regReboot);"+
+                    "W ('PCSETUP_WUI_END|ok|reboot='+[int]$reboot+'|installed='+$coll.Count);"+
+                    "if($reboot){ exit 3010 } else { exit 0 };"+
                     "}catch{ W ('PCSETUP_WUI_END|error|'+$_.Exception.Message); exit 1 }";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
                 SendToWeb(new { type="windows-update-install-stage", percent=30, status="Autorisation Windows puis téléchargement..." });
@@ -3183,6 +3193,7 @@ internal sealed class WebAppForm : Form
                 {
                     string contents=File.ReadAllText(resultPath,Encoding.UTF8);
                     report.AppendLine(contents);
+                    var rawItems=new List<Dictionary<string,object>>();
                     foreach(string line in contents.Split(new[]{"\r\n","\r","\n"},StringSplitOptions.RemoveEmptyEntries))
                     {
                         if(line.StartsWith("PCSETUP_WUI_ITEM|",StringComparison.Ordinal))
@@ -3190,17 +3201,7 @@ internal sealed class WebAppForm : Form
                             try
                             {
                                 var raw=json.DeserializeObject(line.Substring("PCSETUP_WUI_ITEM|".Length)) as Dictionary<string,object>;
-                                if(raw==null)continue;
-                                int resultCode=0;try{resultCode=Convert.ToInt32(raw.ContainsKey("resultCode")?raw["resultCode"]:0);}catch{}
-                                int hresult=0;try{hresult=Convert.ToInt32(raw.ContainsKey("hresult")?raw["hresult"]:0);}catch{}
-                                items.Add(new Dictionary<string,object>
-                                {
-                                    {"updateId",Convert.ToString(raw.ContainsKey("updateId")?raw["updateId"]:"")},
-                                    {"ok",resultCode==2},
-                                    {"partial",resultCode==3},
-                                    {"resultCode",resultCode},
-                                    {"hresult",hresult}
-                                });
+                                if(raw!=null)rawItems.Add(raw);
                             }
                             catch{}
                         }
@@ -3212,6 +3213,29 @@ internal sealed class WebAppForm : Form
                                 if(seg.StartsWith("reboot=",StringComparison.Ordinal))rebootRequired=seg=="reboot=1";
                         }
                     }
+                    foreach(var raw in rawItems)
+                    {
+                        int resultCode=0;try{resultCode=Convert.ToInt32(raw.ContainsKey("resultCode")?raw["resultCode"]:0);}catch{}
+                        int hresult=0;try{hresult=Convert.ToInt32(raw.ContainsKey("hresult")?raw["hresult"]:0);}catch{}
+                        bool installedNow=raw.ContainsKey("installedNow") && Convert.ToBoolean(raw["installedNow"]);
+                        // resultCode 2 = succès annoncé. Pour les cumulatives/préversions,
+                        // Windows peut l'annoncer sans rien appliquer : on n'accepte le
+                        // succès que si la mise à jour est vraiment installée OU si un
+                        // redémarrage est en attente pour la finaliser.
+                        bool applied=resultCode==2 && (installedNow || rebootRequired);
+                        bool notApplied=resultCode==2 && !installedNow && !rebootRequired;
+                        items.Add(new Dictionary<string,object>
+                        {
+                            {"updateId",Convert.ToString(raw.ContainsKey("updateId")?raw["updateId"]:"")},
+                            {"ok",applied},
+                            {"partial",resultCode==3},
+                            {"notApplied",notApplied},
+                            {"resultCode",resultCode},
+                            {"hresult",hresult}
+                        });
+                    }
+                    if(String.IsNullOrEmpty(warning) && items.Count>0 && items.All(x=>Convert.ToBoolean(x["notApplied"])))
+                        warning="Windows a signalé un succès mais la mise à jour n'est pas appliquée. Installez-la depuis Windows Update.";
                 }
                 else if(code==1223)warning="Autorisation administrateur refusée : l'installation Windows Update n'a pas démarré.";
                 else warning="Windows n'a pas produit de résultat. Ouvrez Windows Update pour installer ces mises à jour.";
@@ -3223,6 +3247,7 @@ internal sealed class WebAppForm : Form
                 try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
                 windowsUpdateInstalling=false;
                 int installed=items.Count(x=>Convert.ToBoolean(x["ok"]));
+                int notApplied=items.Count(x=>Convert.ToBoolean(x["notApplied"]));
                 int failed=items.Count-installed;
                 bool success=String.IsNullOrEmpty(warning) && failed==0 && installed>0;
                 SendToWeb(new {
@@ -3230,6 +3255,7 @@ internal sealed class WebAppForm : Form
                     success=success,
                     installed=installed,
                     failed=failed,
+                    notApplied=notApplied,
                     rebootRequired=rebootRequired,
                     items=items.ToArray(),
                     warning=warning ?? "",

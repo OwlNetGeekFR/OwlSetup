@@ -137,45 +137,64 @@ describe("defaultWindowsUpdateSelection", () => {
     ]);
     expect(sel).toEqual(["9f0a1b2c-3d4e-5f60-7181-92a3b4c5d6e7"]);
   });
+
+  it("exclut les mises à jour optionnelles / préversions (browseOnly)", () => {
+    const sel = defaultWindowsUpdateSelection([
+      { updateId: "9f0a1b2c-3d4e-5f60-7181-92a3b4c5d6e7", kind: "software", browseOnly: false },
+      { updateId: "aaaabbbb-cccc-dddd-eeee-ffff00001111", kind: "software", browseOnly: true },
+    ]);
+    expect(sel).toEqual(["9f0a1b2c-3d4e-5f60-7181-92a3b4c5d6e7"]);
+  });
 });
 
 describe("parseWindowsUpdateInstallMarkers", () => {
-  it("lit les résultats par mise à jour + le drapeau redémarrage", () => {
+  it("succès réel : resultCode 2 + IsInstalled ou redémarrage", () => {
     const out = [
-      'PCSETUP_WUI_ITEM|{"updateId":"9f0a1b2c-3d4e-5f60-7181-92a3b4c5d6e7","hresult":0,"resultCode":2}',
-      'PCSETUP_WUI_ITEM|{"updateId":"aaaabbbb-cccc-dddd-eeee-ffff00001111","hresult":-2145116147,"resultCode":4}',
-      "PCSETUP_WUI_END|ok|reboot=1|installed=2",
+      'PCSETUP_WUI_ITEM|{"updateId":"9f0a1b2c-3d4e-5f60-7181-92a3b4c5d6e7","hresult":0,"resultCode":2,"installedNow":true}',
+      'PCSETUP_WUI_ITEM|{"updateId":"aaaabbbb-cccc-dddd-eeee-ffff00001111","hresult":-2145116147,"resultCode":4,"installedNow":false}',
+      "PCSETUP_WUI_END|ok|reboot=0|installed=2",
     ].join("\r\n");
     const r = parseWindowsUpdateInstallMarkers(out);
-    expect(r.items).toHaveLength(2);
-    expect(r.items[0]).toMatchObject({ ok: true, partial: false });
-    expect(r.items[1]).toMatchObject({ ok: false, resultCode: 4, hresult: -2145116147 });
-    expect(r.rebootRequired).toBe(true);
+    expect(r.items[0]).toMatchObject({ ok: true, notApplied: false });
+    expect(r.items[1]).toMatchObject({ ok: false, resultCode: 4 });
     expect(r.installed).toBe(1);
     expect(r.failed).toBe(1);
-    expect(r.error).toBeNull();
+    expect(r.rebootRequired).toBe(false);
   });
 
-  it("reboot=0 -> pas de redémarrage", () => {
-    const r = parseWindowsUpdateInstallMarkers(
-      [
-        'PCSETUP_WUI_ITEM|{"updateId":"x","resultCode":2}',
-        "PCSETUP_WUI_END|ok|reboot=0|installed=1",
-      ].join("\n")
-    );
-    expect(r.rebootRequired).toBe(false);
+  it("resultCode 2 sans installation ni redémarrage -> notApplied (préversion seeker)", () => {
+    const out = [
+      'PCSETUP_WUI_ITEM|{"updateId":"3bd9512d-7c5d-4808-ae47-68e82150d606","hresult":0,"resultCode":2,"installedNow":false}',
+      "PCSETUP_WUI_END|ok|reboot=0|installed=1",
+    ].join("\n");
+    const r = parseWindowsUpdateInstallMarkers(out);
+    expect(r.items[0]).toMatchObject({ ok: false, notApplied: true });
+    expect(r.installed).toBe(0);
+    expect(r.notApplied).toBe(1);
+  });
+
+  it("resultCode 2 non installé MAIS redémarrage en attente -> ok", () => {
+    const out = [
+      'PCSETUP_WUI_ITEM|{"updateId":"x","resultCode":2,"installedNow":false}',
+      "PCSETUP_WUI_END|ok|reboot=1|installed=1",
+    ].join("\n");
+    const r = parseWindowsUpdateInstallMarkers(out);
+    expect(r.items[0]).toMatchObject({ ok: true, notApplied: false });
+    expect(r.rebootRequired).toBe(true);
     expect(r.installed).toBe(1);
   });
 
   it("remonte l'erreur du script élevé", () => {
     const r = parseWindowsUpdateInstallMarkers(
-      "PCSETUP_WUI_END|error|0x80240022 WU_E_ALL_UPDATES_FAILED"
+      "PCSETUP_WUI_END|error|Mise a jour optionnelle : installez-la depuis Windows Update."
     );
-    expect(r.error).toBe("0x80240022 WU_E_ALL_UPDATES_FAILED");
+    expect(r.error).toBe("Mise a jour optionnelle : installez-la depuis Windows Update.");
   });
 
   it("sortie sans marqueur de fin -> erreur de troncature", () => {
-    const r = parseWindowsUpdateInstallMarkers('PCSETUP_WUI_ITEM|{"updateId":"x","resultCode":2}');
+    const r = parseWindowsUpdateInstallMarkers(
+      'PCSETUP_WUI_ITEM|{"updateId":"x","resultCode":2,"installedNow":true}'
+    );
     expect(r.error).toMatch(/ne s'est pas terminée/);
   });
 });

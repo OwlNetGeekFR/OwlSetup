@@ -1,5 +1,33 @@
 # Historique des versions
 
+## [4.0.0-beta.17] - 2026-08-27
+
+### Windows Update : préversions « seeker » écartées, succès vérifié
+
+Correctif de fond sur l'installation ajoutée en beta.16, révélé par un test réel :
+une **mise à jour de préversion optionnelle** (« Télécharger et installer » dans
+les Paramètres) était acceptée par l'API WUA (`resultCode 2`) **sans jamais être
+appliquée** — Windows ne pilote ce type de mise à jour que par son propre
+orchestrateur.
+
+- Les mises à jour **`BrowseOnly`** (préversions / cumulatives optionnelles) sont
+  désormais **listées mais non installables** dans OwlSetup : pas de case à
+  cocher, badge « optionnel · Windows Update », exclues de la sélection par
+  défaut. Le script d'installation élevé les refuse aussi (garde-fou).
+- **Succès vérifié** : après `Install()`, l'hôte contrôle l'état réel
+  (`IUpdate.IsInstalled`) de chaque mise à jour. Un `resultCode 2` sans
+  installation effective **ni** redémarrage en attente est signalé comme
+  « Windows a signalé un succès mais la mise à jour n'est pas appliquée »
+  au lieu d'un faux succès.
+- **Détection de redémarrage fiabilisée** : on croise le drapeau de
+  `IInstallationResult` avec `Microsoft.Update.SystemInfo.RebootRequired` et la
+  clé de registre `…\WindowsUpdate\Auto Update\RebootRequired`.
+- Module `windows-update.js` : `defaultWindowsUpdateSelection` exclut
+  `browseOnly` ; `parseWindowsUpdateInstallMarkers` distingue `ok` (réellement
+  appliqué) de `notApplied`. 157 tests beta.
+- Vérifié : la bêta démarre, intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.16] - 2026-08-27
 
 ### Windows Update : installer une sélection (composants + pilotes au choix)

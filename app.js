@@ -2059,7 +2059,7 @@ function formatWindowsUpdateBytes(bytes) {
 }
 
 function installableWindowsUpdate(u) {
-  return u && typeof u.updateId === "string" && u.updateId.length === 36;
+  return u && typeof u.updateId === "string" && u.updateId.length === 36 && !u.browseOnly;
 }
 
 function requestWindowsUpdateScan() {
@@ -2126,17 +2126,21 @@ function renderWindowsUpdates(message) {
     return;
   }
 
-  // Sélection par défaut : composants oui, pilotes non (choix explicite requis).
+  // Sélection par défaut : composants oui, pilotes non, préversions/optionnelles
+  // jamais (installableWindowsUpdate exclut déjà browseOnly).
   windowsUpdateSelection = new Set(
     list.filter(u => installableWindowsUpdate(u) && u.kind !== "driver").map(u => u.updateId)
   );
 
+  const optionalCount = list.filter(u => u.browseOnly).length;
   const bits = [`${list.length} mise${list.length > 1 ? "s" : ""} à jour Windows en attente`];
   if (driverCount > 0) bits.push(`${driverCount} pilote${driverCount > 1 ? "s" : ""}`);
+  if (optionalCount > 0) bits.push(`${optionalCount} optionnelle${optionalCount > 1 ? "s" : ""}`);
   const totalBytes = list.reduce((sum, u) => sum + (Number(u.bytes) || 0), 0);
   const totalLabel = formatWindowsUpdateBytes(totalBytes);
   if (totalLabel) bits.push(totalLabel);
-  if (summaryEl) summaryEl.textContent = `${bits.join(" · ")}${checkedAt}. Les pilotes ne sont pas cochés par défaut.`;
+  if (summaryEl)
+    summaryEl.textContent = `${bits.join(" · ")}${checkedAt}. Pilotes et mises à jour optionnelles non cochés par défaut${optionalCount > 0 ? " ; les optionnelles s'installent depuis Windows Update" : ""}.`;
 
   emptyEl?.classList.add("hidden");
   if (listEl) {
@@ -2147,13 +2151,20 @@ function renderWindowsUpdates(message) {
         const meta = [u.kb, formatWindowsUpdateBytes(u.bytes), u.downloaded ? "déjà téléchargé" : ""]
           .filter(Boolean)
           .join(" · ");
-        const sev = u.severity ? `<span class="wu-sev">${escapeHtml(u.severity)}</span>` : "";
+        const sev = u.browseOnly
+          ? `<span class="wu-sev wu-optional">optionnel · Windows Update</span>`
+          : u.severity
+            ? `<span class="wu-sev">${escapeHtml(u.severity)}</span>`
+            : "";
         const canPick = installableWindowsUpdate(u);
         const checked = canPick && windowsUpdateSelection.has(u.updateId) ? "checked" : "";
+        const boxTitle = u.browseOnly
+          ? "Mise à jour optionnelle / préversion : à installer depuis Windows Update"
+          : "Cette mise à jour ne peut être installée que depuis Windows Update";
         const box = canPick
           ? `<input type="checkbox" data-wu-id="${escapeHtml(u.updateId)}" ${checked}><span class="wu-check">✓</span>`
-          : `<span class="wu-check wu-check-disabled" title="Cette mise à jour ne peut être installée que depuis Windows Update">–</span>`;
-        return `<label class="windows-update-row wu-${u.kind === "driver" ? "driver" : "software"}">${box}<span class="wu-kind">${kindLabel}</span><span class="wu-body"><strong>${escapeHtml(u.title)}</strong><small>${escapeHtml(meta)}</small></span>${sev}</label>`;
+          : `<span class="wu-check wu-check-disabled" title="${escapeHtml(boxTitle)}">–</span>`;
+        return `<label class="windows-update-row wu-${u.kind === "driver" ? "driver" : "software"}${u.browseOnly ? " wu-browseonly" : ""}">${box}<span class="wu-kind">${kindLabel}</span><span class="wu-body"><strong>${escapeHtml(u.title)}</strong><small>${escapeHtml(meta)}</small></span>${sev}</label>`;
       })
       .join("");
   }
@@ -2192,6 +2203,7 @@ function renderWindowsUpdateInstallComplete(message) {
   updateWindowsUpdateInstallBar();
   const installed = Number(message.installed || 0);
   const failed = Number(message.failed || 0);
+  const notApplied = Number(message.notApplied || 0);
   if (message.rebootRequired) {
     const bar = $("#windowsUpdateRebootBar");
     if (bar) {
@@ -2200,12 +2212,24 @@ function renderWindowsUpdateInstallComplete(message) {
     }
   }
   if (message.warning) {
-    notify("Windows Update", message.warning, failed || !installed ? "error" : "warning");
+    // "non appliquée" (préversion seeker) : ce n'est pas un plantage, on oriente
+    // vers Windows Update plutôt que d'afficher une erreur rouge.
+    notify(
+      "Windows Update",
+      message.warning,
+      notApplied && !failed ? "warning" : failed || !installed ? "error" : "warning"
+    );
   } else if (message.success) {
     notify(
       "Windows Update",
       `${installed} mise${installed > 1 ? "s" : ""} à jour installée${installed > 1 ? "s" : ""}${message.rebootRequired ? " · redémarrage requis" : ""}.`,
       "success"
+    );
+  } else if (notApplied) {
+    notify(
+      "Windows Update",
+      `Windows a accepté ${notApplied} mise(s) à jour sans les appliquer (préversion / cumulative optionnelle). Utilisez « Ouvrir Windows Update » pour les installer.`,
+      "warning"
     );
   } else {
     notify("Windows Update", `${installed} installée(s), ${failed} en échec. Rapport : ${message.logName || "—"}`, "warning");
