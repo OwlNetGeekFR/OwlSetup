@@ -628,3 +628,6 @@ code,pre,kbd,samp,
   #catalog .results-line{align-items:flex-start;gap:12px}
   #catalog .results-line span:last-child{text-align:right}
 }
+
+/* Badge « se met à jour seule » (lanceurs à mise à jour intégrée) — 4.0.0-beta.3 */
+.update-selfmanaged{display:inline-block;margin-top:4px;padding:1px 6px;border:1px solid #3a5c86;border-radius:999px;background:#16283f;color:#8fb6e6;font-size:7px;white-space:nowrap}

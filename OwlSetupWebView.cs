@@ -1786,6 +1786,46 @@ internal sealed class WebAppForm : Form
         return code==unchecked((int)0x8A15002B);
     }
 
+    // Lanceurs et applications qui embarquent leur propre mise a jour : WinGet
+    // les propose souvent en boucle car la version enregistree dans Windows ne
+    // suit pas le meme schema que le manifeste, et `winget upgrade` echoue ou
+    // reste sans effet. Pour ceux-la, OwlSetup n'affiche pas d'erreur : il
+    // explique qu'il faut ouvrir le logiciel pour qu'il se mette a jour.
+    static readonly HashSet<string> SelfManagedUpdaters = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Ankama.AnkamaLauncher",
+        "ElectronicArts.EADesktop",
+        "EpicGames.EpicGamesLauncher",
+        "Blizzard.BattleNet",
+        "Ubisoft.Connect",
+        "GOG.Galaxy",
+        "Valve.Steam",
+        "Discord.Discord",
+        "RiotGames.LeagueOfLegends.EUW",
+        "RiotGames.Valorant.EU",
+        "Overwolf.CurseForge",
+        "Amazon.Games",
+        "Logitech.GHUB",
+    };
+
+    // Vrai quand la version proposee n'est qu'un prefixe etendu de la version
+    // installee (ex. installee 3.15.2, proposee 3.15.2.20509) : c'est presque
+    // toujours une difference de schema de version, pas une vraie mise a jour.
+    static bool IsVersionPrefixMismatch(string current,string available)
+    {
+        if(String.IsNullOrWhiteSpace(current) || String.IsNullOrWhiteSpace(available))return false;
+        string a=current.Trim(), b=available.Trim();
+        if(String.Equals(a,b,StringComparison.OrdinalIgnoreCase))return false;
+        if(b.StartsWith(a+".",StringComparison.OrdinalIgnoreCase))return true;
+        if(a.StartsWith(b+".",StringComparison.OrdinalIgnoreCase))return true;
+        return false;
+    }
+
+    bool IsSelfManagedUpdate(string id,string current,string available)
+    {
+        return SelfManagedUpdaters.Contains(id ?? "") || IsVersionPrefixMismatch(current,available);
+    }
+
     string ClassifyWingetFailure(int code,string output)
     {
         string text=(output??"").ToLowerInvariant();
@@ -2736,6 +2776,7 @@ internal sealed class WebAppForm : Form
             string lastOutput="",failedOutput="";
             var failedItems=new List<Dictionary<string,object>>();
             var remaining=new List<Dictionary<string,object>>();
+            var selfManagedItems=new List<Dictionary<string,object>>();
             bool windowsStarted=false;
             try
             {
@@ -2759,6 +2800,12 @@ internal sealed class WebAppForm : Form
                         report.AppendLine("Résultat validé : aucune mise à jour applicable, le logiciel est déjà à jour.");
                         lastCode=0;
                     }
+                    if(lastCode!=0 && SelfManagedUpdaters.Contains(id))
+                    {
+                        report.AppendLine("Logiciel à mise à jour intégrée : WinGet ne peut pas la piloter. Ouvrez l'application pour qu'elle se mette à jour elle-même.");
+                        selfManagedItems.Add(new Dictionary<string,object>{{"id",id},{"name",LoadApplicationName(id)}});
+                        lastCode=0;
+                    }
                     if(lastCode!=0)
                     {
                         failed++;failedCode=lastCode;failedOutput=lastOutput;
@@ -2768,11 +2815,25 @@ internal sealed class WebAppForm : Form
 
                 SendToWeb(new { type="update-stage", stage="applications", percent=80, title="Vérification des applications", detail="Contrôle des versions après installation" });
                 var selectedIds=new HashSet<string>(packages,StringComparer.OrdinalIgnoreCase);
-                remaining=QueryAvailableUpdates().Where(item=>selectedIds.Contains(Convert.ToString(item["id"]))).ToList();
-                if(remaining.Count>0)
+                var stillProposed=QueryAvailableUpdates().Where(item=>selectedIds.Contains(Convert.ToString(item["id"]))).ToList();
+                foreach(var item in stillProposed)
+                {
+                    bool selfManaged=Convert.ToBoolean(item["selfManaged"]) || SelfManagedUpdaters.Contains(Convert.ToString(item["id"]));
+                    if(selfManaged)
+                    {
+                        if(!selfManagedItems.Any(x=>String.Equals(Convert.ToString(x["id"]),Convert.ToString(item["id"]),StringComparison.OrdinalIgnoreCase)))
+                            selfManagedItems.Add(new Dictionary<string,object>{{"id",item["id"]},{"name",item["name"]}});
+                    }
+                    else remaining.Add(item);
+                }
+                if(stillProposed.Count>0)
                 {
                     report.AppendLine();
-                    report.AppendLine("MISES A JOUR ENCORE PROPOSEES : "+String.Join(", ",remaining.Select(item=>Convert.ToString(item["id"]))));
+                    report.AppendLine("ENCORE PROPOSEES PAR WINGET : "+String.Join(", ",stillProposed.Select(item=>Convert.ToString(item["id"]))));
+                }
+                if(selfManagedItems.Count>0)
+                {
+                    report.AppendLine("A MISE A JOUR INTEGREE (ouvrir le logiciel pour finaliser) : "+String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["id"]))));
                 }
 
                 SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Recherche Windows Update", detail="Composants Windows et pilotes certifiés" });
@@ -2788,6 +2849,13 @@ internal sealed class WebAppForm : Form
                 bool appsSuccess=failed==0 && remaining.Count==0;
                 bool success=appsSuccess && windowsStarted;
                 string errorMessage="";
+                string selfManagedMessage="";
+                if(selfManagedItems.Count>0)
+                {
+                    string selfNames=String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["name"])).Distinct().ToArray());
+                    selfManagedMessage=selfNames+(selfManagedItems.Count>1?" se mettent à jour ":" se met à jour ")+
+                        "toute seule à son lancement. Ouvrez l'application une fois pour finaliser : elle ne sera plus proposée ensuite.";
+                }
                 if(failed>0)
                 {
                     string failedNames=String.Join(", ",failedItems.Select(item=>Convert.ToString(item["name"])).Distinct().ToArray());
@@ -2802,7 +2870,7 @@ internal sealed class WebAppForm : Form
                 }
                 try { File.WriteAllText(logPath,report.ToString(),Encoding.UTF8); } catch { }
                 updateRunning=false;
-                SendToWeb(new { type="update-complete", success=success, appsSuccess=appsSuccess, windowsStarted=windowsStarted, pendingCount=remaining.Count, code=appsSuccess?lastCode:failedCode, errorMessage=errorMessage, failureKind=failedItems.Count>0?Convert.ToString(failedItems[0]["kind"]):"", failedItems=failedItems.ToArray(), logName=logName });
+                SendToWeb(new { type="update-complete", success=success, appsSuccess=appsSuccess, windowsStarted=windowsStarted, pendingCount=remaining.Count, code=appsSuccess?lastCode:failedCode, errorMessage=errorMessage, failureKind=failedItems.Count>0?Convert.ToString(failedItems[0]["kind"]):"", failedItems=failedItems.ToArray(), selfManagedItems=selfManagedItems.ToArray(), selfManagedMessage=selfManagedMessage, logName=logName });
             }
         });
     }
@@ -2846,7 +2914,7 @@ internal sealed class WebAppForm : Form
             string current=match.Groups[3].Value.Trim();
             string available=match.Groups[4].Value.Trim();
             if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(current,"[0-9]") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
-            results.Add(new Dictionary<string,object>{{"name",name},{"id",id},{"current",current},{"available",available}});
+            results.Add(new Dictionary<string,object>{{"name",name},{"id",id},{"current",current},{"available",available},{"selfManaged",IsSelfManagedUpdate(id,current,available)}});
         }
         return results;
     }

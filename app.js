@@ -1957,7 +1957,10 @@ function renderAvailableUpdates() {
   $("#availableUpdates").innerHTML = availableUpdates.map(update => {
     const app = appForUpdate(update.id);
     const appIcon = app?.logo ? `<img src="${escapeHtml(app.logo)}" alt="" data-image-fallback="APP">` : `<span>APP</span>`;
-    return `<label class="available-update"><input type="checkbox" data-update-id="${escapeHtml(update.id)}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon${logoSurfaceClass(app)}">${appIcon}</span><span><strong>${escapeHtml(update.name)}</strong><small>${escapeHtml(update.id)}</small></span><span class="version-flow">${escapeHtml(update.current)}<i>→</i><b>${escapeHtml(update.available)}</b></span></label>`;
+    const selfManaged = update.selfManaged
+      ? `<span class="update-selfmanaged" title="Ce logiciel intègre sa propre mise à jour : ouvrez-le une fois pour qu'elle se termine. WinGet continuera de le proposer.">⟳ se met à jour seule</span>`
+      : "";
+    return `<label class="available-update"><input type="checkbox" data-update-id="${escapeHtml(update.id)}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon${logoSurfaceClass(app)}">${appIcon}</span><span><strong>${escapeHtml(update.name)}</strong><small>${escapeHtml(update.id)}</small>${selfManaged}</span><span class="version-flow">${escapeHtml(update.current)}<i>→</i><b>${escapeHtml(update.available)}</b></span></label>`;
   }).join("");
   const count = selectedUpdates.size;
   $("#updateAllBtn").disabled = count === 0;
@@ -3347,12 +3350,14 @@ function handleInstallMessage(message) {
   if (message.type === "update-complete") {
     const applicationsVerified=message.appsSuccess===true;
     const fullyCompleted=applicationsVerified&&message.windowsStarted===true;
+    const selfManagedNote=message.selfManagedMessage || "";
+    const withSelfManaged=text=>selfManagedNote?`${text}\n\n${selfManagedNote}`:text;
     $("#updateModal").dataset.running = "false";
     $("#closeUpdateModal").disabled = false;
     $("#updateProgressBar").style.width = "100%";
     $("#updateProgressPercent").textContent = "100%";
     $("#updateProgressTitle").textContent = fullyCompleted ? "Votre PC est à jour" : applicationsVerified ? "Applications à jour" : "Mise à jour terminée avec avertissement";
-    $("#updateProgressDetail").textContent = applicationsVerified ? (message.windowsStarted ? "Applications vérifiées et recherche Windows Update lancée" : "Applications vérifiées. Ouvrez Windows Update pour contrôler le système.") : (message.errorMessage || `Certaines applications sont à vérifier (code ${message.code})`);
+    $("#updateProgressDetail").textContent = withSelfManaged(applicationsVerified ? (message.windowsStarted ? "Applications vérifiées et recherche Windows Update lancée" : "Applications vérifiées. Ouvrez Windows Update pour contrôler le système.") : (message.errorMessage || `Certaines applications sont à vérifier (code ${message.code})`));
     setBackgroundUpdate(fullyCompleted ? "Mise à jour terminée" : applicationsVerified ? "Applications mises à jour" : "Mise à jour terminée avec avertissement", applicationsVerified ? (message.windowsStarted ? "Applications traitées avec succès" : "Windows Update reste à contrôler séparément") : (message.errorMessage || "Consultez le résultat pour les détails."), 100, applicationsVerified ? "complete" : "warning");
     $("#updateSummary").textContent = `${message.windowsStarted ? "Recherche Windows Update lancée." : "Windows Update n'a pas pu être lancé."} Rapport : ${message.logName}`;
     document.querySelectorAll("[data-update-step]").forEach(step => { step.classList.remove("active"); step.classList.add("done"); });
@@ -3380,7 +3385,7 @@ function handleInstallMessage(message) {
     addNotification({
       key:`system-update-${Date.now()}`,
       title:applicationsVerified ? "Applications mises à jour" : "Mises à jour à vérifier",
-      detail:applicationsVerified ? (message.windowsStarted ? "Les applications sélectionnées ont été vérifiées." : "Applications vérifiées · contrôle Windows Update à effectuer séparément.") : (message.errorMessage || "Consultez le rapport OwlSetup."),
+      detail:withSelfManaged(applicationsVerified ? (message.windowsStarted ? "Les applications sélectionnées ont été vérifiées." : "Applications vérifiées · contrôle Windows Update à effectuer séparément.") : (message.errorMessage || "Consultez le rapport OwlSetup.")),
       kind:applicationsVerified ? "success" : "warning", action:"updates", symbol:applicationsVerified ? "✓" : "!", operationType:"update",
       packageIds:applicationsVerified?[...selectedUpdates]:(message.failedItems||[]).map(item=>item.id)
     });

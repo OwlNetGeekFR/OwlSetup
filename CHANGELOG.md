@@ -1,5 +1,21 @@
 # Historique des versions
 
+## [4.0.0-beta.3] - 2026-08-27
+
+### Mises à jour : logiciels qui se mettent à jour eux-mêmes
+
+- Reconnaît les lanceurs à mise à jour intégrée (Ankama Launcher, EA app,
+  Battle.net, Epic Games, Ubisoft Connect, GOG Galaxy, Steam, Discord, Riot,
+  CurseForge, Amazon Games, Logitech G HUB) ainsi que les écarts de schéma de
+  version (installée `3.15.2`, proposée `3.15.2.20509`).
+- Pour ces logiciels, `winget upgrade` n'est plus compté comme un échec : la
+  mise à jour se termine « sans avertissement » avec le message « Ouvrez
+  l'application une fois pour finaliser ».
+- La liste des mises à jour affiche un badge « ⟳ se met à jour seule » sur ces
+  applications.
+- Nouveau module testé `beta/src/modules/update-heuristics.js` (miroir de la
+  logique C#, vérifié par un test de parité de la liste).
+
 ## [4.0.0-beta.2] - 2026-08-27
 
 ### Fondations 4.0 : catalogue externalisé et durcissement
