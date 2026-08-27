@@ -257,18 +257,25 @@ hors `i18n`, EN complet, audit a11y sans violation bloquante.
 **Pourquoi :** techniciens, MDM, déploiement en parc — créneau tenu par Ninite
 et Patch My PC.
 
-**Étapes :**
+**Amorcé (4.0.0-beta.18) :** `OwlSetup.exe` accepte `--install`, `--uninstall`,
+`--list`, `--search`, `--version`, `--help`. Sans argument → interface. Console
+rattachée à l'appelant (l'exe reste `winexe`), codes de sortie 0/1/2/3,
+identifiants validés, boucle WinGet silencieuse. Garde-fou
+`tests/Test-CliMode.ps1`.
+
+**Reste à faire :**
 
 1. `OwlSetup.exe --apply profil.json --silent` : lit un profil (mêmes profils
-   que l'UI), applique installation/màj/nettoyage sans WebView, journalise,
-   renvoie un code de sortie normalisé.
-2. `--export-profile`, `--list-catalog`, `--check-updates` (sortie JSON).
-3. Réutilise **exactement** la couche IPC/opérations du lot 3 (aucune logique
-   dupliquée).
-4. Documenté dans `README` + page dédiée du site.
+   que l'UI), applique installation/màj/nettoyage, journalise.
+2. `--export-profile`, `--check-updates` (sortie JSON).
+3. Auto-élévation propre (relais de sortie vers l'appelant) pour les
+   installations machine.
+4. Shim console `OwlSetup.com` pour que `& OwlSetup` dans PowerShell attende la
+   fin sans `Start-Process -Wait`.
+5. Documenté dans `README` + page dédiée du site.
 
-**Effort :** 6–10 j. **Acceptation :** un profil s'applique de bout en bout sans
-interface, codes de sortie documentés, réutilisé par la planification du lot 6.
+**Acceptation :** un profil s'applique de bout en bout sans interface, codes de
+sortie documentés, réutilisé par la planification du lot 6.
 
 ---
 

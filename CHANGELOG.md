@@ -1,5 +1,37 @@
 # Historique des versions
 
+## [4.0.0-beta.18] - 2026-08-27
+
+### Mode ligne de commande (sans interface) — style Ninite
+
+`OwlSetup.exe` accepte désormais des options : lancé sans argument il ouvre son
+interface, lancé avec une option il agit en console et rend un code de sortie.
+
+```
+OwlSetup.exe --install VideoLAN.VLC,7zip.7zip,Mozilla.Firefox
+OwlSetup.exe --uninstall 7zip.7zip
+OwlSetup.exe --list [filtre]        # catalogue intégré
+OwlSetup.exe --search vlc           # source WinGet
+OwlSetup.exe --version | --help
+```
+
+- `--install` / `--uninstall` : boucle WinGet silencieuse
+  (`--silent --accept-package-agreements --accept-source-agreements
+  --disable-interactivity`), résumé `N réussie(s), M en échec`, code de sortie
+  `0` (succès), `1` (au moins un échec), `2` (usage), `3` (WinGet absent).
+  Identifiants validés par la même regex que le reste de l'hôte.
+- `--list` lit le catalogue **embarqué** (aucune connexion) ; filtre par
+  sous-chaîne sur id / nom / catégorie.
+- L'exécutable reste `winexe` : il **rattache la console** de l'appelant pour
+  écrire sa sortie. Depuis un script PowerShell, utiliser
+  `Start-Process … -Wait -PassThru` pour attendre la fin et lire `.ExitCode`
+  (rappel affiché par `--help`).
+- Nouveau `tests/Test-CliMode.ps1` : marqueurs + exécution réelle des verbes
+  sans effet de bord (`--version`, `--help`, `--list`, options invalides).
+- Vérifié : `--install`/`--search`/`--list` fonctionnels ; l'interface
+  graphique démarre toujours sans argument ; intégrité des 5 ressources OK ;
+  suite `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.17] - 2026-08-27
 
 ### Windows Update : préversions « seeker » écartées, succès vérifié

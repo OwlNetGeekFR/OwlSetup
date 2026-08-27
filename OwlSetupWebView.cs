@@ -4373,6 +4373,238 @@ internal static class Bootstrap
         }
     }
 
+    // ------------------------------------------------------------------
+    // Mode ligne de commande (sans interface) — style Ninite.
+    //   OwlSetup.exe --install VideoLAN.VLC,7zip.7zip
+    //   OwlSetup.exe --uninstall 7zip.7zip
+    //   OwlSetup.exe --list [filtre]
+    //   OwlSetup.exe --search vlc
+    //   OwlSetup.exe --help | --version
+    // L'exécutable est compilé en /target:winexe : on rattache la console
+    // du processus appelant pour écrire la sortie.
+    // ------------------------------------------------------------------
+
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool AttachConsole(int dwProcessId);
+    [DllImport("kernel32.dll")] static extern bool FreeConsole();
+    const int ATTACH_PARENT_PROCESS = -1;
+
+    // Tout premier argument qui ressemble à une option (« -x », « --x », « /? »)
+    // bascule en mode ligne de commande : RunCli affichera l'aide pour une
+    // option inconnue plutôt que de démarrer l'interface graphique.
+    static bool IsCliInvocation(string value)
+    {
+        if(String.IsNullOrEmpty(value))return false;
+        return value[0]=='-' || value=="/?";
+    }
+
+    static void CliAttachConsole()
+    {
+        try
+        {
+            if(!AttachConsole(ATTACH_PARENT_PROCESS))return;
+            var stdout=new StreamWriter(Console.OpenStandardOutput()){AutoFlush=true};
+            Console.SetOut(stdout);
+            var stderr=new StreamWriter(Console.OpenStandardError()){AutoFlush=true};
+            Console.SetError(stderr);
+        }
+        catch{}
+    }
+
+    static bool CliIsAdmin()
+    {
+        try{return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);}
+        catch{return false;}
+    }
+
+    static string CliResolveWinget()
+    {
+        try
+        {
+            string alias=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Microsoft","WindowsApps","winget.exe");
+            if(File.Exists(alias))return alias;
+        }
+        catch{}
+        try
+        {
+            string windowsApps=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"WindowsApps");
+            if(Directory.Exists(windowsApps))
+                foreach(string package in Directory.GetDirectories(windowsApps,"Microsoft.DesktopAppInstaller_*__8wekyb3d8bbwe",SearchOption.TopDirectoryOnly).OrderByDescending(Directory.GetLastWriteTimeUtc))
+                {
+                    string candidate=Path.Combine(package,"winget.exe");
+                    try{if(File.Exists(candidate) && (File.GetAttributes(candidate)&FileAttributes.ReparsePoint)==0)return candidate;}catch{}
+                }
+        }
+        catch{}
+        return null;
+    }
+
+    static List<Dictionary<string,object>> CliCatalog()
+    {
+        string js;
+        using(var stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("catalog.generated.js"))
+        using(var reader=new StreamReader(stream,Encoding.UTF8))
+            js=reader.ReadToEnd();
+        int left=js.IndexOf('['),right=js.LastIndexOf(']');
+        if(left<0 || right<=left)throw new InvalidDataException("catalogue introuvable dans la ressource.");
+        var array=new JavaScriptSerializer().DeserializeObject(js.Substring(left,right-left+1)) as object[];
+        var list=new List<Dictionary<string,object>>();
+        if(array!=null)
+            foreach(object item in array)
+            {
+                var entry=item as Dictionary<string,object>;
+                if(entry!=null)list.Add(entry);
+            }
+        return list;
+    }
+
+    static string CliField(Dictionary<string,object> entry,string key)
+    {
+        object value;
+        return entry!=null && entry.TryGetValue(key,out value) ? Convert.ToString(value) : "";
+    }
+
+    static string[] CliParseIds(string[] rest)
+    {
+        return String.Join(",",rest)
+            .Split(new[]{',',' ',';','\t'},StringSplitOptions.RemoveEmptyEntries)
+            .Select(value=>value.Trim())
+            .Where(value=>Regex.IsMatch(value,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    static int CliRunWinget(string winget,string arguments)
+    {
+        try
+        {
+            var info=new ProcessStartInfo
+            {
+                FileName=winget,Arguments=arguments,UseShellExecute=false,CreateNoWindow=true,
+                RedirectStandardOutput=true,RedirectStandardError=true,
+                StandardOutputEncoding=Encoding.UTF8,StandardErrorEncoding=Encoding.UTF8
+            };
+            using(var process=new Process{StartInfo=info})
+            {
+                process.OutputDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null)Console.Out.WriteLine("  "+e.Data); };
+                process.ErrorDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null)Console.Error.WriteLine("  "+e.Data); };
+                process.Start();process.BeginOutputReadLine();process.BeginErrorReadLine();process.WaitForExit();
+                return process.ExitCode;
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.Error.WriteLine("  "+ex.Message);
+            return -1;
+        }
+    }
+
+    static void CliHelp()
+    {
+        Console.Out.WriteLine("OwlSetup "+BuildInfo.DisplayVersion+" ("+BuildInfo.Channel+") — mode ligne de commande");
+        Console.Out.WriteLine();
+        Console.Out.WriteLine("  OwlSetup.exe --install <id>[,<id>...]    Installe des logiciels via WinGet");
+        Console.Out.WriteLine("  OwlSetup.exe --uninstall <id>[,<id>...]  Désinstalle des logiciels");
+        Console.Out.WriteLine("  OwlSetup.exe --list [filtre]             Liste le catalogue intégré");
+        Console.Out.WriteLine("  OwlSetup.exe --search <terme>            Recherche dans la source WinGet");
+        Console.Out.WriteLine("  OwlSetup.exe --version                   Version d'OwlSetup");
+        Console.Out.WriteLine("  OwlSetup.exe --help                      Cette aide");
+        Console.Out.WriteLine();
+        Console.Out.WriteLine("Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip,Mozilla.Firefox");
+        Console.Out.WriteLine("Sans argument, OwlSetup démarre son interface graphique.");
+        Console.Out.WriteLine();
+        Console.Out.WriteLine("Codes de sortie : 0 = succès, 1 = un échec au moins, 2 = usage, 3 = WinGet absent.");
+        Console.Out.WriteLine("Depuis PowerShell, pour attendre la fin et lire le code :");
+        Console.Out.WriteLine("  Start-Process OwlSetup.exe -ArgumentList '--install VideoLAN.VLC' -Wait -NoNewWindow -PassThru");
+    }
+
+    static int CliList(string filter)
+    {
+        List<Dictionary<string,object>> apps;
+        try{apps=CliCatalog();}
+        catch(Exception ex){Console.Error.WriteLine("Catalogue illisible : "+ex.Message);return 3;}
+        int shown=0;
+        foreach(var entry in apps)
+        {
+            string id=CliField(entry,"id"),name=CliField(entry,"name"),category=CliField(entry,"category");
+            if(!String.IsNullOrEmpty(filter) && (id+" "+name+" "+category).IndexOf(filter,StringComparison.OrdinalIgnoreCase)<0)continue;
+            Console.Out.WriteLine((id.Length<36?id.PadRight(36):id+" ")+name+(String.IsNullOrEmpty(category)?"":"  ["+category+"]"));
+            shown++;
+        }
+        Console.Out.WriteLine();
+        Console.Out.WriteLine(shown+" application(s). Installer : OwlSetup.exe --install <id>");
+        return 0;
+    }
+
+    static int CliSearch(string[] rest)
+    {
+        string query=String.Join(" ",rest).Trim();
+        if(query.Length<2){Console.Error.WriteLine("Requête trop courte (2 caractères minimum).");return 2;}
+        string winget=CliResolveWinget();
+        if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez « App Installer » depuis le Microsoft Store.");return 3;}
+        return CliRunWinget(winget,"search --query \""+query.Replace("\"","")+"\" --source winget --accept-source-agreements --disable-interactivity");
+    }
+
+    static int CliInstallOrRemove(string[] rest,bool remove)
+    {
+        var ids=CliParseIds(rest);
+        if(ids.Length==0)
+        {
+            Console.Error.WriteLine("Aucun identifiant valide. Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip");
+            return 2;
+        }
+        string winget=CliResolveWinget();
+        if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez « App Installer » depuis le Microsoft Store.");return 3;}
+        if(!remove && !CliIsAdmin())
+            Console.Out.WriteLine("Note : les logiciels installés pour toute la machine demandent des droits administrateur.\n      Relancez depuis une invite « Administrateur » si une installation échoue.\n");
+
+        int ok=0,failed=0;
+        foreach(string id in ids)
+        {
+            Console.Out.WriteLine((remove?"Désinstallation de ":"Installation de ")+id+" ...");
+            string arguments=remove
+                ? "uninstall --id \""+id+"\" --exact --silent --accept-source-agreements --disable-interactivity"
+                : "install --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity";
+            int code=CliRunWinget(winget,arguments);
+            // 0x8A15002B (-1978335189) = rien à faire (déjà installé / à jour) : on
+            // le compte comme un succès pour rester idempotent.
+            if(code==0 || code==unchecked((int)0x8A15002B))
+            {
+                ok++;
+                Console.Out.WriteLine("  -> OK : "+id);
+            }
+            else
+            {
+                failed++;
+                Console.Error.WriteLine("  -> ÉCHEC : "+id+" (code "+code+")");
+            }
+        }
+        Console.Out.WriteLine();
+        Console.Out.WriteLine((remove?"Désinstallation":"Installation")+" terminée : "+ok+" réussie(s), "+failed+" en échec.");
+        return failed==0 ? 0 : 1;
+    }
+
+    static int RunCli(string[] commandLine)
+    {
+        CliAttachConsole();
+        string verb=commandLine[1];
+        var rest=commandLine.Skip(2).ToArray();
+        switch(verb)
+        {
+            case "--help": case "-h": case "/?": CliHelp(); return 0;
+            case "--version": case "-v":
+                Console.Out.WriteLine("OwlSetup "+BuildInfo.DisplayVersion+" ("+BuildInfo.Channel+")");
+                return 0;
+            case "--list": return CliList(rest.Length>0?String.Join(" ",rest):null);
+            case "--search": return CliSearch(rest);
+            case "--install": return CliInstallOrRemove(rest,false);
+            case "--uninstall": return CliInstallOrRemove(rest,true);
+            default:
+                Console.Error.WriteLine("Option inconnue : "+verb);
+                CliHelp();
+                return 2;
+        }
+    }
+
     [STAThread]
     static void Main()
     {
@@ -4383,6 +4615,13 @@ internal static class Bootstrap
             {
                 try{Environment.ExitCode=RunElevatedCleanupWorker(commandLine[2],commandLine[3]);}
                 catch{Environment.ExitCode=-1;}
+                return;
+            }
+            if(commandLine.Length>=2 && IsCliInvocation(commandLine[1]))
+            {
+                try{Environment.ExitCode=RunCli(commandLine);}
+                catch(Exception ex){try{Console.Error.WriteLine(ex.Message);}catch{}Environment.ExitCode=-1;}
+                finally{try{FreeConsole();}catch{}}
                 return;
             }
             AppRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCSetup", "App2");
