@@ -1,5 +1,30 @@
 # Historique des versions
 
+## [4.0.0-beta.5] - 2026-08-27
+
+### Onglet Maintenance : 7 correctifs rapides (voir REVUE-MAINTENANCE.md)
+
+- **Mises à jour** : `winget upgrade` est désormais interrogé avec
+  `--include-unknown`. Les logiciels dont WinGet ignore la version installée sont
+  affichés (« version installée : inconnue ») et traités sans erreur, comme les
+  lanceurs auto-updatés.
+- **Pilotes** : les textes n'affirment plus qu'OwlSetup installe les pilotes. Ils
+  indiquent qu'OwlSetup **ouvre Windows Update**, où Microsoft propose composants
+  et pilotes.
+- **Nettoyage des navigateurs** : une catégorie sans effet pour le moteur
+  sélectionné (cache multimédia et historique côté Firefox) est désormais
+  grisée et décochée au lieu d'être proposée pour rien.
+- **Libérer de l'espace** : l'option « Résidus d'applications » — inactive dans
+  le nettoyage intégré — est retirée. La désinstallation vérifiée (onglet
+  Applications) reste le chemin pour les résidus.
+- **Point de restauration** : contrôle de la protection système, neutralisation
+  temporaire de la limite Windows de 1 point / 24 h, et vérification que le point
+  a réellement été créé (fini le « Point créé » quand rien n'a été fait).
+- **Messages de blocage** : plus de référence codée en dur à « OBS » ; le libellé
+  s'adapte au logiciel réellement concerné.
+- **Mesure de taille** : quand un dossier dépasse 200 000 fichiers, l'analyse
+  l'indique (« mesure partielle ») au lieu de sous-estimer en silence.
+
 ## [4.0.0-beta.4] - 2026-08-27
 
 ### Masquer une mise à jour définitivement

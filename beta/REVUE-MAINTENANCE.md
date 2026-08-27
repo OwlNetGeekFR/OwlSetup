@@ -264,15 +264,20 @@ un journal d'opérations réconcilié.
 
 ## Backlog priorisé
 
-### Gains rapides (< 1 j chacun, faible risque) — recommandé pour 4.0.0-beta.5
+### Gains rapides — ✅ livrés en 4.0.0-beta.5
 
-1. `--include-unknown` dans `QueryAvailableUpdates` (1.1)
-2. Retirer/aviser « pilotes » dans les textes tant que non fait (1.2)
-3. Masquer les catégories navigateur sans effet + phrase de conséquence (3.1, 3.2, 3.5)
-4. Retirer `app-leftovers` du nettoyage intégré (2.1)
-5. Pré-contrôle protection système avant point de restauration (4.2)
-6. Généraliser les messages « processus bloquant » (1.6, 5.4)
-7. Rendre visible le plafond 200 k de `MeasurePath` (2.4, 4.8)
+1. [x] `--include-unknown` dans `QueryAvailableUpdates` + traitement prudent des
+       versions inconnues (1.1)
+2. [x] Textes « pilotes » corrigés : OwlSetup **ouvre** Windows Update (1.2)
+3. [x] Catégories navigateur sans effet grisées/décochées selon le moteur
+       (3.1, 3.2) — la phrase de conséquence cookies/historique existait déjà (3.5)
+4. [x] `app-leftovers` retiré du nettoyage intégré + carte d'accueil repointée
+       vers la désinstallation vérifiée (2.1)
+5. [x] Point de restauration : contrôle protection système, neutralisation
+       temporaire de la limite 24 h, vérification de création réelle (4.1, 4.2)
+6. [x] Messages « processus bloquant » génériques (plus de « OBS » en dur)
+       (1.6, 5.4)
+7. [x] Plafond 200 000 fichiers rendu visible (« mesure partielle ») (2.4, 4.8)
 
 ### Moyen terme (1–5 j) — 4.0.0-beta.6 → 3.9
 

@@ -107,7 +107,7 @@
         <button class="top-nav-toggle" type="button" aria-expanded="false"><span class="top-nav-icon"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span> Maintenance <b class="top-menu-alert hidden" id="maintenanceGroupBadge">0</b><i>⌄</i></button>
         <div class="top-nav-menu">
           <span class="top-nav-menu-title">ENTRETIEN DU PC</span>
-          <button class="nav-item" data-view="updates"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><span class="nav-menu-copy"><strong>Tout mettre à jour</strong><small>Logiciels, Windows et pilotes</small></span><b class="new-badge hidden" id="updatesNavBadge">0</b></button>
+          <button class="nav-item" data-view="updates"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span><span class="nav-menu-copy"><strong>Tout mettre à jour</strong><small>Logiciels, puis Windows Update</small></span><b class="new-badge hidden" id="updatesNavBadge">0</b></button>
           <button class="nav-item" data-view="cleanup"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span><span class="nav-menu-copy"><strong>Libérer de l'espace</strong><small>Fichiers temporaires et résidus</small></span></button>
           <button class="nav-item" data-view="browsers"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-browser"/></svg></span><span class="nav-menu-copy"><strong>Nettoyer les navigateurs</strong><small>Cache, cookies et données de sites</small></span></button>
           <button class="nav-item" data-view="tools"><span class="nav-menu-icon"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><span class="nav-menu-copy"><strong>Outils système</strong><small>Diagnostic, démarrage et stockage</small></span><b class="new-badge hidden" id="toolsNavBadge">!</b></button>
@@ -198,15 +198,15 @@
         </button>
         <button class="feature-card update-feature" data-view="updates">
           <span class="feature-number">02</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-update"/></svg></span>
-          <span class="feature-copy"><strong>Tout mettre à jour</strong><small>Applications, composants Windows et pilotes certifiés Microsoft.</small><em>Mise à jour groupée <b>→</b></em></span>
+          <span class="feature-copy"><strong>Tout mettre à jour</strong><small>Applications via WinGet, puis ouverture de Windows Update.</small><em>Mise à jour groupée <b>→</b></em></span>
         </button>
         <button class="feature-card cleanup-feature" data-view="cleanup">
           <span class="feature-number">03</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-cleanup"/></svg></span>
           <span class="feature-copy"><strong>Libérer de l'espace</strong><small>Nettoyez les fichiers temporaires, caches et anciens composants.</small><em>Nettoyage personnalisable <b>→</b></em></span>
         </button>
-        <button class="feature-card residue-feature" data-view="cleanup" data-focus-cleanup="app-leftovers">
+        <button class="feature-card residue-feature" data-view="installed">
           <span class="feature-number">04</span><span class="feature-icon"><svg aria-hidden="true"><use href="#nav-residue"/></svg></span>
-          <span class="feature-copy"><strong>Supprimer les résidus</strong><small>Repérez les dossiers laissés par les applications désinstallées.</small><em>Quarantaine réversible <b>→</b></em></span>
+          <span class="feature-copy"><strong>Désinstaller proprement</strong><small>Retirez une application et ses résidus, chacun confirmé avant mise en quarantaine.</small><em>Désinstallation vérifiée <b>→</b></em></span>
         </button>
       </div>
 
@@ -303,13 +303,13 @@
 
     <section class="view" id="updates">
       <div class="page-intro update-intro">
-        <div><span class="label">MAINTENANCE WINDOWS</span><h1>Tout mettre à jour</h1><p>Applications, composants Windows et pilotes proposés par Microsoft Update, en une seule opération.</p></div>
+        <div><span class="label">MAINTENANCE WINDOWS</span><h1>Tout mettre à jour</h1><p>Met à jour vos applications, puis ouvre Windows Update pour les composants et pilotes proposés par Microsoft.</p></div>
         <div class="update-shield" aria-hidden="true"><svg><use href="#nav-update"/></svg></div>
       </div>
       <div class="update-grid">
         <article class="update-card"><span class="update-card-icon blue"><svg aria-hidden="true"><use href="#nav-apps"/></svg></span><div><strong>Logiciels installés</strong><small>Applications reconnues par winget, y compris les versions inconnues</small></div><span class="included">INCLUS</span></article>
         <article class="update-card"><span class="update-card-icon cyan"><svg aria-hidden="true"><use href="#nav-windows"/></svg></span><div><strong>Composants Windows</strong><small>Mises à jour de sécurité et de qualité via Windows Update</small></div><span class="included">INCLUS</span></article>
-        <article class="update-card"><span class="update-card-icon violet"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span><div><strong>Pilotes certifiés</strong><small>Pilotes distribués par Microsoft pour votre matériel</small></div><span class="included">INCLUS</span></article>
+        <article class="update-card"><span class="update-card-icon violet"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span><div><strong>Pilotes Microsoft</strong><small>OwlSetup ouvre Windows Update ; les pilotes proposés par Microsoft s'y installent</small></div><span class="included">VIA WINDOWS UPDATE</span></article>
       </div>
       <div class="update-preview-panel">
         <div class="section-heading"><div><span class="label">APERÇU DES VERSIONS</span><h2>Mises à jour disponibles</h2></div><div class="update-list-actions"><button class="text-button hidden" id="selectAllUpdates" type="button">Tout sélectionner</button><button class="text-button hidden" id="clearUpdates" type="button">Tout désélectionner</button><button class="text-button" id="scanUpdatesBtn">↻ Rechercher</button></div></div>
@@ -328,7 +328,7 @@
         <ol class="update-steps">
           <li><b>1</b><span><strong>Contrôle administrateur</strong><small>Relance automatique avec les droits nécessaires.</small></span></li>
           <li><b>2</b><span><strong>Mise à jour des applications</strong><small>Installation silencieuse des nouvelles versions disponibles.</small></span></li>
-          <li><b>3</b><span><strong>Windows Update</strong><small>Recherche des composants et pilotes applicables.</small></span></li>
+          <li><b>3</b><span><strong>Windows Update</strong><small>Ouverture des Paramètres Windows pour les composants et pilotes proposés par Microsoft.</small></span></li>
           <li><b>4</b><span><strong>Rapport final</strong><small>Journal conservé dans le dossier local de OwlSetup.</small></span></li>
         </ol>
       </div>
@@ -385,18 +385,13 @@
               <span class="check-ui">✓</span><span class="cleanup-icon orange"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span>
               <span class="cleanup-copy"><strong>Anciens composants Windows</strong><small>Nettoyage DISM du magasin de composants remplacés</small></span><em class="cleanup-advanced">Avancé</em>
             </label>
-            <label class="cleanup-option">
-              <input type="checkbox" data-cleanup="app-leftovers" />
-              <span class="check-ui">✓</span><span class="cleanup-icon red"><svg aria-hidden="true"><use href="#nav-residue"/></svg></span>
-              <span class="cleanup-copy"><strong>Résidus d'applications désinstallées</strong><small>Recherche les anciens dossiers AppData et demande votre accord pour chacun</small></span><em class="cleanup-reversible">Réversible</em>
-            </label>
           </div>
         </div>
 
         <aside class="cleanup-summary">
           <span class="label">NETTOYAGE SÉCURISÉ</span>
           <div class="space-visual"><div class="disk-ring"><strong id="cleanupCount">4</strong><small>zones</small></div></div>
-          <div class="safe-list"><span>✓ Aucun document personnel</span><span>✓ Confirmation avant suppression</span><span>✓ Résidus placés en quarantaine</span><span>✓ Aucun fichier ajouté au Bureau</span></div>
+          <div class="safe-list"><span>✓ Aucun document personnel</span><span>✓ Analyse puis confirmation avant suppression</span><span>✓ Corbeille exclue par défaut si vous le souhaitez</span><span>✓ Aucun fichier ajouté au Bureau</span></div>
           <button class="install-button cleanup-button" id="cleanupBtn"><span>⌕</span> Analyser avant nettoyage</button>
           <p>L'espace récupéré dépend du contenu actuel de votre ordinateur.</p>
         </aside>
@@ -766,8 +761,8 @@
       <div class="dialog-glow update-dialog-glow"></div>
       <div class="dialog-header"><span class="dialog-logo update-dialog-logo">↥</span><div><span class="label">MAINTENANCE WINDOWS</span><h2 id="updateModalTitle">Tout mettre à jour</h2></div><button class="dialog-close" id="closeUpdateModal" aria-label="Fermer">×</button></div>
       <div class="dialog-confirm" id="updateConfirmView">
-        <p>OwlSetup va installer <strong id="updateModalCount">0 application</strong> sélectionnée(s), puis lancer la recherche des composants Windows et pilotes.</p>
-        <div class="update-confirm-list"><span><b>1</b> Applications WinGet</span><span><b>2</b> Composants Windows</span><span><b>3</b> Pilotes certifiés</span></div>
+        <p>OwlSetup va mettre à jour <strong id="updateModalCount">0 application</strong> sélectionnée(s), puis ouvrir Windows Update pour les composants et pilotes proposés par Microsoft.</p>
+        <div class="update-confirm-list"><span><b>1</b> Applications WinGet</span><span><b>2</b> Windows Update (composants)</span><span><b>3</b> Windows Update (pilotes)</span></div>
         <div class="dialog-warning"><span>i</span> Fermez les logiciels ouverts et branchez votre PC au secteur.</div>
         <pre class="expert-command-preview hidden" id="updateExpertPreview"></pre>
         <div class="dialog-actions"><button class="secondary-dialog-button" id="cancelUpdate">Annuler</button><button class="primary-dialog-button update-confirm-button" id="confirmUpdate"><span>▶</span> Lancer la mise à jour</button></div>
@@ -778,7 +773,7 @@
         <div class="update-progress-steps">
           <div data-update-step="sources"><span>1</span><div><strong>Sources</strong><small>Catalogue WinGet</small></div></div>
           <div data-update-step="applications"><span>2</span><div><strong>Applications</strong><small>Nouvelles versions</small></div></div>
-          <div data-update-step="windows"><span>3</span><div><strong>Windows Update</strong><small>Composants et pilotes</small></div></div>
+          <div data-update-step="windows"><span>3</span><div><strong>Windows Update</strong><small>Ouverture des Paramètres</small></div></div>
         </div>
         <div class="progress-summary" id="updateSummary">Ne fermez pas OwlSetup pendant la mise à jour.</div>
         <div class="update-blocker-warning hidden" id="updateBlockerWarning"><span>!</span><small>La fermeture forcée peut faire perdre les modifications non enregistrées.</small></div>
