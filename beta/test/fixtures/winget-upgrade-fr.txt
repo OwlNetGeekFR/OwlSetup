@@ -1,0 +1,8 @@
+Nom                                              ID                                Version         Disponible     Source
+------------------------------------------------------------------------------------------------------------------------
+Ankama Launcher 3.15.2                           Ankama.AnkamaLauncher             3.15.2          3.15.2.20509   winget
+Battle.net                                       Blizzard.BattleNet                Unknown         1.19.3.3219    winget
+Microsoft Windows Desktop Runtime - 8.0.28 (x64) Microsoft.DotNet.DesktopRuntime.8 8.0.28          8.0.30         winget
+Outlook for Windows                              Microsoft.Outlook                 1.2026.521.100  1.2026.812.100 winget
+Ubisoft Connect                                  Ubisoft.Connect                   < 173.0.0.13316 173.0.0.13316  winget
+5 mises à niveau disponibles.
