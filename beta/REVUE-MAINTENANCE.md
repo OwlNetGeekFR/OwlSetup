@@ -206,6 +206,14 @@ MODIFY_SETTINGS` (élevé) ; UI de secours si la protection est désactivée.
 
 ## 5. Centre des opérations
 
+> **4.0.0-beta.6** : 5.5 réglé — à l'ouverture du Centre, les échecs de mise à
+> jour « faux positifs » (lanceurs auto-updatés, mises à jour masquées, alertes
+>
+> > 14 j) sont classés `resolved` automatiquement ; ajout de « Marquer résolu »
+> > par ligne, « ✓ Tout classer résolu », « Effacer les terminées » et ✕ par
+> > ligne ; les notifications liées suivent. Restent : 5.1 (persistance hôte),
+> > 5.2 (reprise partielle), 5.3 (« Corriger » générique), 5.6 (empreinte).
+
 ### Ce qui existe
 
 - Fil persistant (`owlsetup-operations-v1`, 50 max) : statuts `running /

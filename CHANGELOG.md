@@ -1,5 +1,22 @@
 # Historique des versions
 
+## [4.0.0-beta.6] - 2026-08-27
+
+### Centre des opérations : effacer les erreurs qui n'en sont plus
+
+- À l'ouverture du Centre des opérations, les échecs de mise à jour qui ne sont
+  pas de vraies erreurs sont **classés « résolu » automatiquement** : logiciels
+  qui se mettent à jour eux-mêmes (Ankama Launcher…), mises à jour masquées via
+  « Ne plus proposer », ou alertes de plus de 14 jours sans récidive.
+- Chaque échec propose maintenant **« Marquer résolu »** à côté de « Corriger ».
+- Bouton d'en-tête **« ✓ Tout classer résolu »** (visible s'il reste des échecs)
+  et **« Effacer les terminées »** pour alléger l'historique.
+- Une croix **✕** retire une opération terminée, résolue ou interrompue de la
+  liste.
+- Quand une opération est classée résolue, la **notification d'avertissement
+  liée** passe en « résolu » au lieu de rester affichée.
+- Le compteur du menu Maintenance reflète ces changements immédiatement.
+
 ## [4.0.0-beta.5] - 2026-08-27
 
 ### Onglet Maintenance : 7 correctifs rapides (voir REVUE-MAINTENANCE.md)

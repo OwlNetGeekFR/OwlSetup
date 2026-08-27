@@ -183,6 +183,14 @@ let installPreflightRequestId = 0;
 let installSubmissionPending = false;
 let availableUpdates = [];
 let selectedUpdates = new Set();
+// Miroir de SelfManagedUpdaters (OwlSetupWebView.cs) : lanceurs qui embarquent
+// leur propre mise à jour et que WinGet reproposera toujours.
+const SELF_MANAGED_UPDATER_IDS = new Set([
+  "Ankama.AnkamaLauncher","ElectronicArts.EADesktop","EpicGames.EpicGamesLauncher",
+  "Blizzard.BattleNet","Ubisoft.Connect","GOG.Galaxy","Valve.Steam","Discord.Discord",
+  "RiotGames.LeagueOfLegends.EUW","RiotGames.Valorant.EU","Overwolf.CurseForge",
+  "Amazon.Games","Logitech.GHUB"
+].map(id => id.toLowerCase()));
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
 let currentBuildVersion = "inconnue";
 let currentBuildChannel = "stable";
@@ -1162,7 +1170,7 @@ function showView(id) {
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
   if (id === "quarantine") requestQuarantine();
   if (id === "tools") { requestHistory(); diagnoseWinget(); }
-  if (id === "operations") { requestHistory(); renderOperations(); readInterruptedOperation(); }
+  if (id === "operations") { requestHistory(); reconcileMaintenanceOperations(); renderOperations(); readInterruptedOperation(); }
   if (id === "security") requestSecurityStatus();
   if (id === "installed") renderInstalledPage();
   if (id === "browsers" && !browserScanLoaded) requestBrowserScan();
@@ -1463,7 +1471,102 @@ function loadOperationFeed() {
     operationFeed=Array.isArray(stored)?stored.slice(0,50):[];
   } catch { operationFeed=[]; }
   reconcileOperationHistory();
+  reconcileMaintenanceOperations();
   renderOperations();
+}
+
+// Résout tout seul les échecs de mise à jour qui n'en sont pas vraiment :
+//  - tous les paquets en échec sont des lanceurs auto-updatés (Ankama…) ;
+//  - ou tous sont masqués par l'utilisateur (« Ne plus proposer ») ;
+//  - ou l'alerte a plus de 14 jours et ne s'est pas reproduite.
+function reconcileMaintenanceOperations() {
+  const ignored=getIgnoredUpdateIds();
+  const staleBefore=Date.now()-14*24*3600*1000;
+  let changed=false;
+  operationFeed=operationFeed.map(item=>{
+    if(item.status!=="failed")return item;
+    const ids=getOperationPackageIds(item);
+    if(item.type==="update"&&ids.length){
+      const allSelfManaged=ids.every(id=>SELF_MANAGED_UPDATER_IDS.has(String(id).toLowerCase()));
+      const allIgnored=ids.every(id=>ignored.has(id));
+      if(allSelfManaged||allIgnored){
+        changed=true;
+        return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:allIgnored?"update-ignored":"self-managed",
+          detail:allIgnored?"Classé résolu : ces mises à jour ont été masquées dans la liste.":"Classé résolu : ces logiciels se mettent à jour eux-mêmes à leur lancement."};
+      }
+    }
+    const at=new Date(item.completedAt||item.startedAt||0).getTime();
+    if(at&&at<staleBefore&&!(Number(item.occurrences)>1)){
+      changed=true;
+      return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:"stale",detail:"Ancienne alerte archivée automatiquement après 14 jours sans récidive."};
+    }
+    return item;
+  });
+  if(changed){
+    saveOperationFeed();
+    [...new Set(operationFeed.filter(item=>item.status==="resolved").map(item=>item.type))].forEach(reconcileResolvedNotifications);
+  }
+  return changed;
+}
+
+function manuallyResolveOperation(id){
+  const operation=operationFeed.find(item=>item.id===id);
+  if(!operation||operation.status!=="failed")return;
+  operationFeed=operationFeed.map(item=>item.id===id
+    ?{...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:"manual",detail:"Marqué comme résolu manuellement."}
+    :item);
+  saveOperationFeed();
+  dismissNotificationsForOperation(operation);
+  reconcileResolvedNotifications(operation.type);
+  $("#operationFixPanel").classList.add("hidden");
+  renderOperations();
+  notify("Opération classée résolue","Elle reste consultable dans l'historique.");
+}
+
+function removeOperation(id){
+  const operation=operationFeed.find(item=>item.id===id);
+  if(!operation||operation.status==="running"||operation.status==="failed")return;
+  operationFeed=operationFeed.filter(item=>item.id!==id);
+  saveOperationFeed();
+  renderOperations();
+}
+
+function clearFinishedOperations(){
+  const before=operationFeed.length;
+  operationFeed=operationFeed.filter(item=>item.status==="running"||item.status==="failed");
+  if(operationFeed.length===before)return;
+  saveOperationFeed();
+  renderOperations();
+  notify("Historique allégé","Les opérations terminées ont été retirées de la liste.");
+}
+
+function resolveAllOperations(){
+  const failed=operationFeed.filter(item=>item.status==="failed");
+  if(!failed.length)return;
+  const types=new Set();
+  operationFeed=operationFeed.map(item=>item.status==="failed"
+    ?(types.add(item.type),{...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:"manual",detail:"Marqué comme résolu manuellement."})
+    :item);
+  saveOperationFeed();
+  failed.forEach(dismissNotificationsForOperation);
+  types.forEach(reconcileResolvedNotifications);
+  $("#operationFixPanel").classList.add("hidden");
+  renderOperations();
+  notify(`${failed.length} opération(s) classée(s) résolue(s)`,"Elles restent consultables dans l'historique.");
+}
+
+function dismissNotificationsForOperation(operation){
+  const ids=new Set(getOperationPackageIds(operation));
+  let changed=false;
+  notificationFeed=notificationFeed.map(item=>{
+    if(!item.unread||item.kind!=="warning")return item;
+    const linked=(item.operationType&&item.operationType===operation.type)
+      ||(Array.isArray(item.packageIds)&&item.packageIds.some(id=>ids.has(canonicalOperationPackageId(id))));
+    if(!linked)return item;
+    changed=true;
+    return {...item,unread:false,kind:"success",symbol:"✓",resolvedAt:new Date().toISOString()};
+  });
+  if(changed){saveNotificationFeed();renderNotificationFeed();}
 }
 
 function saveOperationFeed() {
@@ -1642,7 +1745,10 @@ function renderOperations() {
   const success=operationFeed.filter(item=>item.status==="success"||item.status==="resolved").length;
   $("#operationsRunning").textContent=running;$("#operationsFailed").textContent=failed;$("#operationsSuccess").textContent=success;
   setNavAlert("#operationsNavBadge",running+failed,running+failed>0);
-  list.innerHTML=operationFeed.length?operationFeed.map(item=>`<article class="operation-row ${escapeHtml(item.status||"")}"><span class="operation-status">${item.status==="success"||item.status==="resolved"?"✓":item.status==="failed"?"!":item.status==="interrupted"?"—":"↻"}</span><div><strong>${escapeHtml(item.title||item.type)}</strong><small>${escapeHtml(item.detail||new Date(item.startedAt).toLocaleString("fr-FR"))}</small>${Number(item.occurrences)>1?`<em>${Number(item.occurrences)} occurrences regroupées · dernière tentative affichée</em>`:""}${item.status==="resolved"?`<em>Résultat vérifié automatiquement sur ce PC</em>`:item.status==="success"&&item.verified?`<em>Résultat confirmé après contrôle</em>`:item.status==="interrupted"?`<em>Aucune action n’est actuellement exécutée</em>`:""}</div>${item.status==="failed"?`<button class="secondary-button" data-operation-fix="${escapeHtml(item.id)}">Corriger</button>`:""}</article>`).join(""):`<div class="empty-state">Aucune opération enregistrée pour le moment.</div>`;
+  const finished=operationFeed.filter(item=>item.status==="success"||item.status==="resolved"||item.status==="interrupted").length;
+  $("#resolveAllOperations")?.classList.toggle("hidden",failed===0);
+  $("#clearFinishedOperations")?.classList.toggle("hidden",finished===0);
+  list.innerHTML=operationFeed.length?operationFeed.map(item=>`<article class="operation-row ${escapeHtml(item.status||"")}"><span class="operation-status">${item.status==="success"||item.status==="resolved"?"✓":item.status==="failed"?"!":item.status==="interrupted"?"—":"↻"}</span><div><strong>${escapeHtml(item.title||item.type)}</strong><small>${escapeHtml(item.detail||new Date(item.startedAt).toLocaleString("fr-FR"))}</small>${Number(item.occurrences)>1?`<em>${Number(item.occurrences)} occurrences regroupées · dernière tentative affichée</em>`:""}${item.status==="resolved"?(["manual","stale","update-ignored","self-managed"].includes(item.resolvedBy)?`<em>${escapeHtml(item.detail||"Classé résolu")}</em>`:`<em>Résultat vérifié automatiquement sur ce PC</em>`):item.status==="success"&&item.verified?`<em>Résultat confirmé après contrôle</em>`:item.status==="interrupted"?`<em>Aucune action n’est actuellement exécutée</em>`:""}</div><span class="operation-row-actions">${item.status==="failed"?`<button class="secondary-button" data-operation-fix="${escapeHtml(item.id)}">Corriger</button><button class="text-button" data-operation-resolve="${escapeHtml(item.id)}">Marquer résolu</button>`:(item.status==="resolved"||item.status==="success"||item.status==="interrupted")?`<button class="operation-remove" data-operation-remove="${escapeHtml(item.id)}" title="Retirer de la liste" aria-label="Retirer de la liste">✕</button>`:""}</span></article>`).join(""):`<div class="empty-state">Aucune opération enregistrée pour le moment.</div>`;
 }
 
 function selectOperationFix(id) {
@@ -3882,7 +3988,16 @@ $("#operationForceClose").addEventListener("click",()=>closeOperationProcesses(t
 $("#operationProcessManual").addEventListener("click",()=>prepareFailedUpdateRetry("Fermez vous-même les applications indiquées, puis confirmez la mise à jour ciblée."));
 $("#closeUpdateBlocker").addEventListener("click",()=>closeUpdateBlockingProcesses(false));
 $("#forceCloseUpdateBlocker").addEventListener("click",()=>closeUpdateBlockingProcesses(true));
-$("#operationsList").addEventListener("click",event=>{const button=event.target.closest("[data-operation-fix]");if(button)selectOperationFix(button.dataset.operationFix);});
+$("#operationsList").addEventListener("click",event=>{
+  const fix=event.target.closest("[data-operation-fix]");
+  if(fix)return selectOperationFix(fix.dataset.operationFix);
+  const resolve=event.target.closest("[data-operation-resolve]");
+  if(resolve)return manuallyResolveOperation(resolve.dataset.operationResolve);
+  const remove=event.target.closest("[data-operation-remove]");
+  if(remove)return removeOperation(remove.dataset.operationRemove);
+});
+$("#resolveAllOperations")?.addEventListener("click",resolveAllOperations);
+$("#clearFinishedOperations")?.addEventListener("click",clearFinishedOperations);
 $("#appUpdateBtn").addEventListener("click", openAppUpdateModal);
 $("#appUpdateNotification").addEventListener("click", event => { event.stopPropagation(); toggleNotificationCenter(); });
 $("#clearNotifications").addEventListener("click", () => {

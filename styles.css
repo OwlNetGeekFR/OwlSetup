@@ -642,3 +642,10 @@ code,pre,kbd,samp,
 /* Catégorie de nettoyage navigateur sans effet pour le moteur sélectionné — 4.0.0-beta.5 */
 .browser-category.unsupported{opacity:.4;filter:grayscale(1)}
 .browser-category.unsupported em{visibility:hidden}
+
+/* Centre des opérations : actions par ligne et en-tête — 4.0.0-beta.6 */
+.operations-actions{display:flex;gap:8px;flex-wrap:wrap}
+.operation-row-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.operation-row-actions .text-button{font-size:9px;padding:0}
+.operation-remove{width:22px;height:22px;padding:0;line-height:1;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
+.operation-remove:hover{border-color:#70404c;color:#e88}
