@@ -1,5 +1,21 @@
 # Historique des versions
 
+## [4.0.0-beta.9] - 2026-08-27
+
+### Consolidation : trois finitions
+
+- **Notifications** : les messages d'échec s'affichent avec une icône rouge « ✕ »
+  (et non plus le « ✓ » vert générique). L'icône suit le type : succès,
+  information, avertissement, erreur.
+- **Réparer WinGet** ne réinitialise plus les sources en aveugle : une simple
+  actualisation est tentée d'abord ; la réinitialisation complète n'intervient
+  qu'en cas d'échec, et les **sources personnalisées** sont sauvegardées puis
+  ré-ajoutées automatiquement (celles qui échouent sont listées).
+- **Point de restauration** : plus de modification du registre pour contourner
+  la limite Windows de 1 point / 24 h (fragile si le processus est interrompu).
+  Quand Windows refuse pour cette raison, OwlSetup indique qu'un point récent
+  protège déjà le PC, et une opération protégée se poursuit normalement.
+
 ## [4.0.0-beta.8] - 2026-08-27
 
 ### Quarantaine : suppression et restauration robustes
