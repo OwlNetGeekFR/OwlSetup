@@ -24,8 +24,17 @@ Invoke-CheckedCommand "Syntaxe app.js" {
 Invoke-CheckedCommand "Syntaxe i18n.js" {
     & $node.Source --check (Join-Path $root "i18n.js")
 }
+Invoke-CheckedCommand "Syntaxe catalog.generated.js" {
+    & $node.Source --check (Join-Path $root "catalog.generated.js")
+}
 Invoke-CheckedCommand "Catalogue" {
     & $node.Source (Join-Path $root "tools\check-catalog.mjs")
+}
+$catalogSync = Join-Path $root "beta\scripts\build-catalog.mjs"
+if (Test-Path $catalogSync) {
+    Invoke-CheckedCommand "Catalogue genere synchronise" {
+        & $node.Source $catalogSync --check
+    }
 }
 
 $excludedLifecycleTests = @(

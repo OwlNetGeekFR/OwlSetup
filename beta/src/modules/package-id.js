@@ -3,17 +3,19 @@
  *
  * Meme expression que :
  *  - `app.js` (racine) : `isValidPackageId`, filtre de `pcsetup-selection`.
- *  - `OwlSetupWebView.cs` : `Regex.IsMatch(x, "^[A-Za-z0-9.+_-]+$")` cote hote.
+ *  - `OwlSetupWebView.cs` : `Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")` cote hote.
  *
  * Garder les deux cotes strictement identiques : c'est la frontiere de confiance
- * entre l'UI et l'appel `winget.exe`.
+ * entre l'UI et l'appel `winget.exe`. Le premier caractere doit etre
+ * alphanumerique : un identifiant en `-...` ne peut donc pas etre confondu avec
+ * un argument `winget` (durcissement 4.0-beta).
  */
 
 /** Jeu de caracteres autorise dans un identifiant transmis a l'hote. */
-export const PACKAGE_ID_PATTERN = /^[A-Za-z0-9.+_-]+$/;
+export const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/;
 
 /** Longueur defensive utilisee par la telemetrie (`targetPackage`). */
-export const TELEMETRY_PACKAGE_PATTERN = /^[A-Za-z0-9.+_-]{1,96}$/;
+export const TELEMETRY_PACKAGE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/;
 
 /**
  * @param {unknown} id

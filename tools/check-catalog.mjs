@@ -20,7 +20,7 @@ for(const id of ids){
   const key=id.toLowerCase();
   if(seen.has(key))errors.push(`Identifiant dupliqué : ${id}`);
   seen.add(key);
-  if(!/^[A-Za-z0-9.+_-]+$/.test(id))errors.push(`Identifiant invalide : ${id}`);
+  if(!/^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(id))errors.push(`Identifiant invalide : ${id}`);
 }
 for(const site of sites)if(!/^https:\/\//i.test(site))errors.push(`URL non sécurisée : ${site}`);
 for(const logo of logos)if(!fs.existsSync(path.join(root,"assets","logos",logo)))errors.push(`Logo introuvable : ${logo}`);

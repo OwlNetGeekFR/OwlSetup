@@ -200,6 +200,7 @@ internal sealed class WebAppForm : Form
     {
         return VerifyEmbeddedResource("index.html",Path.Combine(appRoot,"index.html")) &&
             VerifyEmbeddedResource("i18n.js",Path.Combine(appRoot,"i18n.js")) &&
+            VerifyEmbeddedResource("catalog.generated.js",Path.Combine(appRoot,"catalog.generated.js")) &&
             VerifyEmbeddedResource("app.js",Path.Combine(appRoot,"app.js")) &&
             VerifyEmbeddedResource("styles.css",Path.Combine(appRoot,"styles.css"));
     }
@@ -297,7 +298,7 @@ internal sealed class WebAppForm : Form
 
     void RunInstallPreflight(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(100).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(100).ToArray();
         var catalog=ReadCatalog(payload);
         long requestId=payload!=null&&payload.ContainsKey("requestId")?Convert.ToInt64(payload["requestId"]):0;
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide n'est sélectionné.");
@@ -353,7 +354,7 @@ internal sealed class WebAppForm : Form
 
     void RunInstall(Dictionary<string, object> payload)
     {
-        var packages = ReadArray(payload, "packages").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9.+_-]+$")).Distinct().Take(100).ToArray();
+        var packages = ReadArray(payload, "packages").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct().Take(100).ToArray();
         if(packages.Any(id=>String.Equals(id,"VMware.WorkstationPro",StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("VMware Workstation Pro necessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidee depuis sa carte.");
         var catalog=ReadCatalog(payload);
@@ -687,7 +688,7 @@ internal sealed class WebAppForm : Form
 
     void InspectPackageProcesses(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
         if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a examiner.");
         Task.Run(delegate
         {
@@ -701,7 +702,7 @@ internal sealed class WebAppForm : Form
 
     void ClosePackageProcesses(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
         bool force=payload!=null&&payload.ContainsKey("force")&&Convert.ToBoolean(payload["force"]);
         bool confirmed=payload!=null&&payload.ContainsKey("confirmed")&&Convert.ToBoolean(payload["confirmed"]);
         if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a traiter.");
@@ -1194,7 +1195,7 @@ internal sealed class WebAppForm : Form
     void ScanInstalled(Dictionary<string, object> payload)
     {
         if (scanRunning) return;
-        var requested = new HashSet<string>(ReadArray(payload, "ids").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9.+_-]+$")).Take(200), StringComparer.OrdinalIgnoreCase);
+        var requested = new HashSet<string>(ReadArray(payload, "ids").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Take(200), StringComparer.OrdinalIgnoreCase);
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         var customPackages=ReadCustomCatalog(payload);
@@ -1264,7 +1265,7 @@ internal sealed class WebAppForm : Form
 
     void ScanApplicationHealth(Dictionary<string, object> payload)
     {
-        var requested=new HashSet<string>(ReadArray(payload,"ids").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Take(200),StringComparer.OrdinalIgnoreCase);
+        var requested=new HashSet<string>(ReadArray(payload,"ids").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Take(200),StringComparer.OrdinalIgnoreCase);
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         var customPackages=ReadCustomCatalog(payload);
@@ -1511,7 +1512,7 @@ internal sealed class WebAppForm : Form
             var item=value as Dictionary<string,object>;
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("name"))continue;
             string id=Convert.ToString(item["id"]),name=Convert.ToString(item["name"]);
-            if(Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$") && !String.IsNullOrWhiteSpace(name))result[id]=name;
+            if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") && !String.IsNullOrWhiteSpace(name))result[id]=name;
         }
         return result;
     }
@@ -1529,7 +1530,7 @@ internal sealed class WebAppForm : Form
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("portable"))continue;
             string id=Convert.ToString(item["id"]);
             bool portable=false;try{portable=Convert.ToBoolean(item["portable"]);}catch{}
-            if(portable && Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$"))result.Add(id);
+            if(portable && Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))result.Add(id);
         }
         return result;
     }
@@ -1547,7 +1548,7 @@ internal sealed class WebAppForm : Form
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("custom"))continue;
             string id=Convert.ToString(item["id"]);
             bool custom=false;try{custom=Convert.ToBoolean(item["custom"]);}catch{}
-            if(custom && Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$"))result.Add(id);
+            if(custom && Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))result.Add(id);
         }
         return result;
     }
@@ -1714,7 +1715,7 @@ internal sealed class WebAppForm : Form
             string[] columns=Regex.Split(line,@"\s{2,}");
             if(columns.Length<2)continue;
             string candidate=columns[1].Trim();
-            if(Regex.IsMatch(candidate,"^[A-Za-z0-9.+_-]+$"))yield return candidate;
+            if(Regex.IsMatch(candidate,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))yield return candidate;
         }
     }
 
@@ -1803,7 +1804,7 @@ internal sealed class WebAppForm : Form
     {
         string packageId=payload!=null&&payload.ContainsKey("id")?Convert.ToString(payload["id"]):"";
         string appName=payload!=null&&payload.ContainsKey("name")?Convert.ToString(payload["name"]):LoadApplicationName(packageId);
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9.+_-]+$"))throw new InvalidOperationException("Logiciel invalide.");
+        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))throw new InvalidOperationException("Logiciel invalide.");
         Task.Run(delegate {
             var report=new StringBuilder();bool installed=false;string version="",scope="Installation WinGet";int shortcuts=0;
             try
@@ -1866,7 +1867,7 @@ internal sealed class WebAppForm : Form
     {
         string packageId=payload != null && payload.ContainsKey("id") ? Convert.ToString(payload["id"]) : "";
         bool scanResidues=payload != null && payload.ContainsKey("scanResidues") && Convert.ToBoolean(payload["scanResidues"]);
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9.+_-]+$")) throw new InvalidOperationException("Logiciel invalide.");
+        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")) throw new InvalidOperationException("Logiciel invalide.");
         string appName=payload != null && payload.ContainsKey("name") ? Convert.ToString(payload["name"]) : LoadApplicationName(packageId);
         if(String.IsNullOrWhiteSpace(appName)||appName.Length>120)appName=LoadApplicationName(packageId);
         if(!ConsumeUninstallSimulation(packageId))throw new InvalidOperationException("La simulation de désinstallation est absente ou expirée. Relancez l'aperçu.");
@@ -2049,7 +2050,7 @@ internal sealed class WebAppForm : Form
     void RunRepair(Dictionary<string, object> payload)
     {
         string packageId=payload != null && payload.ContainsKey("id") ? Convert.ToString(payload["id"]) : "";
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9.+_-]+$")) throw new InvalidOperationException("Logiciel invalide.");
+        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")) throw new InvalidOperationException("Logiciel invalide.");
         if(repairRunning) throw new InvalidOperationException("Une réparation est déjà en cours.");
         if(installationRunning || uninstallRunning || updateRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         repairRunning=true;
@@ -2101,7 +2102,7 @@ internal sealed class WebAppForm : Form
 
     void RunBatchUninstall(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
         var catalog=ReadCatalog(payload);
         bool scanResidues=payload!=null&&payload.ContainsKey("scanResidues")&&Convert.ToBoolean(payload["scanResidues"]);
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide à désinstaller.");
@@ -2181,7 +2182,7 @@ internal sealed class WebAppForm : Form
 
     void SimulateBatchUninstall(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
         var catalog=ReadCatalog(payload);
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide à simuler.");
         Task.Run(delegate {
@@ -2722,7 +2723,7 @@ internal sealed class WebAppForm : Form
 
     void RunUpdate(Dictionary<string, object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct().Take(100).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct().Take(100).ToArray();
         if(updateRunning) throw new InvalidOperationException("Une mise à jour est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         updateRunning=true;
@@ -2844,7 +2845,7 @@ internal sealed class WebAppForm : Form
             string id=match.Groups[2].Value.Trim();
             string current=match.Groups[3].Value.Trim();
             string available=match.Groups[4].Value.Trim();
-            if(!Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$") || !Regex.IsMatch(current,"[0-9]") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
+            if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(current,"[0-9]") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
             results.Add(new Dictionary<string,object>{{"name",name},{"id",id},{"current",current},{"available",available}});
         }
         return results;
@@ -3342,7 +3343,7 @@ internal sealed class WebAppForm : Form
 
     void ExportConfiguration(Dictionary<string, object> payload)
     {
-        var selected=ReadArray(payload,"selected").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var selected=ReadArray(payload,"selected").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var cleanup=ReadArray(payload,"cleanup").Where(x=>Regex.IsMatch(x,"^[a-z-]+$")).Distinct().ToArray();
         string preferences=payload!=null&&payload.ContainsKey("preferences")?Convert.ToString(payload["preferences"]):"";
         if(preferences.Length>65536)preferences="";
@@ -3369,7 +3370,7 @@ internal sealed class WebAppForm : Form
                     foreach(Match match in Regex.Matches(File.ReadAllText(temp,Encoding.UTF8),"\"PackageIdentifier\"\\s*:\\s*\"([^\"]+)\"",RegexOptions.IgnoreCase))
                     {
                         string id=match.Groups[1].Value;
-                        if(Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$"))installed.Add(id);
+                        if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))installed.Add(id);
                     }
                 }
                 var configuration=new {
@@ -3405,7 +3406,7 @@ internal sealed class WebAppForm : Form
             if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")throw new InvalidDataException("Ce fichier n'est pas une configuration OwlSetup valide.");
             var packages=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(string key in new[]{"installedPackages","selectedPackages"})
-                foreach(string id in ReadArray(root,key))if(Regex.IsMatch(id,"^[A-Za-z0-9.+_-]+$"))packages.Add(id);
+                foreach(string id in ReadArray(root,key))if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))packages.Add(id);
             var cleanup=ReadArray(root,"cleanupChoices").Where(x=>Regex.IsMatch(x,"^[a-z-]+$")).Distinct().ToArray();
             string preferences=root.ContainsKey("preferences")?Convert.ToString(root["preferences"]):"";
             if(preferences.Length>65536)preferences="";
@@ -3796,6 +3797,7 @@ internal static class Bootstrap
             Directory.CreateDirectory(Path.Combine(AppRoot,"assets","branding"));
             Extract("index.html", Path.Combine(AppRoot, "index.html"));
             Extract("i18n.js", Path.Combine(AppRoot, "i18n.js"));
+            Extract("catalog.generated.js", Path.Combine(AppRoot, "catalog.generated.js"));
             Extract("app.js", Path.Combine(AppRoot, "app.js"));
             Extract("styles.css", Path.Combine(AppRoot, "styles.css"));
             Extract("app-logo.png", Path.Combine(AppRoot, "assets", "branding", "owlsetup-logo.png"));

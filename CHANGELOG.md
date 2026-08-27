@@ -1,5 +1,27 @@
 # Historique des versions
 
+## [4.0.0-beta.2] - 2026-08-27
+
+### Fondations 4.0 : catalogue externalisé et durcissement
+
+- Sort le catalogue des 93 applications de `app.js` vers `beta/catalog/apps.json`
+  (validé par un schéma JSON) et l'injecte au démarrage via
+  `catalog.generated.js`. Le bloc `const apps` reste dans `app.js` comme repli.
+- Ajoute `catalog.generated.js` à la vérification d'intégrité SHA-256 des
+  ressources embarquées et à sa génération automatique dans `build.ps1`.
+- Durcit la validation des identifiants de paquet : le premier caractère doit
+  être alphanumérique (`^[A-Za-z0-9][A-Za-z0-9.+_-]*$`), des deux côtés de la
+  frontière interface / hôte, pour écarter toute confusion avec un argument
+  `winget`.
+- Ajoute la couche d'outillage qualité `beta/` : ESLint, Prettier, Vitest
+  (97 tests, dont un test de parité qui compare chaque module extrait à la
+  version encore présente dans `app.js`), un projet MSBuild pour l'hôte C# et le
+  workflow CI `.github/workflows/quality.yml`.
+- Documente le plan de modernisation complet dans `beta/PLAN-AMELIORATION.md` et
+  l'analyse concurrentielle dans `beta/COMPETITIVE-ANALYSIS.md`.
+- Aucune modification de comportement de l'application : la suite
+  `Test-ReleaseCandidateReadiness.ps1` reste verte.
+
 ## [3.7.0-beta.57] - 2026-08-02
 
 ### Désinstallation vérifiée après installation

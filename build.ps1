@@ -60,6 +60,19 @@ $forms = Join-Path $packageRoot "lib\net462\Microsoft.Web.WebView2.WinForms.dll"
 $loader = Join-Path $packageRoot "runtimes\win-x64\native\WebView2Loader.dll"
 $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 
+# Catalogue externalise : regenere catalog.generated.js depuis beta/catalog/apps.json
+# quand Node est disponible ; sinon le fichier deja versionne est utilise.
+$catalogScript = Join-Path $root "beta\scripts\build-catalog.mjs"
+$catalogOutput = Join-Path $root "catalog.generated.js"
+$node = Get-Command node -ErrorAction SilentlyContinue
+if ($node -and (Test-Path $catalogScript)) {
+    & $node.Source $catalogScript
+    if ($LASTEXITCODE -ne 0) { throw "Generation du catalogue echouee (code $LASTEXITCODE)." }
+}
+if (-not (Test-Path $catalogOutput)) {
+    throw "catalog.generated.js introuvable et Node absent : impossible de generer le catalogue."
+}
+
 $arguments = @(
     "/nologo", "/target:winexe", "/optimize+", "/platform:x64",
     "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
@@ -67,7 +80,7 @@ $arguments = @(
     "/reference:System.Core.dll", "/reference:System.Web.Extensions.dll",
     "/reference:System.IO.Compression.dll", "/reference:System.IO.Compression.FileSystem.dll",
     "/reference:$core", "/reference:$forms",
-    "/resource:index.html,index.html", "/resource:i18n.js,i18n.js", "/resource:app.js,app.js", "/resource:styles.css,styles.css",
+    "/resource:index.html,index.html", "/resource:i18n.js,i18n.js", "/resource:catalog.generated.js,catalog.generated.js", "/resource:app.js,app.js", "/resource:styles.css,styles.css",
     "/resource:Mettre-a-jour-mon-PC.ps1,Mettre-a-jour-mon-PC.ps1",
     "/resource:Liberer-espace-disque.ps1,Liberer-espace-disque.ps1",
     "/resource:Nettoyer-residus-applications.ps1,Nettoyer-residus-applications.ps1",

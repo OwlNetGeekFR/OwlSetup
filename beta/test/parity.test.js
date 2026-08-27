@@ -36,6 +36,10 @@ const ID_SAMPLES = [
   "9NT1R1C2HH7J",
   "../etc",
   "a\nb",
+  "--source",
+  "-e",
+  ".hidden",
+  "_foo",
 ];
 
 const NAME_SAMPLES = [
