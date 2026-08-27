@@ -5,7 +5,7 @@ $frontend = Get-Content -LiteralPath (Join-Path $root "app.js") -Raw -Encoding U
 $native = Get-Content -LiteralPath (Join-Path $root "OwlSetupWebView.cs") -Raw -Encoding UTF8
 
 $checks = @(
-    @{ Name = "inventaire WinGet complet"; Text = $native; Token = 'winget.exe","list --accept-source-agreements --disable-interactivity' },
+    @{ Name = "inventaire WinGet complet"; Text = $native; Token = 'RunWingetCli("list --accept-source-agreements --disable-interactivity"' },
     @{ Name = "métadonnées découvertes"; Text = $native; Token = 'discovered=!catalog.ContainsKey(id)' },
     @{ Name = "nom des applications découvertes"; Text = $native; Token = 'name=catalog.ContainsKey(id)?catalog[id]' },
     @{ Name = "icône locale transmise"; Text = $native; Token = 'iconData=discoveredById.ContainsKey(id)' },

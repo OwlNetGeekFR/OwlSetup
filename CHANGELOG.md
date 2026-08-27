@@ -1,5 +1,25 @@
 # Historique des versions
 
+## [4.0.0-beta.14] - 2026-08-27
+
+### WinGet : un seul point d'entrée pour le CLI
+
+- Les ~24 appels dispersés à `RunHiddenProcess("winget.exe", …)` passent
+  désormais par **`RunWingetCli(arguments, report)`** (+ surcharge *streaming*
+  `onLine`). Un seul endroit où brancher plus tard journalisation, délai
+  maximal ou télémétrie, et plus de risque qu'un nouvel appel oublie de
+  résoudre le vrai `winget.exe`.
+- La résolution du chemin (`ResolveWingetPath` : alias `WindowsApps` puis
+  paquet `Microsoft.DesktopAppInstaller`, avec message explicite si absent)
+  est retirée de `RunHiddenProcess` — qui redevient un simple lanceur de
+  processus — et centralisée dans `RunWingetCli`. Comportement identique :
+  `winget` introuvable lève la même exception qu'avant.
+- `tests/Test-WingetParsing.ps1` : vérifie qu'aucun appel ne contourne
+  `RunWingetCli` (zéro `RunHiddenProcess("winget.exe", …)` restant) et que les
+  deux surcharges existent (contrôle par réflexion sur l'exécutable).
+- Vérifié : la bêta démarre, intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.13] - 2026-08-27
 
 ### WinGet : les vérifications d'installation passent par la colonne ID

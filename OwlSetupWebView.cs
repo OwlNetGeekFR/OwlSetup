@@ -310,7 +310,7 @@ internal sealed class WebAppForm : Form
             {
                 SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="winget",state="checking",title="Contrôle de WinGet",detail="Version et disponibilité..."});
                 var wingetOutput=new StringBuilder();
-                int wingetCode=RunHiddenProcess("winget.exe","--version",wingetOutput);
+                int wingetCode=RunWingetCli("--version",wingetOutput);
                 wingetReady=wingetCode==0;
                 SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="winget",state=wingetReady?"success":"failed",title="Contrôle de WinGet",detail=wingetReady?wingetOutput.ToString().Trim():"WinGet est indisponible"});
 
@@ -336,7 +336,7 @@ internal sealed class WebAppForm : Form
                         string id=packages[i];
                         SendToWeb(new {type="install-preflight-progress",requestId=requestId,key="packages",state="checking",title="Contrôle des paquets",detail=(i+1)+" / "+packages.Length+" · "+id});
                         var output=new StringBuilder();
-                        int code=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",output);
+                        int code=RunWingetCli("show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",output);
                         if(code!=0)unavailable.Add(id);
                     }
                 }
@@ -393,7 +393,7 @@ internal sealed class WebAppForm : Form
                     SendToWeb(new { type="install-progress", index=i+1, total=packages.Length, id=id });
                     report.AppendLine(); report.AppendLine("===== "+id+" =====");
                     var preflight=new StringBuilder();
-                    int showCode=RunHiddenProcess("winget.exe","show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",preflight);
+                    int showCode=RunWingetCli("show --id \""+id+"\" --exact"+WingetSourceArgument(id)+" --accept-source-agreements --disable-interactivity",preflight);
                     report.AppendLine("Contrôle du manifeste et de la source : "+(showCode==0?"OK":"ÉCHEC"));
                     report.Append(preflight.ToString());
                     SendToWeb(new { type="install-security", index=i+1, total=packages.Length, id=id, success=showCode==0 });
@@ -473,7 +473,7 @@ internal sealed class WebAppForm : Form
         string scope=String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase)?" --scope machine":String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)?" --scope user":"";
         string location=String.IsNullOrWhiteSpace(requestedLocation)?"":" --location \""+requestedLocation.Replace("\"","")+"\"";
         if(!String.IsNullOrWhiteSpace(requestedLocation))report.AppendLine("Emplacement demandé : "+requestedLocation);
-        int code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+scope+location+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+        int code=RunWingetCli("install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+scope+location+" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
         if(code!=0 && (String.Equals(packageId,"Google.Chrome",StringComparison.OrdinalIgnoreCase) || String.Equals(packageId,"Spotify.Spotify",StringComparison.OrdinalIgnoreCase)))
         {
             report.AppendLine();
@@ -531,7 +531,7 @@ internal sealed class WebAppForm : Form
     {
         if(portable)return IsManagedPortable(packageId);
         var verification=new StringBuilder();
-        int code=RunHiddenProcess("winget.exe","list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",verification);
+        int code=RunWingetCli("list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",verification);
         report.AppendLine("Vérification après installation : "+(code==0?"terminée":"échec"));
         report.Append(verification.ToString());
         return code==0&&WingetTableContainsId(verification.ToString(),packageId);
@@ -1095,11 +1095,6 @@ internal sealed class WebAppForm : Form
 
     int RunHiddenProcess(string fileName, string arguments, StringBuilder report, Action<string> onLine)
     {
-        if(String.Equals(fileName,"winget.exe",StringComparison.OrdinalIgnoreCase))
-        {
-            string resolved=ResolveWingetPath();
-            if(!String.IsNullOrEmpty(resolved))fileName=resolved;
-        }
         var process=new Process();
         process.StartInfo=new ProcessStartInfo {
             FileName=fileName,
@@ -1120,6 +1115,21 @@ internal sealed class WebAppForm : Form
         process.OutputDataReceived+=append;process.ErrorDataReceived+=append;
         process.Start();process.BeginOutputReadLine();process.BeginErrorReadLine();process.WaitForExit();process.WaitForExit();
         return process.ExitCode;
+    }
+
+    // Point d'entree unique pour lancer le CLI winget en arriere-plan et capturer
+    // sa sortie. ResolveWingetPath() trouve le vrai winget.exe (alias WindowsApps
+    // puis paquet Microsoft.DesktopAppInstaller) et leve une exception explicite
+    // s'il est absent. Tous les appels lecture/ecriture winget passent par ici :
+    // un seul endroit ou ajouter journalisation, delai maximal ou telemetrie.
+    int RunWingetCli(string arguments, StringBuilder report)
+    {
+        return RunWingetCli(arguments, report, null);
+    }
+
+    int RunWingetCli(string arguments, StringBuilder report, Action<string> onLine)
+    {
+        return RunHiddenProcess(ResolveWingetPath(), arguments, report, onLine);
     }
 
     int RunAsInteractiveUser(string fileName,string arguments,StringBuilder report)
@@ -1413,7 +1423,7 @@ internal sealed class WebAppForm : Form
         try
         {
             Directory.CreateDirectory(folder);
-            int code=RunHiddenProcess("winget.exe","export -o \""+exportFile+"\" --accept-source-agreements --disable-interactivity",report);
+            int code=RunWingetCli("export -o \""+exportFile+"\" --accept-source-agreements --disable-interactivity",report);
             if(File.Exists(exportFile))
             {
                 string contents=File.ReadAllText(exportFile,Encoding.UTF8);
@@ -1437,7 +1447,7 @@ internal sealed class WebAppForm : Form
         var capture=new StringBuilder();
         try
         {
-            int code=RunHiddenProcess("winget.exe","list --accept-source-agreements --disable-interactivity",capture);
+            int code=RunWingetCli("list --accept-source-agreements --disable-interactivity",capture);
             report.AppendLine(capture.ToString());
             var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(var row in ParseWingetTable(capture.ToString()))
@@ -1555,7 +1565,7 @@ internal sealed class WebAppForm : Form
             var verification=new StringBuilder();
             try
             {
-                int code=RunHiddenProcess("winget.exe","list --id \""+id+"\" --exact --accept-source-agreements --disable-interactivity",verification);
+                int code=RunWingetCli("list --id \""+id+"\" --exact --accept-source-agreements --disable-interactivity",verification);
                 string output=verification.ToString();
                 bool exact=code==0 && WingetTableContainsId(output,id);
                 report.AppendLine("Verification exacte WinGet "+id+" : "+(exact?"confirmee":"non confirmee")+" (code "+code+")");
@@ -1731,7 +1741,7 @@ internal sealed class WebAppForm : Form
         try
         {
             var wingetReport=new StringBuilder();
-            int listCode=RunHiddenProcess("winget.exe","list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",wingetReport);
+            int listCode=RunWingetCli("list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",wingetReport);
             string listOutput=wingetReport.ToString();
             report.AppendLine("Verification WinGet apres desinstallation : "+listCode);
             if(listCode==0 && WingetTableContainsId(listOutput,packageId))return true;
@@ -1753,7 +1763,7 @@ internal sealed class WebAppForm : Form
     {
         string common="uninstall --id \""+packageId+"\" --exact --silent --accept-source-agreements --disable-interactivity";
         report.AppendLine("Tentative 1/3 : contexte Windows actuel.");
-        int code=RunHiddenProcess("winget.exe",common,report);
+        int code=RunWingetCli(common,report);
         if(IsSuccessfulUninstallCode(code))return code;
 
         report.AppendLine();
@@ -1785,7 +1795,7 @@ internal sealed class WebAppForm : Form
     string ResolveInstalledWingetPackage(string packageId,string appName,StringBuilder report)
     {
         var exactIdReport=new StringBuilder();
-        int exactIdCode=RunHiddenProcess("winget.exe","list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",exactIdReport);
+        int exactIdCode=RunWingetCli("list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",exactIdReport);
         report.AppendLine("Resolution par identifiant exact : "+exactIdCode);
         report.Append(exactIdReport.ToString());
         var exactIds=ParseWingetListPackageIds(exactIdReport.ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
@@ -1795,7 +1805,7 @@ internal sealed class WebAppForm : Form
         if(String.IsNullOrWhiteSpace(appName))return "";
         var exactNameReport=new StringBuilder();
         string safeName=appName.Replace("\"","").Trim();
-        int exactNameCode=RunHiddenProcess("winget.exe","list --name \""+safeName+"\" --exact --accept-source-agreements --disable-interactivity",exactNameReport);
+        int exactNameCode=RunWingetCli("list --name \""+safeName+"\" --exact --accept-source-agreements --disable-interactivity",exactNameReport);
         report.AppendLine("Resolution par nom exact : "+exactNameCode);
         report.Append(exactNameReport.ToString());
         var nameIds=ParseWingetListPackageIds(exactNameReport.ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
@@ -2166,7 +2176,7 @@ internal sealed class WebAppForm : Form
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine("Logiciel : "+packageId);
                 report.AppendLine();
-                code=RunHiddenProcess("winget.exe", "repair --id \""+packageId+"\" --exact --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+                code=RunWingetCli("repair --id \""+packageId+"\" --exact --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
                 nativeCode=code;
                 if(code!=0)
                 {
@@ -2174,7 +2184,7 @@ internal sealed class WebAppForm : Form
                     report.AppendLine();
                     report.AppendLine("La réparation native n'est pas disponible. Tentative de réinstallation réparatrice sans désinstallation...");
                     SendToWeb(new { type="repair-fallback", id=packageId, nativeCode=nativeCode });
-                    code=RunHiddenProcess("winget.exe", "install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+" --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
+                    code=RunWingetCli("install --id \""+packageId+"\" --exact"+WingetSourceArgument(packageId)+" --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity", report);
                 }
                 if(IsManagedPortable(packageId) && EnsurePortableShortcut(packageId,report))code=0;
                 success=code==0;
@@ -2311,14 +2321,14 @@ internal sealed class WebAppForm : Form
             var report=new StringBuilder();string version="";bool available=false;bool sources=false;string message="";
             try
             {
-                int code=RunHiddenProcess("winget.exe","--version",report);
+                int code=RunWingetCli("--version",report);
                 available=code==0;
                 SendToWeb(new { type="tool-progress", tool="winget", percent=55, status="Version controlee." });
                 version=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"";
                 if(available)
                 {
                     report.Clear();
-                    sources=RunHiddenProcess("winget.exe","source list --disable-interactivity",report)==0;
+                    sources=RunWingetCli("source list --disable-interactivity",report)==0;
                 }
                 SendToWeb(new { type="tool-progress", tool="winget", percent=90, status="Sources controlees." });
                 message=available?(sources?"WinGet et ses sources répondent correctement.":"WinGet répond, mais ses sources doivent être réparées."):"WinGet est absent ou inaccessible.";
@@ -2342,7 +2352,7 @@ internal sealed class WebAppForm : Form
             try
             {
                 string arguments="search --query \""+query+"\" --source winget --count 15 --accept-source-agreements --disable-interactivity";
-                int code=RunHiddenProcess("winget.exe",arguments,report);
+                int code=RunWingetCli(arguments,report);
                 var items=ParseWingetSearchResults(report.ToString()).Take(12).ToArray();
                 string message=code==0
                     ? (items.Length==0?"Aucun paquet WinGet supplémentaire n'a été trouvé.":"Recherche WinGet terminée.")
@@ -2638,7 +2648,7 @@ internal sealed class WebAppForm : Form
             bool integrity=false,winget=false,webviewReady=false,storage=false,logsWritable=false;
             try{integrity=VerifyInterfaceIntegrity();}catch{}
             tests.Add(new {name="Intégrité de l’interface",success=integrity,detail=integrity?"Ressources conformes à l’exécutable":"Une ressource locale diffère de la version intégrée"});
-            try{var output=new StringBuilder();winget=RunHiddenProcess("winget.exe","--version",output)==0;tests.Add(new {name="WinGet",success=winget,detail=winget?output.ToString().Trim():"WinGet est indisponible"});}catch(Exception ex){tests.Add(new {name="WinGet",success=false,detail=ex.Message});}
+            try{var output=new StringBuilder();winget=RunWingetCli("--version",output)==0;tests.Add(new {name="WinGet",success=winget,detail=winget?output.ToString().Trim():"WinGet est indisponible"});}catch(Exception ex){tests.Add(new {name="WinGet",success=false,detail=ex.Message});}
             try{webviewReady=!String.IsNullOrWhiteSpace(detectedWebView);tests.Add(new {name="WebView2",success=webviewReady,detail=webviewReady?detectedWebView:"Version introuvable"});}catch{tests.Add(new {name="WebView2",success=false,detail="Détection impossible"});}
             try{string settings=GetDataFolder("Settings"),reports=GetDataFolder("Reports");storage=Directory.Exists(settings)&&Directory.Exists(reports);tests.Add(new {name="Stockage local",success=storage,detail=storage?"Dossiers locaux disponibles":"Dossiers locaux indisponibles"});}catch(Exception ex){tests.Add(new {name="Stockage local",success=false,detail=ex.Message});}
             try{string probe=Path.Combine(GetDataFolder("Logs"),".write-test");File.WriteAllText(probe,"ok",Encoding.ASCII);File.Delete(probe);logsWritable=true;tests.Add(new {name="Écriture des journaux",success=true,detail="Permissions locales correctes"});}catch(Exception ex){tests.Add(new {name="Écriture des journaux",success=false,detail=ex.Message});}
@@ -2873,7 +2883,7 @@ internal sealed class WebAppForm : Form
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine();
                 SendToWeb(new { type="update-stage", stage="sources", percent=10, title="Actualisation des sources", detail="Connexion au catalogue WinGet" });
-                RunHiddenProcess("winget.exe","source update --disable-interactivity",report);
+                RunWingetCli("source update --disable-interactivity",report);
 
                 for(int i=0;i<packages.Length;i++)
                 {
@@ -2882,7 +2892,7 @@ internal sealed class WebAppForm : Form
                     SendToWeb(new { type="update-stage", stage="applications", percent=percent, title="Mise à jour de "+id, detail=(i+1)+" / "+packages.Length+" application(s)" });
                     report.AppendLine();report.AppendLine("===== "+id+" =====");
                     int itemStart=report.Length;
-                    lastCode=RunHiddenProcess("winget.exe","upgrade --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity",report);
+                    lastCode=RunWingetCli("upgrade --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity",report);
                     lastOutput=report.ToString(itemStart,report.Length-itemStart);
                     if(IsNoApplicableUpdateCode(lastCode))
                     {
@@ -2993,7 +3003,7 @@ internal sealed class WebAppForm : Form
         // --include-unknown : ne pas masquer les paquets dont WinGet ne connaît
         // pas la version installée (jeux, lanceurs, installeurs maison). Aligné
         // sur ce que ferait « winget upgrade --all ».
-        RunHiddenProcess("winget.exe","upgrade --include-unknown --accept-source-agreements --disable-interactivity",report);
+        RunWingetCli("upgrade --include-unknown --accept-source-agreements --disable-interactivity",report);
         var results=new List<Dictionary<string,object>>();
         var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach(var row in ParseWingetTable(report.ToString()))
@@ -3298,7 +3308,7 @@ internal sealed class WebAppForm : Form
             try
             {
                 var output=new StringBuilder();
-                wingetReady=RunHiddenProcess("winget.exe","--version",output)==0;
+                wingetReady=RunWingetCli("--version",output)==0;
                 if(wingetReady)wingetVersion=output.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Disponible";
             }
             catch{}
@@ -3379,7 +3389,7 @@ internal sealed class WebAppForm : Form
         try
         {
             var report=new StringBuilder();
-            if(RunHiddenProcess("winget.exe","--version",report)==0)
+            if(RunWingetCli("--version",report)==0)
                 version=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Indisponible";
         }
         catch{}
@@ -3616,7 +3626,7 @@ internal sealed class WebAppForm : Form
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(temp));
-                RunHiddenProcess("winget.exe","export -o \""+temp+"\" --accept-source-agreements --disable-interactivity",report);
+                RunWingetCli("export -o \""+temp+"\" --accept-source-agreements --disable-interactivity",report);
                 if(File.Exists(temp))
                 {
                     foreach(Match match in Regex.Matches(File.ReadAllText(temp,Encoding.UTF8),"\"PackageIdentifier\"\\s*:\\s*\"([^\"]+)\"",RegexOptions.IgnoreCase))
