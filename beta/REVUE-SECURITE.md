@@ -42,6 +42,16 @@ défauts sont surtout de la **fiabilité de détection** et de l'**ergonomie**.
   confirmation, badge de menu masqué à vide.
 - `CachedWingetVersion()` partagé entre le Centre de sécurité et le diagnostic.
 
+## Fait en 4.0.0-beta.8 (retour utilisateur)
+
+- **S11** — suppression/restauration de quarantaine qui échouait sur
+  « Impossible de trouver une partie du chemin d'accès » (cache CapCut :
+  fichiers `.meta` en lecture seule + arborescence profonde). Corrigé :
+  `ForceDeleteDirectory` en 3 temps (voie normale → récursion manuelle avec
+  remise à zéro des attributs → `rd /s /q` avec préfixe `\\?\`), restauration
+  via `robocopy /MOVE` en repli, message explicite si des fichiers restent
+  verrouillés, `longPathAware` dans le manifeste.
+
 ## Suite (S7–S9)
 
 - Diagnostic Defender via `Get-MpComputerStatus` (âge des définitions = signal

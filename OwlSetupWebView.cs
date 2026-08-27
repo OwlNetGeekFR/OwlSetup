@@ -3068,9 +3068,9 @@ internal sealed class WebAppForm : Form
                     {
                         if(IsReparsePoint(itemPath))continue;
                         if(new DirectoryInfo(itemPath).LastWriteTime>=cutoff)continue;
-                        try{EnsureNoReparsePoints(itemPath,quarantineRoot);Directory.Delete(itemPath,true);removed++;}catch{}
+                        try{EnsureNoReparsePoints(itemPath,quarantineRoot);if(ForceDeleteDirectory(itemPath)==0)removed++;}catch{}
                     }
-                    try{if(!Directory.EnumerateFileSystemEntries(batchPath).Any())Directory.Delete(batchPath);}catch{}
+                    try{if(!Directory.EnumerateFileSystemEntries(batchPath).Any())ForceDeleteDirectory(batchPath);}catch{}
                 }
                 SendToWeb(new{type="quarantine-action",success=true,action="purge",message=removed>0?removed+" élément(s) de plus de "+days+" jours supprimé(s) définitivement.":"Aucun élément de plus de "+days+" jours à supprimer."});
             }
@@ -3117,8 +3117,23 @@ internal sealed class WebAppForm : Form
                 string destination=Path.Combine(root,folderName);
                 EnsureNoReparsePoints(root,root);
                 if(Directory.Exists(destination))throw new IOException("Un dossier portant ce nom existe déjà à l'emplacement d'origine.");
-                Directory.Move(itemPath,destination);
-                if(!Directory.EnumerateFileSystemEntries(batchPath).Any())Directory.Delete(batchPath);
+                bool moved=false;
+                try{Directory.Move(itemPath,destination);moved=true;}
+                catch(PathTooLongException){}
+                catch(DirectoryNotFoundException){}
+                catch(IOException){}
+                if(!moved)
+                {
+                    // Chemins profonds : robocopy /MOVE gère nativement les > 260.
+                    Directory.CreateDirectory(destination);
+                    using(var process=Process.Start(new ProcessStartInfo("robocopy.exe","\""+itemPath+"\" \""+destination+"\" /E /MOVE /NFL /NDL /NJH /NJS /R:1 /W:1"){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden}))
+                    {
+                        if(process!=null)process.WaitForExit(120000);
+                        if(process==null||process.ExitCode>=8)throw new IOException("La restauration n'a pas pu déplacer tous les fichiers (dossier profond ou fichier verrouillé).");
+                    }
+                    ForceDeleteDirectory(itemPath);
+                }
+                try{if(!Directory.EnumerateFileSystemEntries(batchPath).Any())ForceDeleteDirectory(batchPath);}catch{}
                 SendToWeb(new { type="quarantine-action", success=true, action="restore", message="Dossier restauré : "+destination });
             }
             catch(Exception ex){SendToWeb(new { type="quarantine-action", success=false, action="restore", message=ex.Message });}
@@ -3133,9 +3148,16 @@ internal sealed class WebAppForm : Form
             {
                 string batchPath;
                 string itemPath=GetQuarantineItem(payload,out batchPath);
-                Directory.Delete(itemPath,true);
-                if(!Directory.EnumerateFileSystemEntries(batchPath).Any())Directory.Delete(batchPath);
-                SendToWeb(new { type="quarantine-action", success=true, action="delete", message="Élément supprimé définitivement." });
+                int failures=ForceDeleteDirectory(itemPath);
+                if(failures>0)
+                {
+                    SendToWeb(new { type="quarantine-action", success=false, action="delete", message=failures+" fichier(s) n'ont pas pu être supprimés : l'application concernée est peut-être ouverte. Fermez-la (CapCut, jeu, éditeur…) puis réessayez." });
+                }
+                else
+                {
+                    try{if(!Directory.EnumerateFileSystemEntries(batchPath).Any())ForceDeleteDirectory(batchPath);}catch{}
+                    SendToWeb(new { type="quarantine-action", success=true, action="delete", message="Élément supprimé définitivement." });
+                }
             }
             catch(Exception ex){SendToWeb(new { type="quarantine-action", success=false, action="delete", message=ex.Message });}
             SendQuarantineState();
@@ -3747,6 +3769,66 @@ internal sealed class WebAppForm : Form
     bool IsReparsePoint(string path)
     {
         try{return (File.GetAttributes(path)&FileAttributes.ReparsePoint)==FileAttributes.ReparsePoint;}catch{return true;}
+    }
+
+    // Préfixe \\?\ : contourne la limite MAX_PATH (260) sur les API fichier.
+    // Nécessaire pour supprimer des arborescences profondes (caches CapCut, npm, jeux…).
+    static string ExtendedPath(string path)
+    {
+        if(String.IsNullOrEmpty(path)||path.StartsWith(@"\\?\",StringComparison.Ordinal))return path;
+        string full=Path.GetFullPath(path);
+        if(full.StartsWith(@"\\",StringComparison.Ordinal))return @"\\?\UNC\"+full.Substring(2);
+        return @"\\?\"+full;
+    }
+
+    // Suppression récursive tolérante : longs chemins (> 260), attributs
+    // lecture seule/système/caché, et liens (le lien est retiré, jamais suivi).
+    // Renvoie le nombre d'éléments qui n'ont pas pu être supprimés (0 = succès).
+    static int ForceDeleteDirectory(string path)
+    {
+        if(String.IsNullOrEmpty(path)||!Directory.Exists(path))return 0;
+        // 1) Voie normale.
+        try{Directory.Delete(path,true);return 0;}catch{}
+        // 2) Récursion manuelle avec remise à zéro des attributs.
+        int failures=DeleteTreeManual(path);
+        try{Directory.Delete(path);}catch{}
+        if(!Directory.Exists(path))return failures;
+        // 3) Dernier recours : rd /s /q gère nativement les chemins > 260.
+        try
+        {
+            string ext=ExtendedPath(path);
+            using(var process=Process.Start(new ProcessStartInfo("cmd.exe","/c rd /s /q \""+ext+"\""){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden}))
+            {
+                if(process!=null)process.WaitForExit(20000);
+            }
+        }
+        catch{}
+        if(Directory.Exists(path))failures++;
+        return failures;
+    }
+
+    static int DeleteTreeManual(string dir)
+    {
+        int failures=0;
+        try
+        {
+            foreach(string file in Directory.GetFiles(dir))
+            {
+                try{File.SetAttributes(file,FileAttributes.Normal);File.Delete(file);}catch{failures++;}
+            }
+            foreach(string child in Directory.GetDirectories(dir))
+            {
+                try
+                {
+                    if((File.GetAttributes(child)&FileAttributes.ReparsePoint)==FileAttributes.ReparsePoint){Directory.Delete(child);continue;}
+                }
+                catch{failures++;continue;}
+                failures+=DeleteTreeManual(child);
+                try{Directory.Delete(child);}catch{failures++;}
+            }
+        }
+        catch{failures++;}
+        return failures;
     }
 
     void EnsureNoReparsePoints(string path,string allowedRoot)

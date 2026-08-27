@@ -1,5 +1,22 @@
 # Historique des versions
 
+## [4.0.0-beta.8] - 2026-08-27
+
+### Quarantaine : suppression et restauration robustes
+
+- Corrige « Action impossible · Impossible de trouver une partie du chemin
+  d'accès » lors de la suppression ou de la restauration d'un dossier en
+  quarantaine (constaté sur des caches CapCut). Causes traitées : fichiers en
+  **lecture seule / cachés / système**, arborescences **très profondes**
+  (> 260 caractères), fichiers verrouillés.
+- Nouvelle suppression récursive en trois temps : voie normale, puis récursion
+  manuelle avec remise à zéro des attributs, puis `rd /s /q` en préfixe `\\?\`.
+- La restauration bascule sur `robocopy /MOVE` quand le déplacement direct
+  échoue à cause de la profondeur du dossier.
+- Quand des fichiers restent (application encore ouverte), le message le dit
+  clairement au lieu d'un échec générique.
+- `OwlSetup.manifest` : `longPathAware` activé.
+
 ## [4.0.0-beta.7] - 2026-08-27
 
 ### Onglet Sécurité : corrections et améliorations
