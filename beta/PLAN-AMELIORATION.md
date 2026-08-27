@@ -64,42 +64,40 @@ verte. ✅
 
 ---
 
-## Lot 1 — Catalogue ouvert et contribuable — 🟡 amorcé en 4.0.0-beta.2
+## Lot 1 — Catalogue ouvert et contribuable — ✅ (4.0.0-beta.2 → beta.11)
 
 **Pourquoi :** c'est l'écart produit n°1 face à UniGetUI / WinUtil. Un catalogue
 figé dans `app.js` interdit toute contribution simple.
 
-**Fait en 4.0.0-beta.2 :**
+**Fait :**
 
-- [x] `build.ps1` génère `catalog.generated.js` depuis `beta/catalog/apps.json`
-      (via Node, avec repli sur le fichier versionné) et l'embarque avant `app.js`.
-- [x] `index.html` charge `catalog.generated.js` avant `app.js` ; le point
-      d'entrée `window.PC_SETUP_CATALOG` de `app.js` prend le relais.
-- [x] `OwlSetupWebView.cs` extrait et vérifie l'intégrité SHA-256 de
-      `catalog.generated.js` comme les autres ressources.
-- [x] `catalog:verify` contrôle la chaîne complète
-      `app.js → apps.json → catalog.generated.js` (CI + `Test-ReleaseCandidateReadiness`).
-- [x] Le bloc `const apps` **reste** dans `app.js` comme repli (défense en
-      profondeur) : aucun risque de régression si le script généré ne charge pas.
+- [x] _(beta.2)_ `build.ps1` génère `catalog.generated.js` depuis
+      `beta/catalog/apps.json` et l'embarque avant `app.js` ; `index.html` le
+      charge ; `OwlSetupWebView.cs` l'extrait et **vérifie son intégrité SHA-256**.
+- [x] _(beta.11)_ **Inversion terminée** : le bloc `const apps` / `apps.push` est
+      retiré de `app.js` (qui lit `window.PC_SETUP_CATALOG`). `apps.json` est la
+      source de vérité, éditée à la main, validée par `catalog.schema.json`.
+- [x] _(beta.11)_ `tools/check-catalog.mjs` valide `apps.json` + sa cohérence
+      avec `catalog.generated.js`. Le test de parité `beta/` compare
+      `apps.json` ↔ `catalog.generated.js` (nombre, ordre, champs).
+- [x] _(beta.11)_ `CONTRIBUTING.md` : section « Ajouter ou modifier une
+      application du catalogue ».
+- [x] _(beta.11)_ `beta/csharp/OwlSetup.csproj` **validé** par `dotnet build`
+      (0 warning, exe démarre, intégrité OK) — corrections : refs
+      `System.IO.Compression*`, ressource `catalog.generated.js`, DLL WebView2
+      embarquées.
 
-**Reste à faire :**
+**Reste (optionnel, non bloquant) :**
 
-- [ ] Inverser la source de vérité : `apps.json` devient canonique, le bloc
-      `const apps` / `apps.push` est retiré de `app.js`, `check-catalog.mjs` et le
-      test de parité lisent `apps.json`.
 - [ ] Étendre le schéma : `addedIn`, `verifiedAt`, `officialSignature` (éditeur
       attendu, cf. `InstallSignedPublisherFallback`).
-- [ ] `catalog-health.yml` : valider `apps.json` contre le schéma + `winget show`.
-- [ ] `CONTRIBUTING.md` : « pour ajouter une application, éditez
-      `beta/catalog/apps.json` ».
+- [ ] `catalog-health.yml` : valider `apps.json` + `winget show` en CI.
 - [ ] **Interface** : autoriser l'installation d'un résultat `SearchWinget`
       **après confirmation explicite** (bridé depuis la bêta 54), avec marquage
       « hors catalogue vérifié ».
 
-**Risque restant :** faible (le plus dur — chemin de build + chargement + intégrité
-— est fait et vérifié au runtime). **Effort restant :** 2–3 j.
-**Acceptation :** ajouter une app = 1 PR ne touchant que `apps.json` ; `app.js`
-ne contient plus de données catalogue.
+**Acceptation :** ajouter une app = 1 PR ne touchant que `apps.json` (+ logo).
+`app.js` ne contient plus de données catalogue. ✅
 
 ---
 

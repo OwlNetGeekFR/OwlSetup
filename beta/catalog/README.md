@@ -1,31 +1,34 @@
-# Catalogue externalisé
+# Catalogue OwlSetup — source de vérité
 
-`apps.json` est la version **données** du catalogue d'applications aujourd'hui
-codé en dur dans `../../app.js` (`const apps`, `apps.push(...)`, table
-`appLogos`).
+Depuis **4.0.0-beta.11**, `apps.json` **est** le catalogue. Éditez-le
+directement ; `app.js` ne contient plus aucune donnée d'application.
 
-| Fichier                | Rôle                                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| `apps.json`            | Catalogue généré depuis `app.js`. Source de vérité temporaire = `app.js`.                 |
-| `catalog.schema.json`  | Schéma JSON (draft-07) d'une entrée. Utilisé par les tests et exploitable dans l'éditeur. |
-| `catalog.generated.js` | Script `window.PC_SETUP_CATALOG = [...]` produit depuis `apps.json` (non versionné).      |
+| Fichier                      | Rôle                                                                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps.json`                  | **Source de vérité.** Une entrée par application. L'ordre = l'affichage.                                                               |
+| `catalog.schema.json`        | Schéma JSON (draft-07) d'une entrée. Validé par les tests et l'éditeur.                                                                |
+| `../../catalog.generated.js` | Script `window.PC_SETUP_CATALOG = [...]` **généré** depuis `apps.json`, chargé avant `app.js`, embarqué et vérifié SHA-256 par l'hôte. |
+
+## Ajouter une application
+
+1. Ajouter l'objet dans `apps.json` (respecter `catalog.schema.json`).
+2. Logo : fichier dans `assets/logos/` + entrée dans `appLogos` (`app.js`).
+3. `npm run catalog:build` puis `npm run check` (dans `beta/`).
 
 ## Commandes
 
 ```bash
-npm run catalog:extract   # app.js        -> apps.json
-npm run catalog:build     # apps.json     -> catalog.generated.js
-npm run catalog:verify    # échoue si apps.json a dérivé de app.js
+npm run catalog:build     # apps.json -> ../../catalog.generated.js
+npm run catalog:verify    # build:check + schéma + parité apps.json <-> généré
 ```
 
-## Cible (voir `../PLAN-AMELIORATION.md`, lot 1)
+`build.ps1` régénère `catalog.generated.js` à chaque build ; ne pas l'éditer.
 
-1. `build.ps1` génère `catalog.generated.js` et l'embarque avant `app.js`.
-2. `index.html` charge `catalog.generated.js` puis `app.js` ; le point d'entrée
-   `window.PC_SETUP_CATALOG` existe déjà dans `app.js`.
-3. Le bloc `const apps` / `apps.push` disparaît de `app.js`.
-4. `apps.json` devient la source de vérité ; `catalog:verify` inverse alors sa
-   comparaison (JSON → interface plutôt que interface → JSON).
+## Historique
 
-À ce stade, ajouter une application = éditer `apps.json` (validé par le schéma
-et la CI), sans toucher au JavaScript.
+- **beta.2** : `apps.json` extrait de `app.js`, `catalog.generated.js` branché
+  au runtime via `window.PC_SETUP_CATALOG` (avec `const apps` inline en repli).
+- **beta.11** : inversion terminée. `const apps` retiré de `app.js` ;
+  `apps.json` devient canonique ; `tools/check-catalog.mjs` et le test de parité
+  lisent le catalogue généré. Migration : `scripts/extract-catalog.mjs`
+  (ne fait plus rien en fonctionnement normal).

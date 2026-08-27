@@ -8,6 +8,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $appJs = Get-Content -LiteralPath (Join-Path $repoRoot 'app.js') -Raw
+# Depuis 4.0.0-beta.11 le catalogue est dans catalog.generated.js (source :
+# beta/catalog/apps.json). Les logos restent mappés dans app.js (appLogos).
+$catalogJs = Get-Content -LiteralPath (Join-Path $repoRoot 'catalog.generated.js') -Raw
 $packages = @(
     [pscustomobject]@{ Id = '9NT1R1C2HH7J'; Source = 'msstore'; Logo = 'openai.svg'; Name = 'ChatGPT' },
     [pscustomobject]@{ Id = 'Anthropic.Claude'; Source = 'winget'; Logo = 'claude.svg'; Name = 'Claude' },
@@ -32,7 +35,7 @@ $assetResults = foreach ($item in $packages) {
     [pscustomobject]@{
         Name = $item.Name
         Id = $item.Id
-        CatalogEntry = $appJs.Contains(('id:"' + $item.Id + '"'))
+        CatalogEntry = $catalogJs.Contains(('"id": "' + $item.Id + '"'))
         LogoMapping = $appJs.Contains(('"' + $item.Id + '":"' + $item.Logo + '"'))
         LogoFile = Test-Path -LiteralPath $logoPath
     }

@@ -1,5 +1,26 @@
 # Historique des versions
 
+## [4.0.0-beta.11] - 2026-08-27
+
+### Catalogue : `apps.json` devient la source de vérité
+
+- Le bloc de ~90 applications codé en dur dans `app.js` est **retiré**.
+  `app.js` charge désormais le catalogue depuis `catalog.generated.js`
+  (`window.PC_SETUP_CATALOG`), lui-même généré depuis
+  `beta/catalog/apps.json` et vérifié par le contrôle d'intégrité SHA-256.
+- Ajouter ou modifier une application = éditer **un seul fichier de données**
+  (`beta/catalog/apps.json`, validé par un schéma JSON) + son logo. Plus rien à
+  toucher dans `app.js`. Voir `CONTRIBUTING.md`.
+- `tools/check-catalog.mjs` valide `apps.json` et sa cohérence avec le script
+  généré. Nouveau test de parité `apps.json` ↔ `catalog.generated.js`
+  (nombre, ordre d'affichage, champs).
+- `beta/csharp/OwlSetup.csproj` **validé** par `dotnet build` : compile sans
+  avertissement, l'exécutable démarre et passe le contrôle d'intégrité.
+  Corrections : références `System.IO.Compression` manquantes, ressource
+  `catalog.generated.js` absente, DLL WebView2 désormais embarquées.
+- Vérifié : la bêta démarre (3/3), intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.10] - 2026-08-27
 
 ### Consolidation + tests

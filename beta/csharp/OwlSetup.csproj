@@ -50,11 +50,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +69,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\index.html"><LogicalName>index.html</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="..\..\i18n.js"><LogicalName>i18n.js</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\catalog.generated.js"><LogicalName>catalog.generated.js</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="..\..\app.js"><LogicalName>app.js</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="..\..\styles.css"><LogicalName>styles.css</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="..\..\Mettre-a-jour-mon-PC.ps1"><LogicalName>Mettre-a-jour-mon-PC.ps1</LogicalName></EmbeddedResource>
@@ -77,6 +80,17 @@
     <EmbeddedResource Include="..\..\OwlSetup.ico"><LogicalName>app-icon.ico</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="..\..\assets\logos\*.*">
       <LogicalName>logos.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <!-- DLL WebView2 embarquées (comme build.ps1) : l'exécutable reste
+         autonome et Main() peut les extraire par leur nom logique. -->
+    <EmbeddedResource Include="$(PkgMicrosoft_Web_WebView2)\lib\net462\Microsoft.Web.WebView2.Core.dll">
+      <LogicalName>wv2core</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PkgMicrosoft_Web_WebView2)\lib\net462\Microsoft.Web.WebView2.WinForms.dll">
+      <LogicalName>wv2forms</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PkgMicrosoft_Web_WebView2)\runtimes\win-x64\native\WebView2Loader.dll">
+      <LogicalName>wv2loader</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

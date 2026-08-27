@@ -16,10 +16,27 @@ Merci de vouloir améliorer OwlSetup. Les contributions simples, ciblées et vé
 4. Utilisez uniquement des sources officielles et des identifiants WinGet vérifiables.
 5. Ne placez aucun exécutable compilé dans le dépôt.
 
+### Ajouter ou modifier une application du catalogue
+
+Le catalogue est un fichier de données : **`beta/catalog/apps.json`**. Il n’y a
+plus rien à modifier dans `app.js` pour cela.
+
+1. Ajoutez ou modifiez l’entrée dans `beta/catalog/apps.json` (schéma :
+   `beta/catalog/catalog.schema.json` — `site` en `https://`, identifiant
+   commençant par un caractère alphanumérique, etc.).
+2. Si l’application a un logo, déposez-le dans `assets/logos/` et ajoutez la
+   correspondance à la table `appLogos` de `app.js`.
+3. Vérifiez : `node tools/check-catalog.mjs` puis, dans `beta/`,
+   `npm run catalog:build && npm run check`.
+
+`catalog.generated.js` est régénéré automatiquement par `build.ps1` ; ne l’éditez
+pas à la main.
+
 Contrôles recommandés :
 
 ```powershell
 node --check app.js
+node tools/check-catalog.mjs
 ./build.ps1 -AppVersion 0.0.0 -Channel stable
 ./tools/Test-OwlSetupCatalog.ps1
 ```
