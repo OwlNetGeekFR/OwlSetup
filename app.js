@@ -2047,12 +2047,19 @@ function renderAvailableUpdates() {
 
 // --- Windows Update (inventaire lecture seule) --------------------------------
 let windowsUpdateScanRunning = false;
+let windowsUpdateItems = [];
+let windowsUpdateSelection = new Set();
+let windowsUpdateInstalling = false;
 
 function formatWindowsUpdateBytes(bytes) {
   const n = Number(bytes);
   if (!Number.isFinite(n) || n <= 0) return "";
   const mo = n / (1024 * 1024);
   return mo < 1024 ? `${Math.round(mo)} Mo` : `${(mo / 1024).toFixed(1).replace(".", ",")} Go`;
+}
+
+function installableWindowsUpdate(u) {
+  return u && typeof u.updateId === "string" && u.updateId.length === 36;
 }
 
 function requestWindowsUpdateScan() {
@@ -2064,9 +2071,28 @@ function requestWindowsUpdateScan() {
   $("#windowsUpdateScanState")?.classList.remove("hidden");
   $("#windowsUpdateList")?.classList.add("hidden");
   $("#noWindowsUpdates")?.classList.add("hidden");
+  $("#windowsUpdateInstallBar")?.classList.add("hidden");
   const btn = $("#scanWindowsUpdatesBtn");
   if (btn) btn.disabled = true;
   window.chrome.webview.postMessage({ action: "scan-windows-updates", payload: {} });
+}
+
+function updateWindowsUpdateInstallBar() {
+  const bar = $("#windowsUpdateInstallBar");
+  if (!bar) return;
+  const chosen = windowsUpdateItems.filter(u => windowsUpdateSelection.has(u.updateId));
+  const hasChoice = chosen.length > 0;
+  bar.classList.toggle("hidden", windowsUpdateItems.filter(installableWindowsUpdate).length === 0);
+  const bytes = chosen.reduce((sum, u) => sum + (Number(u.bytes) || 0), 0);
+  const sizeLabel = formatWindowsUpdateBytes(bytes);
+  $("#windowsUpdateSelectionText").textContent = hasChoice
+    ? `${chosen.length} sélectionnée${chosen.length > 1 ? "s" : ""}${sizeLabel ? ` · ${sizeLabel}` : ""}`
+    : "Aucune mise à jour sélectionnée";
+  const btn = $("#installWindowsUpdatesBtn");
+  if (btn) {
+    btn.disabled = !hasChoice || windowsUpdateInstalling;
+    btn.textContent = windowsUpdateInstalling ? "Installation en cours…" : `Installer la sélection (${chosen.length})`;
+  }
 }
 
 function renderWindowsUpdates(message) {
@@ -2075,14 +2101,17 @@ function renderWindowsUpdates(message) {
   const btn = $("#scanWindowsUpdatesBtn");
   if (btn) btn.disabled = false;
   const list = Array.isArray(message.updates) ? message.updates : [];
+  windowsUpdateItems = list;
   const summaryEl = $("#windowsUpdateSummary");
   const listEl = $("#windowsUpdateList");
   const emptyEl = $("#noWindowsUpdates");
+  const installBar = $("#windowsUpdateInstallBar");
 
   if (message.warning) {
     if (summaryEl) summaryEl.textContent = `Analyse Windows Update indisponible : ${message.warning}`;
     listEl?.classList.add("hidden");
     emptyEl?.classList.add("hidden");
+    installBar?.classList.add("hidden");
     setNavAlert("#updatesNavBadge", 0, false);
     return;
   }
@@ -2093,15 +2122,21 @@ function renderWindowsUpdates(message) {
     if (summaryEl) summaryEl.textContent = `Windows est à jour${checkedAt}.`;
     listEl?.classList.add("hidden");
     emptyEl?.classList.remove("hidden");
+    installBar?.classList.add("hidden");
     return;
   }
+
+  // Sélection par défaut : composants oui, pilotes non (choix explicite requis).
+  windowsUpdateSelection = new Set(
+    list.filter(u => installableWindowsUpdate(u) && u.kind !== "driver").map(u => u.updateId)
+  );
 
   const bits = [`${list.length} mise${list.length > 1 ? "s" : ""} à jour Windows en attente`];
   if (driverCount > 0) bits.push(`${driverCount} pilote${driverCount > 1 ? "s" : ""}`);
   const totalBytes = list.reduce((sum, u) => sum + (Number(u.bytes) || 0), 0);
   const totalLabel = formatWindowsUpdateBytes(totalBytes);
   if (totalLabel) bits.push(totalLabel);
-  if (summaryEl) summaryEl.textContent = `${bits.join(" · ")}${checkedAt}.`;
+  if (summaryEl) summaryEl.textContent = `${bits.join(" · ")}${checkedAt}. Les pilotes ne sont pas cochés par défaut.`;
 
   emptyEl?.classList.add("hidden");
   if (listEl) {
@@ -2113,10 +2148,70 @@ function renderWindowsUpdates(message) {
           .filter(Boolean)
           .join(" · ");
         const sev = u.severity ? `<span class="wu-sev">${escapeHtml(u.severity)}</span>` : "";
-        return `<div class="windows-update-row wu-${u.kind === "driver" ? "driver" : "software"}"><span class="wu-kind">${kindLabel}</span><span class="wu-body"><strong>${escapeHtml(u.title)}</strong><small>${escapeHtml(meta)}</small></span>${sev}</div>`;
+        const canPick = installableWindowsUpdate(u);
+        const checked = canPick && windowsUpdateSelection.has(u.updateId) ? "checked" : "";
+        const box = canPick
+          ? `<input type="checkbox" data-wu-id="${escapeHtml(u.updateId)}" ${checked}><span class="wu-check">✓</span>`
+          : `<span class="wu-check wu-check-disabled" title="Cette mise à jour ne peut être installée que depuis Windows Update">–</span>`;
+        return `<label class="windows-update-row wu-${u.kind === "driver" ? "driver" : "software"}">${box}<span class="wu-kind">${kindLabel}</span><span class="wu-body"><strong>${escapeHtml(u.title)}</strong><small>${escapeHtml(meta)}</small></span>${sev}</label>`;
       })
       .join("");
   }
+  updateWindowsUpdateInstallBar();
+}
+
+function requestWindowsUpdateInstall() {
+  if (!window.chrome?.webview || windowsUpdateInstalling) return;
+  const ids = [...windowsUpdateSelection];
+  if (ids.length === 0) return;
+  const chosen = windowsUpdateItems.filter(u => windowsUpdateSelection.has(u.updateId));
+  const drivers = chosen.filter(u => u.kind === "driver").length;
+  const driverWarning = drivers
+    ? `\n\nDont ${drivers} pilote${drivers > 1 ? "s" : ""} : un pilote proposé par Windows Update peut être plus ancien que celui du fabricant.`
+    : "";
+  if (
+    !window.confirm(
+      `Installer ${ids.length} mise${ids.length > 1 ? "s" : ""} à jour Windows ?${driverWarning}\n\nUne autorisation administrateur sera demandée. Un redémarrage peut être nécessaire.`
+    )
+  ) {
+    return;
+  }
+  runWithOptionalRestore(() => {
+    windowsUpdateInstalling = true;
+    updateWindowsUpdateInstallBar();
+    $("#windowsUpdateInstallState")?.classList.remove("hidden");
+    $("#windowsUpdateInstallStatus") &&
+      ($("#windowsUpdateInstallStatus").textContent = "Autorisation Windows demandée…");
+    window.chrome.webview.postMessage({ action: "install-windows-updates", payload: { updateIds: ids } });
+  }, "l'installation des mises à jour Windows");
+}
+
+function renderWindowsUpdateInstallComplete(message) {
+  windowsUpdateInstalling = false;
+  $("#windowsUpdateInstallState")?.classList.add("hidden");
+  updateWindowsUpdateInstallBar();
+  const installed = Number(message.installed || 0);
+  const failed = Number(message.failed || 0);
+  if (message.rebootRequired) {
+    const bar = $("#windowsUpdateRebootBar");
+    if (bar) {
+      bar.classList.remove("hidden");
+      $("#windowsUpdateRebootText").textContent = `${installed} mise${installed > 1 ? "s" : ""} à jour Windows installée${installed > 1 ? "s" : ""} · un redémarrage est nécessaire pour terminer.`;
+    }
+  }
+  if (message.warning) {
+    notify("Windows Update", message.warning, failed || !installed ? "error" : "warning");
+  } else if (message.success) {
+    notify(
+      "Windows Update",
+      `${installed} mise${installed > 1 ? "s" : ""} à jour installée${installed > 1 ? "s" : ""}${message.rebootRequired ? " · redémarrage requis" : ""}.`,
+      "success"
+    );
+  } else {
+    notify("Windows Update", `${installed} installée(s), ${failed} en échec. Rapport : ${message.logName || "—"}`, "warning");
+  }
+  requestWindowsUpdateScan();
+  requestHealth();
 }
 
 let lastHealthState = null;
@@ -3405,6 +3500,20 @@ function handleInstallMessage(message) {
     notify("Windows Update", `Ouverture impossible : ${message.message || "erreur inconnue"}`, "error");
     return;
   }
+  if (message.type === "windows-update-install-start") {
+    windowsUpdateInstalling = true;
+    updateWindowsUpdateInstallBar();
+    $("#windowsUpdateInstallState")?.classList.remove("hidden");
+    return;
+  }
+  if (message.type === "windows-update-install-stage") {
+    if ($("#windowsUpdateInstallStatus")) $("#windowsUpdateInstallStatus").textContent = message.status || "Installation…";
+    return;
+  }
+  if (message.type === "windows-update-install-complete") {
+    renderWindowsUpdateInstallComplete(message);
+    return;
+  }
   if (message.type === "updates-found") {
     availableUpdates = message.updates || [];
     const ignoredUpdateIds = getIgnoredUpdateIds();
@@ -4172,6 +4281,15 @@ $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
 $("#scanWindowsUpdatesBtn")?.addEventListener("click", requestWindowsUpdateScan);
 $("#openWindowsUpdateBtn")?.addEventListener("click", () => window.chrome?.webview?.postMessage({ action: "open-windows-update", payload: {} }));
+$("#installWindowsUpdatesBtn")?.addEventListener("click", requestWindowsUpdateInstall);
+$("#windowsUpdateList")?.addEventListener("change", event => {
+  const box = event.target.closest("input[type=checkbox][data-wu-id]");
+  if (!box) return;
+  if (box.checked) windowsUpdateSelection.add(box.dataset.wuId);
+  else windowsUpdateSelection.delete(box.dataset.wuId);
+  updateWindowsUpdateInstallBar();
+});
+$("#dismissWindowsUpdateReboot")?.addEventListener("click", () => $("#windowsUpdateRebootBar")?.classList.add("hidden"));
 $("#selectAllUpdates").addEventListener("click",()=>{const ignored=getIgnoredUpdateIds();selectedUpdates=new Set(availableUpdates.filter(update=>!ignored.has(update.id)).map(update=>update.id));renderAvailableUpdates();});
 $("#clearUpdates").addEventListener("click",()=>{selectedUpdates.clear();renderAvailableUpdates();});
 $("#restoreIgnoredUpdates").addEventListener("click", restoreIgnoredUpdates);

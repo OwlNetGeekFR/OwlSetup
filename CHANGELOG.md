@@ -1,5 +1,33 @@
 # Historique des versions
 
+## [4.0.0-beta.16] - 2026-08-27
+
+### Windows Update : installer une sélection (composants + pilotes au choix)
+
+Deuxième incrément du lot « Windows Update réel ». OwlSetup peut maintenant
+**télécharger et installer** des mises à jour Windows, pas seulement les lister.
+
+- Panneau **« Composants et pilotes Microsoft »** : chaque ligne a une case à
+  cocher. **Les composants sont cochés par défaut, pas les pilotes** (choix
+  explicite, un pilote de Windows Update pouvant être plus ancien que celui du
+  fabricant). Bouton **« Installer la sélection »** avec la taille cumulée.
+- `InstallWindowsUpdates` (hôte) : télécharge (`IUpdateDownloader`) puis installe
+  (`IUpdateInstaller`) via l'API WUA **avec élévation** (relance UAC). Le travail
+  est délégué à un script PowerShell élevé qui journalise un résultat par mise à
+  jour (`PCSETUP_WUI_ITEM|` / `PCSETUP_WUI_END|`), repris ensuite par
+  l'application. Les identifiants sont validés comme GUID avant l'élévation.
+- **Bannière « redémarrage nécessaire »** affichée quand au moins une mise à
+  jour l'exige.
+- L'installation est protégée par le **point de restauration optionnel**
+  (comme la désinstallation / le nettoyage).
+- Module `beta/src/modules/windows-update.js` étendu :
+  `defaultWindowsUpdateSelection` (pilotes exclus), `parseWindowsUpdateInstallMarkers`.
+  155 tests beta. `tests/Test-WindowsUpdateInventory.ps1` couvre aussi le chemin
+  d'installation (marqueurs, élévation, GUID, redémarrage, pilotes non cochés).
+- Vérifié : la bêta démarre, intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte. L'installation réelle reste à
+  valider sur le PC de test.
+
 ## [4.0.0-beta.15] - 2026-08-27
 
 ### Windows Update : inventaire réel (composants + pilotes)

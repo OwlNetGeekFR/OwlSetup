@@ -1,8 +1,9 @@
 $ErrorActionPreference = "Stop"
 
-# Inventaire Windows Update (4.2 / beta.15) : lecture seule via l'API WUA.
-# Vérifie les marqueurs de l'hôte + le câblage interface, et, si l'exécutable
-# compilé est présent, exécute réellement la recherche par réflexion.
+# Windows Update (4.2 / beta.15-16) : inventaire lecture seule via l'API WUA,
+# puis installation d'une sélection avec élévation. Vérifie les marqueurs de
+# l'hôte + le câblage interface, et, si l'exécutable compilé est présent,
+# exécute réellement la RECHERCHE par réflexion (jamais l'installation).
 
 $root = Split-Path -Parent $PSScriptRoot
 $native = Get-Content -LiteralPath (Join-Path $root "OwlSetupWebView.cs") -Raw -Encoding UTF8
@@ -23,8 +24,13 @@ Assert-Has $native 'void ScanWindowsUpdates()' "Le gestionnaire ScanWindowsUpdat
 Assert-Has $native 'action == "scan-windows-updates"' "L'action scan-windows-updates n'est plus routee."
 Assert-Has $native 'action == "open-windows-update"' "L'action open-windows-update n'est plus routee."
 Assert-Has $native 'type="windows-updates"' "Le message windows-updates n'est plus emis."
-# La recherche WUA ne doit rien installer : pas de Download/Install dans ce module.
-if ($native -match 'SearchWindowsUpdates[\s\S]{0,4000}?(CreateUpdateDownloader|CreateUpdateInstaller|\.Install\(\))') {
+# La recherche WUA ne doit rien installer : le corps de SearchWindowsUpdates
+# (jusqu'a ScanWindowsUpdates) ne contient ni downloader ni installer WUA.
+$searchStart = $native.IndexOf('List<Dictionary<string,object>> SearchWindowsUpdates(')
+$searchEnd = $native.IndexOf('void ScanWindowsUpdates()')
+if ($searchStart -lt 0 -or $searchEnd -le $searchStart) { throw "Impossible de delimiter SearchWindowsUpdates." }
+$searchBody = $native.Substring($searchStart, $searchEnd - $searchStart)
+if ($searchBody -match 'CreateUpdateDownloader|CreateUpdateInstaller') {
     throw "SearchWindowsUpdates ne doit rester qu'en LECTURE SEULE (aucun download/install)."
 }
 
@@ -36,6 +42,25 @@ Assert-Has $frontend 'message.type === "windows-updates"' "app.js ne traite plus
 Assert-Has $frontend 'function renderWindowsUpdates(' "Le rendu renderWindowsUpdates a disparu."
 Assert-Has $frontend 'action: "scan-windows-updates"' "app.js n'envoie plus scan-windows-updates."
 Assert-Has $frontend 'windowsUpdateCount' "La synthese Windows Update de update-complete a disparu."
+
+# 2b) Installation elevee d'une selection (beta.16)
+Assert-Has $native 'void InstallWindowsUpdates(' "InstallWindowsUpdates (installation WUA elevee) a disparu."
+Assert-Has $native 'action == "install-windows-updates"' "L'action install-windows-updates n'est plus routee."
+Assert-Has $native 'PCSETUP_WUI_ITEM|' "Le marqueur de resultat par mise a jour a disparu."
+Assert-Has $native 'PCSETUP_WUI_END|' "Le marqueur de fin d'installation WUA a disparu."
+Assert-Has $native 'RunElevatedProcess("powershell.exe"' "L'installation WUA ne passe plus par une elevation UAC."
+Assert-Has $native 'CreateUpdateDownloader' "Le script d'installation ne telecharge plus via WUA."
+Assert-Has $native 'CreateUpdateInstaller' "Le script d'installation n'installe plus via WUA."
+Assert-Has $native 'rebootRequired' "Le drapeau de redemarrage requis n'est plus remonte."
+# updateId validé comme GUID avant d'etre passe au script eleve
+Assert-Has $native '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}' "Les updateId ne sont plus valides comme GUID avant elevation."
+Assert-Has $frontend 'function requestWindowsUpdateInstall(' "Le declenchement d'installation Windows Update a disparu de app.js."
+Assert-Has $frontend 'action: "install-windows-updates"' "app.js n'envoie plus install-windows-updates."
+Assert-Has $frontend 'runWithOptionalRestore' "L'installation Windows Update n'est plus protegee par un point de restauration optionnel."
+Assert-Has $markup 'id="installWindowsUpdatesBtn"' "Le bouton d'installation de la selection a disparu."
+Assert-Has $markup 'id="windowsUpdateRebootBar"' "La banniere de redemarrage requis a disparu."
+# Les pilotes ne doivent pas etre coches par defaut.
+Assert-Has $frontend 'u.kind !== "driver"' "Les pilotes ne sont plus exclus de la selection par defaut."
 
 # 3) Execution reelle si l'exe compile est present
 $exe = Join-Path $root "OwlSetup.exe"
