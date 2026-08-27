@@ -631,3 +631,10 @@ code,pre,kbd,samp,
 
 /* Badge « se met à jour seule » (lanceurs à mise à jour intégrée) — 4.0.0-beta.3 */
 .update-selfmanaged{display:inline-block;margin-top:4px;padding:1px 6px;border:1px solid #3a5c86;border-radius:999px;background:#16283f;color:#8fb6e6;font-size:7px;white-space:nowrap}
+
+/* Masquer une mise à jour (liste d'ignorés persistante) — 4.0.0-beta.4 */
+.available-update{position:relative}
+.update-ignore{position:absolute;top:6px;right:8px;width:18px;height:18px;padding:0;line-height:1;border:1px solid #2c3d52;border-radius:6px;background:transparent;color:#617087;font-size:9px;cursor:pointer}
+.update-ignore:hover{border-color:#d15b5b;color:#e88}
+.ignored-updates-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 11px;border:1px dashed #2c3d52;border-radius:9px;color:#8090a4;font-size:8px}
+.ignored-updates-bar.hidden{display:none}
