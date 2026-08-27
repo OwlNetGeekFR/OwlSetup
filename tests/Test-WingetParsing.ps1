@@ -38,6 +38,18 @@ if ($native -match 'Regex\.Split\(line,@"\\s\{2,\}"\)') {
     throw "L'ancienne regex \s{2,} de ParseWingetListPackageIds est de retour."
 }
 
+# 1c) Increment 3 : tout le CLI winget passe par un point d'entree unique.
+Assert-Has $native 'int RunWingetCli(string arguments, StringBuilder report)' "Le point d'entree unique RunWingetCli a disparu."
+Assert-Has $native 'int RunWingetCli(string arguments, StringBuilder report, Action<string> onLine)' "La surcharge streaming de RunWingetCli a disparu."
+$directWinget = ([regex]::Matches($native, 'RunHiddenProcess\("winget\.exe"')).Count
+if ($directWinget -ne 0) {
+    throw "$directWinget appel(s) winget contournent encore RunWingetCli (RunHiddenProcess(""winget.exe"", ...) direct)."
+}
+$viaCli = ([regex]::Matches($native, 'RunWingetCli\(')).Count
+if ($viaCli -lt 20) {
+    throw "Trop peu d'appels via RunWingetCli ($viaCli) : la migration a regresse."
+}
+
 # 2) Résultats sur une vraie capture (si l'exécutable compilé et les fixtures existent)
 $exe = Join-Path $root "OwlSetup.exe"
 $upgradeFixture = Join-Path $fixtures "winget-upgrade-fr.txt"
