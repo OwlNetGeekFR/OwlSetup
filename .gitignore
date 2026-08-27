@@ -9,6 +9,7 @@ PC-Setup-build-*.exe
 PC-Setup-Natif.exe
 PC-Setup.exe
 OwlSetup.exe
+OwlSetup.com
 artifacts/
 
 # Prototypes historiques non utilisés par la version WebView2
