@@ -56,6 +56,7 @@ internal sealed class WebAppForm : Form
     bool healthScanning;
     bool updatesScanning;
     bool windowsUpdatesScanning;
+    bool windowsUpdateInstalling;
     bool selfUpdateRunning;
     readonly Dictionary<string,DateTime> cleanupSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,DateTime> uninstallSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
@@ -239,6 +240,7 @@ internal sealed class WebAppForm : Form
             else if (action == "scan-health") ScanHealth();
             else if (action == "scan-updates") ScanUpdates();
             else if (action == "scan-windows-updates") ScanWindowsUpdates();
+            else if (action == "install-windows-updates") InstallWindowsUpdates(payload);
             else if (action == "open-windows-update") OpenWindowsUpdateSettings();
             else if (action == "install") RunInstall(payload);
             else if (action == "preflight-install") RunInstallPreflight(payload);
@@ -3039,7 +3041,7 @@ internal sealed class WebAppForm : Form
             "foreach($u in $r.Updates){"+
             "$drv=$false; foreach($c in $u.Categories){ if($c.Name -eq 'Drivers'){ $drv=$true } };"+
             "$kb=@(); foreach($k in $u.KBArticleIDs){ $kb+=('KB'+$k) };"+
-            "$o=[ordered]@{ title=[string]$u.Title; kb=($kb -join ','); kind=$(if($drv){'driver'}else{'software'}); bytes=[int64]$u.MaxDownloadSize; downloaded=[bool]$u.IsDownloaded; severity=[string]$u.MsrcSeverity };"+
+            "$o=[ordered]@{ updateId=[string]$u.Identity.UpdateID; title=[string]$u.Title; kb=($kb -join ','); kind=$(if($drv){'driver'}else{'software'}); bytes=[int64]$u.MaxDownloadSize; downloaded=[bool]$u.IsDownloaded; severity=[string]$u.MsrcSeverity; mandatory=[bool]$u.IsMandatory };"+
             "Out-Ascii ('PCSETUP_WU_ITEM|'+($o | ConvertTo-Json -Compress)); };"+
             "Out-Ascii ('PCSETUP_WU_END|ok|'+$r.Updates.Count);"+
             "}catch{ Out-Ascii ('PCSETUP_WU_END|error|'+$_.Exception.Message); }";
@@ -3058,14 +3060,18 @@ internal sealed class WebAppForm : Form
                     string title=Convert.ToString(item.ContainsKey("title")?item["title"]:"").Trim();
                     if(title.Length==0)continue;
                     long bytes=0;try{bytes=Convert.ToInt64(item.ContainsKey("bytes")?item["bytes"]:0);}catch{}
+                    string updateId=Convert.ToString(item.ContainsKey("updateId")?item["updateId"]:"").Trim();
+                    if(!Regex.IsMatch(updateId,@"^[0-9a-fA-F-]{36}$"))updateId="";
                     updates.Add(new Dictionary<string,object>
                     {
+                        {"updateId",updateId},
                         {"title",title},
                         {"kb",Convert.ToString(item.ContainsKey("kb")?item["kb"]:"")},
                         {"kind",Convert.ToString(item.ContainsKey("kind")?item["kind"]:"software")=="driver"?"driver":"software"},
                         {"bytes",bytes},
                         {"downloaded",item.ContainsKey("downloaded") && Convert.ToBoolean(item["downloaded"])},
-                        {"severity",Convert.ToString(item.ContainsKey("severity")?item["severity"]:"")}
+                        {"severity",Convert.ToString(item.ContainsKey("severity")?item["severity"]:"")},
+                        {"mandatory",item.ContainsKey("mandatory") && Convert.ToBoolean(item["mandatory"])}
                     });
                 }
                 catch{}
@@ -3117,6 +3123,121 @@ internal sealed class WebAppForm : Form
         {
             SendToWeb(new { type="windows-update-open-failed", message=ex.Message });
         }
+    }
+
+    // Télécharge et installe une sélection de mises à jour Windows via l'API WUA,
+    // avec élévation (relance UAC). L'écriture réelle est déléguée à un script
+    // PowerShell élevé qui journalise chaque résultat dans un fichier repris
+    // ensuite par ce processus (mêmes contraintes que le nettoyage élevé :
+    // RunElevatedProcess ne capture pas la sortie standard).
+    void InstallWindowsUpdates(Dictionary<string,object> payload)
+    {
+        if(windowsUpdateInstalling)throw new InvalidOperationException("Une installation Windows Update est déjà en cours.");
+        if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)
+            throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
+        var ids=ReadArray(payload,"updateIds")
+            .Select(value=>Convert.ToString(value).Trim())
+            .Where(value=>Regex.IsMatch(value,@"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(100)
+            .ToArray();
+        if(ids.Length==0)throw new InvalidOperationException("Aucune mise à jour Windows valide n'est sélectionnée.");
+
+        windowsUpdateInstalling=true;
+        SendToWeb(new { type="windows-update-install-start", total=ids.Length });
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            string logName="PC-Setup-Windows-Update-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
+            string logPath=Path.Combine(GetDataFolder("Logs"),logName);
+            string resultName="wu-result-"+Guid.NewGuid().ToString("N")+".txt";
+            string resultPath=Path.Combine(GetDataFolder("Logs"),resultName);
+            int code=-1;bool rebootRequired=false;string warning=null;
+            var items=new List<Dictionary<string,object>>();
+            try
+            {
+                string idArray=String.Join(",",ids.Select(id=>"'"+id+"'").ToArray());
+                string safeResult=resultPath.Replace("'","''");
+                string script="$ErrorActionPreference='Stop';"+
+                    "$ids=@("+idArray+");"+
+                    "$log='"+safeResult+"';"+
+                    "function W($t){ Add-Content -LiteralPath $log -Value $t -Encoding UTF8 }"+
+                    "try{"+
+                    "$s=New-Object -ComObject Microsoft.Update.Session;"+
+                    "$searcher=$s.CreateUpdateSearcher();"+
+                    "$r=$searcher.Search('IsInstalled=0 AND IsHidden=0');"+
+                    "$coll=New-Object -ComObject Microsoft.Update.UpdateColl;"+
+                    "foreach($u in $r.Updates){ if($ids -contains [string]$u.Identity.UpdateID){ if(-not $u.EulaAccepted){ try{ $u.AcceptEula() }catch{} }; [void]$coll.Add($u) } };"+
+                    "if($coll.Count -eq 0){ W 'PCSETUP_WUI_END|error|Aucune des mises a jour selectionnees n''a ete retrouvee.'; exit 2 };"+
+                    "$dl=$s.CreateUpdateDownloader(); $dl.Updates=$coll; [void]$dl.Download();"+
+                    "$inst=$s.CreateUpdateInstaller(); $inst.Updates=$coll; $ir=$inst.Install();"+
+                    "for($i=0;$i -lt $coll.Count;$i++){ $u=$coll.Item($i); $res=$ir.GetUpdateResult($i); $o=@{ updateId=[string]$u.Identity.UpdateID; hresult=[int]$res.HResult; resultCode=[int]$res.ResultCode } | ConvertTo-Json -Compress; W ('PCSETUP_WUI_ITEM|'+$o) };"+
+                    "W ('PCSETUP_WUI_END|ok|reboot='+[int]$ir.RebootRequired+'|installed='+$coll.Count);"+
+                    "if($ir.RebootRequired){ exit 3010 } else { exit 0 };"+
+                    "}catch{ W ('PCSETUP_WUI_END|error|'+$_.Exception.Message); exit 1 }";
+                string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+                SendToWeb(new { type="windows-update-install-stage", percent=30, status="Autorisation Windows puis téléchargement..." });
+                code=RunElevatedProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
+                SendToWeb(new { type="windows-update-install-stage", percent=85, status="Lecture du résultat..." });
+
+                if(File.Exists(resultPath))
+                {
+                    string contents=File.ReadAllText(resultPath,Encoding.UTF8);
+                    report.AppendLine(contents);
+                    foreach(string line in contents.Split(new[]{"\r\n","\r","\n"},StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if(line.StartsWith("PCSETUP_WUI_ITEM|",StringComparison.Ordinal))
+                        {
+                            try
+                            {
+                                var raw=json.DeserializeObject(line.Substring("PCSETUP_WUI_ITEM|".Length)) as Dictionary<string,object>;
+                                if(raw==null)continue;
+                                int resultCode=0;try{resultCode=Convert.ToInt32(raw.ContainsKey("resultCode")?raw["resultCode"]:0);}catch{}
+                                int hresult=0;try{hresult=Convert.ToInt32(raw.ContainsKey("hresult")?raw["hresult"]:0);}catch{}
+                                items.Add(new Dictionary<string,object>
+                                {
+                                    {"updateId",Convert.ToString(raw.ContainsKey("updateId")?raw["updateId"]:"")},
+                                    {"ok",resultCode==2},
+                                    {"partial",resultCode==3},
+                                    {"resultCode",resultCode},
+                                    {"hresult",hresult}
+                                });
+                            }
+                            catch{}
+                        }
+                        else if(line.StartsWith("PCSETUP_WUI_END|",StringComparison.Ordinal))
+                        {
+                            string[] parts=line.Split('|');
+                            if(parts.Length>=2 && parts[1]=="error")warning=parts.Length>=3?parts[2]:"Échec de l'installation Windows Update.";
+                            foreach(string seg in parts)
+                                if(seg.StartsWith("reboot=",StringComparison.Ordinal))rebootRequired=seg=="reboot=1";
+                        }
+                    }
+                }
+                else if(code==1223)warning="Autorisation administrateur refusée : l'installation Windows Update n'a pas démarré.";
+                else warning="Windows n'a pas produit de résultat. Ouvrez Windows Update pour installer ces mises à jour.";
+            }
+            catch(Exception ex){warning=ex.Message;}
+            finally
+            {
+                try{if(File.Exists(resultPath))File.Delete(resultPath);}catch{}
+                try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
+                windowsUpdateInstalling=false;
+                int installed=items.Count(x=>Convert.ToBoolean(x["ok"]));
+                int failed=items.Count-installed;
+                bool success=String.IsNullOrEmpty(warning) && failed==0 && installed>0;
+                SendToWeb(new {
+                    type="windows-update-install-complete",
+                    success=success,
+                    installed=installed,
+                    failed=failed,
+                    rebootRequired=rebootRequired,
+                    items=items.ToArray(),
+                    warning=warning ?? "",
+                    code=code,
+                    logName=logName
+                });
+            }
+        });
     }
 
     List<Dictionary<string,object>> QueryAvailableUpdates()

@@ -14,7 +14,7 @@
 const ITEM_PREFIX = "PCSETUP_WU_ITEM|";
 const END_PREFIX = "PCSETUP_WU_END|";
 
-/** @typedef {{title:string, kb:string, kind:"driver"|"software", bytes:number, downloaded:boolean, severity:string}} WindowsUpdateItem */
+/** @typedef {{updateId:string, title:string, kb:string, kind:"driver"|"software", bytes:number, downloaded:boolean, severity:string, mandatory:boolean}} WindowsUpdateItem */
 
 function toItem(raw) {
   const title = String(raw && raw.title != null ? raw.title : "").trim();
@@ -22,13 +22,16 @@ function toItem(raw) {
   let bytes = 0;
   const n = Number(raw && raw.bytes);
   if (Number.isFinite(n) && n > 0) bytes = Math.round(n);
+  const updateId = String(raw && raw.updateId != null ? raw.updateId : "").trim();
   return {
+    updateId: /^[0-9a-fA-F-]{36}$/.test(updateId) ? updateId : "",
     title,
     kb: String(raw && raw.kb != null ? raw.kb : ""),
     kind: String(raw && raw.kind) === "driver" ? "driver" : "software",
     bytes,
     downloaded: Boolean(raw && raw.downloaded),
     severity: String(raw && raw.severity != null ? raw.severity : ""),
+    mandatory: Boolean(raw && raw.mandatory),
   };
 }
 
@@ -111,4 +114,62 @@ export function describeWindowsUpdates(summary) {
   if (s.securityCount > 0) parts.push(`${s.securityCount} de sécurité`);
   if (s.totalBytes > 0) parts.push(formatWindowsUpdateBytes(s.totalBytes));
   return `${parts.join(" · ")}.`;
+}
+
+/**
+ * Sélection cochée par défaut : les composants toujours, les pilotes seulement
+ * si l'utilisateur l'a explicitement demandé. Les entrées sans `updateId`
+ * exploitable (installation impossible) sont exclues.
+ * @param {WindowsUpdateItem[]} updates
+ * @param {{includeDrivers?: boolean}} [opts]
+ * @returns {string[]} liste d'`updateId`
+ */
+export function defaultWindowsUpdateSelection(updates, opts) {
+  const includeDrivers = Boolean(opts && opts.includeDrivers);
+  return (Array.isArray(updates) ? updates : [])
+    .filter((u) => u && typeof u.updateId === "string" && u.updateId.length === 36)
+    .filter((u) => includeDrivers || u.kind !== "driver")
+    .map((u) => u.updateId);
+}
+
+/** Codes de résultat WUA : 2 = réussi, 3 = réussi avec avertissements. */
+const WUA_RESULT_OK = 2;
+const WUA_RESULT_PARTIAL = 3;
+
+/**
+ * Lit le journal du script d'installation élevé.
+ * @param {string} output
+ * @returns {{items: Array<{updateId:string, ok:boolean, partial:boolean, resultCode:number, hresult:number}>, rebootRequired:boolean, installed:number, failed:number, error:string|null}}
+ */
+export function parseWindowsUpdateInstallMarkers(output) {
+  const items = [];
+  let rebootRequired = false;
+  let error = null;
+  let sawEnd = false;
+  for (const line of String(output ?? "").split(/\r\n|\r|\n/)) {
+    if (line.startsWith("PCSETUP_WUI_ITEM|")) {
+      let raw;
+      try {
+        raw = JSON.parse(line.slice("PCSETUP_WUI_ITEM|".length));
+      } catch {
+        continue;
+      }
+      const resultCode = Number(raw && raw.resultCode) || 0;
+      items.push({
+        updateId: String(raw && raw.updateId != null ? raw.updateId : ""),
+        ok: resultCode === WUA_RESULT_OK,
+        partial: resultCode === WUA_RESULT_PARTIAL,
+        resultCode,
+        hresult: Number(raw && raw.hresult) || 0,
+      });
+    } else if (line.startsWith("PCSETUP_WUI_END|")) {
+      sawEnd = true;
+      const parts = line.split("|");
+      if (parts[1] === "error") error = parts.slice(2).join("|") || "Échec de l'installation.";
+      for (const seg of parts) if (seg === "reboot=1") rebootRequired = true;
+    }
+  }
+  const installed = items.filter((i) => i.ok).length;
+  if (!sawEnd && !error) error = "L'installation Windows Update ne s'est pas terminée.";
+  return { items, rebootRequired, installed, failed: items.length - installed, error };
 }

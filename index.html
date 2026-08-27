@@ -321,8 +321,11 @@
       <div class="update-preview-panel" id="windowsUpdatePanel">
         <div class="section-heading"><div><span class="label">WINDOWS UPDATE</span><h2>Composants et pilotes Microsoft</h2></div><div class="update-list-actions"><button class="text-button" id="openWindowsUpdateBtn" type="button">Ouvrir Windows Update</button><button class="text-button" id="scanWindowsUpdatesBtn" type="button">↻ Analyser</button></div></div>
         <div class="update-scan-state hidden" id="windowsUpdateScanState"><span class="scan-spinner">↻</span><div><strong>Analyse de Windows Update</strong><small>La recherche interroge Microsoft et peut durer jusqu'à deux minutes.</small></div></div>
-        <p class="windows-update-summary" id="windowsUpdateSummary">Lancez l'analyse pour lister les composants et pilotes proposés par Microsoft. OwlSetup ne les installe pas : l'installation se fait dans Windows Update.</p>
+        <p class="windows-update-summary" id="windowsUpdateSummary">Lancez l'analyse pour lister les composants et pilotes proposés par Microsoft.</p>
+        <div class="windows-update-reboot-bar hidden" id="windowsUpdateRebootBar"><span>⟳</span><span id="windowsUpdateRebootText">Un redémarrage est nécessaire pour terminer les mises à jour Windows.</span><button class="text-button" id="dismissWindowsUpdateReboot" type="button">Masquer</button></div>
         <div class="windows-update-list hidden" id="windowsUpdateList"></div>
+        <div class="update-scan-state hidden" id="windowsUpdateInstallState"><span class="scan-spinner">↻</span><div><strong>Installation via Windows Update</strong><small id="windowsUpdateInstallStatus">Téléchargement puis installation… ne fermez pas OwlSetup.</small></div></div>
+        <div class="windows-update-install-bar hidden" id="windowsUpdateInstallBar"><span id="windowsUpdateSelectionText">Aucune mise à jour sélectionnée</span><button class="install-button" id="installWindowsUpdatesBtn" type="button" disabled>Installer la sélection (0)</button></div>
         <div class="no-updates hidden" id="noWindowsUpdates"><span>✓</span><div><strong>Windows est à jour</strong><small>Aucun composant ni pilote en attente côté Microsoft.</small></div></div>
       </div>
       <div class="update-action-panel">
