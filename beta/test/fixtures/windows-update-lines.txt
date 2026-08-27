@@ -1,0 +1,5 @@
+PCSETUP_WU_ITEM|{"title":"2024-05 Mise à jour cumulative pour Windows 11 24H2 pour les systèmes x64 (KB5037771)","kb":"KB5037771","kind":"software","bytes":650117120,"downloaded":false,"severity":"Important"}
+PCSETUP_WU_ITEM|{"title":"Intel Corporation - Display - 31.0.101.5074","kb":"","kind":"driver","bytes":424509440,"downloaded":true,"severity":""}
+PCSETUP_WU_ITEM|{"title":"Mise à jour de la sélection disjointe pour Microsoft Defender Antivirus – KB2267602 (version 1.457.364.0)","kb":"KB2267602","kind":"software","bytes":1497919328,"downloaded":false,"severity":""}
+PCSETUP_WU_ITEM|{"title":"NVIDIA - Display - 32.0.15.6094","kb":"","kind":"driver","bytes":912334848,"downloaded":false,"severity":""}
+PCSETUP_WU_END|ok|4
