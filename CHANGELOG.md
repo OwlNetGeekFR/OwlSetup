@@ -1,5 +1,18 @@
 # Historique des versions
 
+## [4.0.0-beta.4] - 2026-08-27
+
+### Masquer une mise à jour définitivement
+
+- Chaque mise à jour proposée peut être masquée (bouton ✕ « Ne plus proposer »).
+  Le choix est conservé localement (`owlsetup-update-ignore-v1`).
+- Les mises à jour masquées ne comptent plus dans le badge de navigation, la
+  sélection ni la notification.
+- Une barre « N mise(s) à jour masquée(s) · Réafficher » permet de tout
+  restaurer d'un clic.
+- Utile pour les logiciels qui se mettent à jour eux-mêmes (Ankama Launcher…)
+  que WinGet reproposera toujours.
+
 ## [4.0.0-beta.3] - 2026-08-27
 
 ### Mises à jour : logiciels qui se mettent à jour eux-mêmes

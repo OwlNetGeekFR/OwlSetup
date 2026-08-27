@@ -200,6 +200,17 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
 **Pourquoi :** SmartScreen à chaque lancement (non signé) et mise à jour
 manuelle = friction que tous les concurrents ont réglée.
 
+**Déjà fait (fiabilité des mises à jour d'applications) :**
+
+- [x] _(4.0.0-beta.3)_ Lanceurs à mise à jour intégrée (Ankama…) : plus comptés
+      comme un échec, badge « ⟳ se met à jour seule », message dédié.
+- [x] _(4.0.0-beta.4)_ « Ne plus proposer » par application, liste d'ignorés
+      persistante (`owlsetup-update-ignore-v1`) + barre « Réafficher » — comme
+      l'option _ignore updates_ d'UniGetUI. `getIgnoredUpdateIds` reprend la
+      logique de `sanitizePackageIds` (module `beta/`).
+- [ ] Option secondaire : ignorer **une version précise** plutôt que le paquet
+      entier (`winget pin add --version`).
+
 **Étapes :**
 
 1. **Signature Authenticode** : certificat OV (ou **Azure Trusted Signing**,

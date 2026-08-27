@@ -244,6 +244,7 @@ let updateBlockerProcessNames = [];
 let lastSecurityStatus = null;
 let activeSecurityDetail = "";
 const securityRetentionStorageKey = "owlsetup-security-retention-v1";
+const updateIgnoreStorageKey = "owlsetup-update-ignore-v1";
 const sentTelemetryFingerprints = new Set();
 let pendingTelemetryReport = null;
 let lastTelemetrySendError = "";
@@ -1945,23 +1946,65 @@ function beginBatchUninstall() {
 
 function appForUpdate(id) { return apps.find(app => app.id.toLocaleLowerCase() === String(id).toLocaleLowerCase()); }
 
+function getIgnoredUpdateIds() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(updateIgnoreStorageKey) || "[]");
+    return new Set((Array.isArray(raw) ? raw : []).filter(isValidPackageId));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveIgnoredUpdateIds(ids) {
+  try { localStorage.setItem(updateIgnoreStorageKey, JSON.stringify([...ids])); } catch {}
+}
+
+function ignoreUpdate(id) {
+  if (!isValidPackageId(id)) return;
+  const ids = getIgnoredUpdateIds();
+  ids.add(id);
+  saveIgnoredUpdateIds(ids);
+  selectedUpdates.delete(id);
+  renderAvailableUpdates();
+  const app = appForUpdate(id);
+  notify("Mise à jour masquée", `${app?.name || id} ne sera plus proposé. Utilisez « Réafficher » pour revenir en arrière.`);
+}
+
+function restoreIgnoredUpdates() {
+  saveIgnoredUpdateIds(new Set());
+  selectedUpdates = new Set(availableUpdates.map(update => update.id));
+  renderAvailableUpdates();
+  notify("Mises à jour réaffichées", "Toutes les mises à jour masquées sont de nouveau visibles.");
+}
+
 function renderAvailableUpdates() {
   $("#updateScanState").classList.add("hidden");
   $("#scanUpdatesBtn").disabled = false;
-  const hasUpdates = availableUpdates.length > 0;
-  setNavAlert("#updatesNavBadge", availableUpdates.length, availableUpdates.length > 0);
+  const ignored = getIgnoredUpdateIds();
+  const visibleUpdates = availableUpdates.filter(update => !ignored.has(update.id));
+  const hiddenCount = availableUpdates.length - visibleUpdates.length;
+  [...selectedUpdates].forEach(id => { if (ignored.has(id)) selectedUpdates.delete(id); });
+  const hasUpdates = visibleUpdates.length > 0;
+  setNavAlert("#updatesNavBadge", visibleUpdates.length, visibleUpdates.length > 0);
   $("#availableUpdates").classList.toggle("hidden", !hasUpdates);
   $("#noUpdates").classList.toggle("hidden", hasUpdates);
-  $("#selectAllUpdates").classList.toggle("hidden", !hasUpdates || selectedUpdates.size === availableUpdates.length);
+  $("#selectAllUpdates").classList.toggle("hidden", !hasUpdates || selectedUpdates.size === visibleUpdates.length);
   $("#clearUpdates").classList.toggle("hidden", !hasUpdates || selectedUpdates.size === 0);
-  $("#availableUpdates").innerHTML = availableUpdates.map(update => {
+  $("#availableUpdates").innerHTML = visibleUpdates.map(update => {
     const app = appForUpdate(update.id);
     const appIcon = app?.logo ? `<img src="${escapeHtml(app.logo)}" alt="" data-image-fallback="APP">` : `<span>APP</span>`;
     const selfManaged = update.selfManaged
       ? `<span class="update-selfmanaged" title="Ce logiciel intègre sa propre mise à jour : ouvrez-le une fois pour qu'elle se termine. WinGet continuera de le proposer.">⟳ se met à jour seule</span>`
       : "";
-    return `<label class="available-update"><input type="checkbox" data-update-id="${escapeHtml(update.id)}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon${logoSurfaceClass(app)}">${appIcon}</span><span><strong>${escapeHtml(update.name)}</strong><small>${escapeHtml(update.id)}</small>${selfManaged}</span><span class="version-flow">${escapeHtml(update.current)}<i>→</i><b>${escapeHtml(update.available)}</b></span></label>`;
+    return `<label class="available-update"><input type="checkbox" data-update-id="${escapeHtml(update.id)}" ${selectedUpdates.has(update.id) ? "checked" : ""}><span class="update-check">✓</span><span class="update-app-icon${logoSurfaceClass(app)}">${appIcon}</span><span><strong>${escapeHtml(update.name)}</strong><small>${escapeHtml(update.id)}</small>${selfManaged}</span><span class="version-flow">${escapeHtml(update.current)}<i>→</i><b>${escapeHtml(update.available)}</b></span><button type="button" class="update-ignore" data-ignore-update="${escapeHtml(update.id)}" title="Ne plus proposer cette mise à jour">✕</button></label>`;
   }).join("");
+  const ignoredBar = $("#ignoredUpdatesBar");
+  if (ignoredBar) {
+    ignoredBar.classList.toggle("hidden", hiddenCount === 0);
+    $("#ignoredUpdatesText").textContent = hiddenCount
+      ? `${hiddenCount} mise${hiddenCount > 1 ? "s" : ""} à jour masquée${hiddenCount > 1 ? "s" : ""}`
+      : "";
+  }
   const count = selectedUpdates.size;
   $("#updateAllBtn").disabled = count === 0;
   $("#updateReadyTitle").textContent = hasUpdates ? `${count} mise${count > 1 ? "s" : ""} à jour sélectionnée${count > 1 ? "s" : ""}` : "Applications à jour";
@@ -2117,7 +2160,7 @@ function prepareAlphaSelectedActions(items) {
   const first=items[0];
   $("#alphaOneClickStatus").textContent=`Étape 1/${items.length} préparée : ${first.title}. Les confirmations habituelles restent actives.`;
   if(first.action==="diagnostic"){showView("tools");window.setTimeout(()=>$("#diagnoseWinget")?.click(),100);}
-  else if(first.action==="updates"){showView("updates");if(availableUpdates.length){selectedUpdates=new Set(availableUpdates.map(update=>update.id));renderAvailableUpdates();window.setTimeout(openUpdateModal,120);}else{window.setTimeout(()=>$("#scanUpdatesBtn")?.click(),120);notify("Vérification des versions","OwlSetup actualise la liste avant de proposer la confirmation.");}}
+  else if(first.action==="updates"){showView("updates");const visibleForPlan=availableUpdates.filter(update=>!getIgnoredUpdateIds().has(update.id));if(visibleForPlan.length){selectedUpdates=new Set(visibleForPlan.map(update=>update.id));renderAvailableUpdates();window.setTimeout(openUpdateModal,120);}else{window.setTimeout(()=>$("#scanUpdatesBtn")?.click(),120);notify("Vérification des versions","OwlSetup actualise la liste avant de proposer la confirmation.");}}
   else if(first.action==="cleanup"){document.querySelectorAll("[data-cleanup]").forEach(input=>input.checked=["user-temp","windows-temp","delivery"].includes(input.dataset.cleanup));updateCleanupCount();showView("cleanup");window.setTimeout(openCleanupModal,120);}
   else if(first.action==="quarantine")showView("quarantine");
   else if(first.action==="restart")notify("Redémarrage du PC conseillé","Enregistrez votre travail puis redémarrez Windows depuis le menu Démarrer.");
@@ -3197,14 +3240,16 @@ function handleInstallMessage(message) {
   }
   if (message.type === "updates-found") {
     availableUpdates = message.updates || [];
-    selectedUpdates = new Set(availableUpdates.map(update => update.id));
+    const ignoredUpdateIds = getIgnoredUpdateIds();
+    const visibleUpdates = availableUpdates.filter(update => !ignoredUpdateIds.has(update.id));
+    selectedUpdates = new Set(visibleUpdates.map(update => update.id));
     updatesLoaded = true;
     renderAvailableUpdates();
-    if (availableUpdates.length) {
+    if (visibleUpdates.length) {
       addNotification({
         key:"application-updates",
-        title:`${availableUpdates.length} mise${availableUpdates.length > 1 ? "s" : ""} à jour disponible${availableUpdates.length > 1 ? "s" : ""}`,
-        detail:availableUpdates.slice(0, 3).map(update => update.name).join(", ") + (availableUpdates.length > 3 ? ` et ${availableUpdates.length - 3} autre(s)` : ""),
+        title:`${visibleUpdates.length} mise${visibleUpdates.length > 1 ? "s" : ""} à jour disponible${visibleUpdates.length > 1 ? "s" : ""}`,
+        detail:visibleUpdates.slice(0, 3).map(update => update.name).join(", ") + (visibleUpdates.length > 3 ? ` et ${visibleUpdates.length - 3} autre(s)` : ""),
         kind:"warning", action:"updates", symbol:"↥"
       });
     } else {
@@ -3941,8 +3986,16 @@ $("#collectFeedbackDiagnostics").addEventListener("click", collectFeedbackDiagno
 $("#openFeedbackLogs").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"open-log-folder",payload:{}}));
 $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
-$("#selectAllUpdates").addEventListener("click",()=>{selectedUpdates=new Set(availableUpdates.map(update=>update.id));renderAvailableUpdates();});
+$("#selectAllUpdates").addEventListener("click",()=>{const ignored=getIgnoredUpdateIds();selectedUpdates=new Set(availableUpdates.filter(update=>!ignored.has(update.id)).map(update=>update.id));renderAvailableUpdates();});
 $("#clearUpdates").addEventListener("click",()=>{selectedUpdates.clear();renderAvailableUpdates();});
+$("#restoreIgnoredUpdates").addEventListener("click", restoreIgnoredUpdates);
+$("#availableUpdates").addEventListener("click", event => {
+  const trigger = event.target.closest("[data-ignore-update]");
+  if (!trigger) return;
+  event.preventDefault();
+  event.stopPropagation();
+  ignoreUpdate(trigger.dataset.ignoreUpdate);
+});
 $("#refreshHealth").addEventListener("click", requestHealth);
 $("#healthDetails").addEventListener("click", openHealthDetails);
 $("#closeHealthDetails").addEventListener("click", closeHealthDetails);
