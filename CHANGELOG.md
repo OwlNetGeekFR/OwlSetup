@@ -1,5 +1,24 @@
 # Historique des versions
 
+## [4.0.0-beta.7] - 2026-08-27
+
+### Onglet Sécurité : corrections et améliorations
+
+- **Antivirus / pare-feu** : quand ni le Centre de sécurité Windows ni le
+  registre ne permettent de conclure, OwlSetup affiche « État indéterminé » au
+  lieu d'un faux « Protection active ». Aucun avertissement n'est créé dans ce
+  cas ; le détail explique comment vérifier soi-même.
+- **Quarantaine** : le badge du menu se masque quand elle est vide (au lieu
+  d'afficher « 0 »). Les éléments sont triés par date réelle et affichent leur
+  **taille** et leur **ancienneté**.
+- **Quarantaine** : nouveau bouton « Supprimer les éléments de plus de 30 jours »
+  (avec confirmation) pour vider l'ancienne quarantaine d'un coup.
+- **Centre de sécurité** : la version de WinGet n'est plus relue en lançant
+  `winget.exe` à chaque rafraîchissement (mise en cache 10 min). Le panneau
+  indique l'heure de la dernière vérification.
+- Le score n'attribue plus les points antivirus / pare-feu quand leur état n'a
+  pas pu être déterminé.
+
 ## [4.0.0-beta.6] - 2026-08-27
 
 ### Centre des opérations : effacer les erreurs qui n'en sont plus

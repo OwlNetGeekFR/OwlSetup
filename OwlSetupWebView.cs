@@ -286,6 +286,7 @@ internal sealed class WebAppForm : Form
             else if (action == "scan-quarantine") SendQuarantineState();
             else if (action == "restore-quarantine") RestoreQuarantine(payload);
             else if (action == "delete-quarantine") DeleteQuarantine(payload);
+            else if (action == "purge-quarantine") PurgeOldQuarantine(payload);
             else throw new InvalidOperationException("Action inconnue.");
         }
         catch (Exception ex)
@@ -2557,13 +2558,7 @@ internal sealed class WebAppForm : Form
                 }
             }
             catch{}
-            string wingetVersion="Indisponible";
-            try
-            {
-                var report=new StringBuilder();
-                if(RunHiddenProcess("winget.exe","--version",report)==0)wingetVersion=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Indisponible";
-            }
-            catch{}
+            string wingetVersion=CachedWingetVersion();
             SendToWeb(new { type="feedback-diagnostics", version=BuildInfo.DisplayVersion, windows=windows, architecture=Environment.Is64BitOperatingSystem?"64 bits":"32 bits", winget=wingetVersion, webview=webViewVersion });
         });
     }
@@ -3042,10 +3037,46 @@ internal sealed class WebAppForm : Form
             {
                 if(IsReparsePoint(itemPath))continue;
                 var info=new DirectoryInfo(itemPath);
-                items.Add(new Dictionary<string,object>{{"batch",Path.GetFileName(batchPath)},{"item",info.Name},{"modified",info.LastWriteTime.ToString("g")}});
+                long bytes,files;MeasurePath(itemPath,out bytes,out files);
+                int ageDays=(int)Math.Max(0,(DateTime.Now-info.LastWriteTime).TotalDays);
+                items.Add(new Dictionary<string,object>{
+                    {"batch",Path.GetFileName(batchPath)},{"item",info.Name},
+                    {"modified",info.LastWriteTime.ToString("g")},{"modifiedSort",info.LastWriteTime.ToString("o")},
+                    {"ageDays",ageDays},{"bytes",bytes},{"size",FormatBytes(bytes)},{"partial",lastMeasureTruncated}});
             }
         }
-        return items.OrderByDescending(x=>Convert.ToString(x["modified"])).ToList();
+        // Tri par date réelle (la chaîne "o" ISO-8601 se trie correctement,
+        // contrairement au format court local utilisé auparavant).
+        return items.OrderByDescending(x=>Convert.ToString(x["modifiedSort"])).ToList();
+    }
+
+    void PurgeOldQuarantine(Dictionary<string,object> payload)
+    {
+        int days=30;
+        if(payload!=null&&payload.ContainsKey("days"))Int32.TryParse(Convert.ToString(payload["days"]),out days);
+        if(!new[]{7,30,90}.Contains(days))days=30;
+        Task.Run(delegate {
+            int removed=0;
+            try
+            {
+                string quarantineRoot=Path.GetFullPath(GetDataFolder("Quarantine"))+Path.DirectorySeparatorChar;
+                DateTime cutoff=DateTime.Now.AddDays(-days);
+                foreach(string batchPath in Directory.GetDirectories(quarantineRoot,"PC-Setup-Quarantaine-*",SearchOption.TopDirectoryOnly))
+                {
+                    if(IsReparsePoint(batchPath)||!batchPath.StartsWith(quarantineRoot,StringComparison.OrdinalIgnoreCase))continue;
+                    foreach(string itemPath in Directory.GetDirectories(batchPath,"*",SearchOption.TopDirectoryOnly))
+                    {
+                        if(IsReparsePoint(itemPath))continue;
+                        if(new DirectoryInfo(itemPath).LastWriteTime>=cutoff)continue;
+                        try{EnsureNoReparsePoints(itemPath,quarantineRoot);Directory.Delete(itemPath,true);removed++;}catch{}
+                    }
+                    try{if(!Directory.EnumerateFileSystemEntries(batchPath).Any())Directory.Delete(batchPath);}catch{}
+                }
+                SendToWeb(new{type="quarantine-action",success=true,action="purge",message=removed>0?removed+" élément(s) de plus de "+days+" jours supprimé(s) définitivement.":"Aucun élément de plus de "+days+" jours à supprimer."});
+            }
+            catch(Exception ex){SendToWeb(new{type="quarantine-action",success=false,action="purge",message=ex.Message});}
+            SendQuarantineState();
+        });
     }
 
     void SendQuarantineState()
@@ -3193,16 +3224,23 @@ internal sealed class WebAppForm : Form
 
     static bool RegistryFlagEnabled(string path,string name,bool defaultValue)
     {
+        bool? value=ReadRegistryFlag(path,name);
+        return value ?? defaultValue;
+    }
+
+    // null = valeur absente ou illisible (on ne peut pas conclure).
+    static bool? ReadRegistryFlag(string path,string name)
+    {
         try
         {
             using(var key=Registry.LocalMachine.OpenSubKey(path,false))
             {
                 object value=key==null?null:key.GetValue(name,null);
-                if(value==null)return defaultValue;
+                if(value==null)return null;
                 return Convert.ToInt32(value)!=0;
             }
         }
-        catch{return defaultValue;}
+        catch{return null;}
     }
 
     static bool VersionOlderThan(string text,Version minimum)
@@ -3245,6 +3283,26 @@ internal sealed class WebAppForm : Form
         catch{return "indisponible";}
     }
 
+    // Évite de relancer winget.exe à chaque rafraîchissement du Centre de
+    // sécurité ou du diagnostic : la version ne change pas dans la session.
+    static string _cachedWingetVersion;
+    static DateTime _cachedWingetVersionAt;
+    string CachedWingetVersion()
+    {
+        if(_cachedWingetVersion!=null && (DateTime.UtcNow-_cachedWingetVersionAt)<TimeSpan.FromMinutes(10))return _cachedWingetVersion;
+        string version="Indisponible";
+        try
+        {
+            var report=new StringBuilder();
+            if(RunHiddenProcess("winget.exe","--version",report)==0)
+                version=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Indisponible";
+        }
+        catch{}
+        _cachedWingetVersion=version;
+        _cachedWingetVersionAt=DateTime.UtcNow;
+        return version;
+    }
+
     Dictionary<string,object> BuildSecuritySnapshot(string detectedWebView)
     {
         bool signed=false,trusted=false,integrity=false,admin=false,secureRuntime=false;
@@ -3269,23 +3327,25 @@ internal sealed class WebAppForm : Form
         }
         catch{}
         try{logCount=Directory.GetFiles(GetDataFolder("Logs"),"PC-Setup-*.log",SearchOption.TopDirectoryOnly).Length;}catch{}
-        try
-        {
-            var report=new StringBuilder();
-            if(RunHiddenProcess("winget.exe","--version",report)==0)wingetVersion=report.ToString().Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()??"Indisponible";
-        }
-        catch{}
-        defenderActive=!RegistryFlagEnabled(@"SOFTWARE\Microsoft\Windows Defender\Real-Time Protection","DisableRealtimeMonitoring",false)
-            && !RegistryFlagEnabled(@"SOFTWARE\Microsoft\Windows Defender","DisableAntiSpyware",false);
-        firewallActive=RegistryFlagEnabled(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile","EnableFirewall",true)
-            && RegistryFlagEnabled(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile","EnableFirewall",true)
-            && RegistryFlagEnabled(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile","EnableFirewall",true);
+        wingetVersion=CachedWingetVersion();
+        bool? rtmDisabled=ReadRegistryFlag(@"SOFTWARE\Microsoft\Windows Defender\Real-Time Protection","DisableRealtimeMonitoring");
+        bool? antiSpywareDisabled=ReadRegistryFlag(@"SOFTWARE\Microsoft\Windows Defender","DisableAntiSpyware");
+        bool defenderKeysReadable=rtmDisabled.HasValue||antiSpywareDisabled.HasValue;
+        defenderActive=(rtmDisabled!=true)&&(antiSpywareDisabled!=true);
+        bool? fwDomain=ReadRegistryFlag(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile","EnableFirewall");
+        bool? fwPublic=ReadRegistryFlag(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile","EnableFirewall");
+        bool? fwStandard=ReadRegistryFlag(@"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile","EnableFirewall");
+        bool firewallKeysReadable=fwDomain.HasValue||fwPublic.HasValue||fwStandard.HasValue;
+        firewallActive=(fwDomain!=false)&&(fwPublic!=false)&&(fwStandard!=false);
         // Le Centre de sécurité Windows connaît aussi les antivirus et pare-feu tiers.
         // Le contrôle registre ci-dessus reste uniquement un repli si WSC est indisponible.
         bool antivirusHealthAvailable=TryGetSecurityProviderHealth(WscSecurityProviderAntivirus,out antivirusHealth);
         bool firewallHealthAvailable=TryGetSecurityProviderHealth(WscSecurityProviderFirewall,out firewallHealth);
         antivirusActive=antivirusHealthAvailable?antivirusHealth==WscSecurityProviderHealthGood:defenderActive;
         firewallActive=firewallHealthAvailable?firewallHealth==WscSecurityProviderHealthGood:firewallActive;
+        // « determined » = on a une source fiable (WSC) OU au moins une valeur registre lisible.
+        bool antivirusDetermined=antivirusHealthAvailable||defenderKeysReadable;
+        bool firewallDetermined=firewallHealthAvailable||firewallKeysReadable;
         bool wingetAvailable=!String.Equals(wingetVersion,"Indisponible",StringComparison.OrdinalIgnoreCase);
         bool webViewAvailable=!String.Equals(webViewVersion,"Indisponible",StringComparison.OrdinalIgnoreCase);
         bool wingetOutdated=wingetAvailable&&VersionOlderThan(wingetVersion,new Version(1,8));
@@ -3296,7 +3356,7 @@ internal sealed class WebAppForm : Form
         if(trusted)score+=15;else if(signatureState=="unsigned-beta")score+=8;
         if(wingetAvailable&&!wingetOutdated)score+=10;if(webViewAvailable&&!webViewOutdated)score+=10;
         if(secureRuntime)score+=10;else score+=5;
-        if(antivirusActive)score+=5;if(firewallActive)score+=5;
+        if(antivirusActive&&antivirusDetermined)score+=5;if(firewallActive&&firewallDetermined)score+=5;
         var recommendations=new List<object>();
         if(!integrity)recommendations.Add(new{severity="critical",title="Réinstaller OwlSetup",detail="Les ressources intégrées ne correspondent plus à l’exécutable officiel.",action="release"});
         if(admin)recommendations.Add(new{severity="warning",title="Relancer OwlSetup normalement",detail="L’interface ne doit pas rester ouverte en administrateur.",action="none"});
@@ -3308,10 +3368,12 @@ internal sealed class WebAppForm : Form
         if(!wingetAvailable)recommendations.Add(new{severity="warning",title="Réparer WinGet",detail="Le gestionnaire de paquets Microsoft est indisponible.",action="winget"});
         else if(wingetOutdated)recommendations.Add(new{severity="warning",title="Mettre WinGet à jour",detail="La version détectée est ancienne.",action="winget"});
         if(!webViewAvailable||webViewOutdated)recommendations.Add(new{severity="warning",title="Mettre WebView2 à jour",detail="Le moteur d’interface Evergreen est absent ou ancien.",action="webview"});
-        if(!antivirusActive)recommendations.Add(new{severity="warning",title="Contrôler la protection antivirus",detail="Le Centre de sécurité Windows indique qu’aucun antivirus actif ne protège actuellement le PC.",action="defender"});
-        if(!firewallActive)recommendations.Add(new{severity="warning",title="Contrôler la protection pare-feu",detail="Le Centre de sécurité Windows indique que la protection pare-feu demande votre attention.",action="firewall"});
+        if(!antivirusActive&&antivirusDetermined)recommendations.Add(new{severity="warning",title="Contrôler la protection antivirus",detail="Le Centre de sécurité Windows indique qu’aucun antivirus actif ne protège actuellement le PC.",action="defender"});
+        else if(!antivirusDetermined)recommendations.Add(new{severity="info",title="État antivirus indéterminé",detail="OwlSetup n’a pas pu lire l’état de la protection (Sécurité Windows indisponible ou clé protégée). Ouvrez Sécurité Windows pour le vérifier.",action="defender"});
+        if(!firewallActive&&firewallDetermined)recommendations.Add(new{severity="warning",title="Contrôler la protection pare-feu",detail="Le Centre de sécurité Windows indique que la protection pare-feu demande votre attention.",action="firewall"});
+        else if(!firewallDetermined)recommendations.Add(new{severity="info",title="État pare-feu indéterminé",detail="OwlSetup n’a pas pu lire l’état du pare-feu. Ouvrez Sécurité Windows pour le vérifier.",action="firewall"});
         if(recommendations.Count==0)recommendations.Add(new{severity="success",title="Aucune action requise",detail="Les contrôles locaux principaux sont satisfaisants.",action="none"});
-        return new Dictionary<string,object>{{"integrity",integrity},{"originLocked",true},{"standardUser",!admin},{"elevation","À la demande"},{"signed",signed},{"trusted",trusted},{"signatureState",signatureState},{"signer",signer},{"winget",wingetVersion},{"wingetOutdated",wingetOutdated},{"webview",webViewVersion},{"webviewOutdated",webViewOutdated},{"secureRuntime",secureRuntime},{"defenderActive",defenderActive},{"antivirusActive",antivirusActive},{"antivirusHealth",SecurityProviderHealthLabel(antivirusHealth)},{"antivirusManagedByWsc",antivirusHealthAvailable},{"firewallActive",firewallActive},{"firewallHealth",SecurityProviderHealthLabel(firewallHealth)},{"firewallManagedByWsc",firewallHealthAvailable},{"logs",logCount},{"version",BuildInfo.DisplayVersion},{"score",Math.Max(0,Math.Min(100,score))},{"sha256",ExecutableSha256()},{"recommendations",recommendations.ToArray()}};
+        return new Dictionary<string,object>{{"integrity",integrity},{"originLocked",true},{"standardUser",!admin},{"elevation","À la demande"},{"signed",signed},{"trusted",trusted},{"signatureState",signatureState},{"signer",signer},{"winget",wingetVersion},{"wingetOutdated",wingetOutdated},{"webview",webViewVersion},{"webviewOutdated",webViewOutdated},{"secureRuntime",secureRuntime},{"defenderActive",defenderActive},{"antivirusActive",antivirusActive},{"antivirusHealth",SecurityProviderHealthLabel(antivirusHealth)},{"antivirusManagedByWsc",antivirusHealthAvailable},{"antivirusDetermined",antivirusDetermined},{"firewallActive",firewallActive},{"firewallHealth",SecurityProviderHealthLabel(firewallHealth)},{"firewallManagedByWsc",firewallHealthAvailable},{"firewallDetermined",firewallDetermined},{"logs",logCount},{"version",BuildInfo.DisplayVersion},{"score",Math.Max(0,Math.Min(100,score))},{"sha256",ExecutableSha256()},{"recommendations",recommendations.ToArray()}};
     }
 
     void SendSecurityStatus()
@@ -3321,6 +3383,7 @@ internal sealed class WebAppForm : Form
         Task.Run(delegate {
             var snapshot=BuildSecuritySnapshot(detectedWebView);
             snapshot["type"]="security-status";
+            snapshot["checkedAt"]=DateTime.Now.ToString("HH:mm");
             SendToWeb(snapshot);
         });
     }

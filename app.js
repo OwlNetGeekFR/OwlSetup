@@ -1920,8 +1920,8 @@ function securityDetailDefinition(key,message=lastSecurityStatus||{}) {
     winget:{title:"Gestionnaire de paquets WinGet",text:`Version détectée : ${message.winget||"indisponible"}. ${message.wingetOutdated?"Une mise à jour est recommandée.":"OwlSetup l’utilise pour les installations officielles."}`,action:message.winget==="Indisponible"||message.wingetOutdated?"winget":"",label:"Ouvrir les outils"},
     webview:{title:"Moteur Microsoft WebView2",text:`Version détectée : ${message.webview||"indisponible"}. ${message.webviewOutdated?"Cette version semble ancienne.":"Le moteur Evergreen affiche l’interface locale."}`,action:message.webviewOutdated||message.webview==="Indisponible"?"webview":"",label:"Page officielle"},
     runtime:{title:"Worker système protégé",text:message.secureRuntime?"Le dossier utilisé pour les opérations élevées existe et n’est pas un lien de redirection.":"Le dossier protégé sera créé lors de la première opération qui exige des droits administrateur."},
-    defender:{title:"Protection antivirus",text:message.antivirusActive?"Le Centre de sécurité Windows indique qu’une protection antivirus est active. Il peut s’agir de Microsoft Defender ou d’un antivirus tiers correctement enregistré. OwlSetup lit seulement cet état.":"Le Centre de sécurité Windows demande de vérifier la protection antivirus. Ouvrez Sécurité Windows pour connaître le produit concerné.",action:"defender",label:"Ouvrir Sécurité Windows"},
-    firewall:{title:"Protection pare-feu",text:message.firewallActive?"Le Centre de sécurité Windows indique qu’une protection pare-feu est active. Elle peut être fournie par Windows ou par une suite de sécurité tierce. OwlSetup ne modifie aucun réglage.":"Le Centre de sécurité Windows demande de vérifier la protection pare-feu.",action:"firewall",label:"Ouvrir le pare-feu"},
+    defender:{title:"Protection antivirus",text:message.antivirusDetermined===false?"OwlSetup n’a pas pu lire l’état de la protection antivirus (Sécurité Windows indisponible ou clé protégée par la protection contre les falsifications). Ouvrez Sécurité Windows pour le vérifier vous-même.":message.antivirusActive?"Le Centre de sécurité Windows indique qu’une protection antivirus est active. Il peut s’agir de Microsoft Defender ou d’un antivirus tiers correctement enregistré. OwlSetup lit seulement cet état.":"Le Centre de sécurité Windows demande de vérifier la protection antivirus. Ouvrez Sécurité Windows pour connaître le produit concerné.",action:"defender",label:"Ouvrir Sécurité Windows"},
+    firewall:{title:"Protection pare-feu",text:message.firewallDetermined===false?"OwlSetup n’a pas pu lire l’état du pare-feu sur ce PC. Ouvrez Sécurité Windows pour le vérifier vous-même.":message.firewallActive?"Le Centre de sécurité Windows indique qu’une protection pare-feu est active. Elle peut être fournie par Windows ou par une suite de sécurité tierce. OwlSetup ne modifie aucun réglage.":"Le Centre de sécurité Windows demande de vérifier la protection pare-feu.",action:"firewall",label:"Ouvrir le pare-feu"},
     privileges:{title:"Droits de l’interface",text:message.standardUser?"L’interface fonctionne avec des droits standards. Windows demande une autorisation UAC séparée uniquement lorsqu’une action l’exige.":"OwlSetup est actuellement lancé en administrateur. Fermez-le puis relancez-le normalement."}
   };
   return definitions[key]||definitions.integrity;
@@ -2351,11 +2351,46 @@ function requestQuarantine() {
 
 function renderQuarantine(items) {
   const list = items || [];
-  $("#quarantineCount").textContent = `${list.length} élément${list.length > 1 ? "s" : ""}`;
-  $("#quarantineNavCount").textContent = list.length;
+  const totalBytes = list.reduce((sum, entry) => sum + (Number(entry.bytes) || 0), 0);
+  $("#quarantineCount").textContent = `${list.length} élément${list.length > 1 ? "s" : ""}${totalBytes ? ` · ${formatBytesFr(totalBytes)}` : ""}`;
+  setNavAlert("#quarantineNavCount", list.length, false);
   $("#quarantineList").classList.toggle("hidden", list.length === 0);
   $("#quarantineEmpty").classList.toggle("hidden", list.length !== 0);
-  $("#quarantineList").innerHTML = list.map(entry => `<article class="quarantine-item"><span>♲</span><div><strong>${escapeHtml(entry.item)}</strong><small>${escapeHtml(entry.batch)} · Modifié le ${escapeHtml(entry.modified)}</small></div><div class="quarantine-actions"><button class="restore-quarantine" data-quarantine-action="restore" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">↶ Restaurer</button><button class="delete-quarantine" data-quarantine-action="delete" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">× Supprimer</button></div></article>`).join("");
+  const oldCount = list.filter(entry => Number(entry.ageDays) > 30).length;
+  const purge = $("#purgeOldQuarantine");
+  if (purge) {
+    purge.classList.toggle("hidden", oldCount === 0);
+    purge.textContent = `Supprimer les ${oldCount} élément(s) de plus de 30 jours`;
+  }
+  $("#quarantineList").innerHTML = list.map(entry => {
+    const meta = [
+      escapeHtml(entry.batch),
+      `Modifié le ${escapeHtml(entry.modified)}`,
+      Number(entry.ageDays) >= 1 ? `il y a ${Number(entry.ageDays)} j` : "aujourd'hui",
+      entry.size ? `${escapeHtml(entry.size)}${entry.partial ? " +" : ""}` : ""
+    ].filter(Boolean).join(" · ");
+    return `<article class="quarantine-item"><span>♲</span><div><strong>${escapeHtml(entry.item)}</strong><small>${meta}</small></div><div class="quarantine-actions"><button class="restore-quarantine" data-quarantine-action="restore" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">↶ Restaurer</button><button class="delete-quarantine" data-quarantine-action="delete" data-batch="${encodeURIComponent(entry.batch)}" data-item="${encodeURIComponent(entry.item)}">× Supprimer</button></div></article>`;
+  }).join("");
+}
+
+function formatBytesFr(bytes) {
+  const units = ["o", "Ko", "Mo", "Go", "To"];
+  let value = Number(bytes) || 0, unit = 0;
+  while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
+  return `${value.toFixed(unit === 0 ? 0 : value < 10 ? 2 : 1)} ${units[unit]}`;
+}
+
+function confirmPurgeQuarantine() {
+  if (!window.chrome?.webview) return;
+  const overlay = document.createElement("div");
+  overlay.className = "quarantine-confirm";
+  overlay.innerHTML = `<div><h3>Supprimer les éléments anciens ?</h3><p>Tous les éléments en quarantaine depuis <strong>plus de 30 jours</strong> seront supprimés définitivement. Les éléments plus récents sont conservés.</p><div class="dialog-actions"><button class="secondary-dialog-button" data-confirm-no>Annuler</button><button class="danger-dialog-button" data-confirm-yes>Supprimer les anciens</button></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector("[data-confirm-no]").onclick = () => overlay.remove();
+  overlay.querySelector("[data-confirm-yes]").onclick = () => {
+    overlay.remove();
+    window.chrome.webview.postMessage({ action: "purge-quarantine", payload: { days: 30 } });
+  };
 }
 
 function confirmQuarantineAction(action, batch, item) {
@@ -3019,10 +3054,10 @@ function handleInstallMessage(message) {
     lastSecurityStatus=message;
     const mark=(selector,state,good,bad,severity="warning")=>{const element=$(selector);element.textContent=state?good:bad;element.classList.toggle("security-good",!!state);element.classList.toggle("security-warning",!state&&severity==="warning");element.classList.toggle("security-state-critical",!state&&severity==="critical");element.classList.toggle("security-state-info",!state&&severity==="info");};
     const antivirusActive=message.antivirusActive??message.defenderActive;
-    const protectedCore=message.integrity&&message.originLocked&&message.standardUser&&antivirusActive&&message.firewallActive;
+    const protectedCore=message.integrity&&message.originLocked&&message.standardUser&&antivirusActive&&message.firewallActive&&message.antivirusDetermined!==false&&message.firewallDetermined!==false;
     const critical=!message.integrity||message.signatureState==="invalid";
     $("#securityHeadline").textContent=critical?"Une anomalie critique a été détectée":protectedCore?"Protections principales actives":"Des contrôles demandent votre attention";
-    $("#securityVersion").textContent=`OwlSetup ${message.version}`;
+    $("#securityVersion").textContent=`OwlSetup ${message.version}${message.checkedAt?` · vérifié à ${message.checkedAt}`:""}`;
     $("#securityElevation").textContent=message.standardUser?message.elevation:"Interface actuellement administrateur";
     const score=Math.max(0,Math.min(100,Number(message.score)||0));
     $("#securityScore").textContent=String(score);
@@ -3036,10 +3071,14 @@ function handleInstallMessage(message) {
     mark("#securityWinget",message.winget!=="Indisponible"&&!message.wingetOutdated,message.winget,message.winget==="Indisponible"?"WinGet indisponible":`${message.winget} · ancien`);
     mark("#securityWebView",message.webview!=="Indisponible"&&!message.webviewOutdated,message.webview,message.webview==="Indisponible"?"WebView2 indisponible":`${message.webview} · ancien`);
     mark("#securityWorker",message.secureRuntime,"Dossier protégé actif","Créé au premier nettoyage");
-    mark("#securityDefender",antivirusActive,"Protection active","Protection à vérifier");
-    mark("#securityFirewall",message.firewallActive,"Profils actifs","Pare-feu à vérifier");
-    $("#securityAntivirusProvider").textContent=message.antivirusManagedByWsc?"État agrégé par Sécurité Windows":"État Defender de secours";
-    $("#securityFirewallProvider").textContent=message.firewallManagedByWsc?"État agrégé par Sécurité Windows":"Profils Windows de secours";
+    const antivirusUnknown=message.antivirusDetermined===false;
+    const firewallUnknown=message.firewallDetermined===false;
+    if(antivirusUnknown){const e=$("#securityDefender");e.textContent="État indéterminé";e.classList.remove("security-good","security-warning","security-state-critical");e.classList.add("security-state-info");}
+    else mark("#securityDefender",antivirusActive,"Protection active","Protection à vérifier");
+    if(firewallUnknown){const e=$("#securityFirewall");e.textContent="État indéterminé";e.classList.remove("security-good","security-warning","security-state-critical");e.classList.add("security-state-info");}
+    else mark("#securityFirewall",message.firewallActive,"Profils actifs","Pare-feu à vérifier");
+    $("#securityAntivirusProvider").textContent=message.antivirusManagedByWsc?"État agrégé par Sécurité Windows":antivirusUnknown?"État non lisible sur ce PC":"État Defender de secours";
+    $("#securityFirewallProvider").textContent=message.firewallManagedByWsc?"État agrégé par Sécurité Windows":firewallUnknown?"État non lisible sur ce PC":"Profils Windows de secours";
     mark("#securityPrivileges",message.standardUser,"Droits standards","Interface administrateur");
     $("#securityLogs").textContent=`${message.logs} rapport(s) local(aux). Aucun contenu n’est transmis automatiquement.`;
     renderSecurityRecommendations(message.recommendations||[]);
@@ -4146,6 +4185,7 @@ $("#exportSecurity").addEventListener("click",()=>{if(!window.chrome?.webview)re
 $("#applySecurityRetention").addEventListener("click",()=>{const days=Number($("#securityLogRetention").value);syncHistoryRetention(days,true);window.chrome?.webview?.postMessage({action:"prune-history",payload:{days}});});
 $("#securityLogRetention").addEventListener("change",event=>syncHistoryRetention(event.target.value,true));
 $("#refreshQuarantine").addEventListener("click", requestQuarantine);
+$("#purgeOldQuarantine")?.addEventListener("click", confirmPurgeQuarantine);
 $("#diagnoseWinget").addEventListener("click", diagnoseWinget);
 $("#repairWinget").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"repair-winget",payload:{}}));
 $("#createRestorePoint").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"create-restore-point",payload:{}}));

@@ -649,3 +649,6 @@ code,pre,kbd,samp,
 .operation-row-actions .text-button{font-size:9px;padding:0}
 .operation-remove{width:22px;height:22px;padding:0;line-height:1;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
 .operation-remove:hover{border-color:#70404c;color:#e88}
+
+/* Quarantaine : groupe d'actions de la barre d'outils — 4.0.0-beta.7 */
+.quarantine-toolbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
