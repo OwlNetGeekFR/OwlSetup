@@ -1,7 +1,5 @@
 # Controle qualite front-end + catalogue.
 #
-# Copie de reference : le fichier actif est .github/workflows/quality.yml.
-#
 # Complementaire de `release.yml` (build C# + installateur) : ici on ne compile
 # rien, on verifie le JavaScript, le formatage et la coherence du catalogue
 # externalise (`catalog.generated.js` genere depuis `beta/catalog/apps.json`).

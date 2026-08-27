@@ -24,8 +24,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9.+_-]+$",
-          "description": "Identifiant WinGet / MS Store. Meme jeu de caracteres que la regex de l'hote C#."
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_-]*$",
+          "description": "Identifiant WinGet / MS Store. Meme regex que l'hote C# : premier caractere alphanumerique."
         },
         "name": { "type": "string", "minLength": 1 },
         "category": {

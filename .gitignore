@@ -44,3 +44,6 @@ OwlSetup-Dashboard/
 .nuget-packages/
 .appdata/
 *.log
+
+# Sorties locales des tests
+tests/results/

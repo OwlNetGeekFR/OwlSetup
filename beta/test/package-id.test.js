@@ -36,11 +36,10 @@ describe("isValidPackageId", () => {
     }
   });
 
-  it("NOTE hardening : la regex laisse aujourd'hui passer un identifiant en '--' (cf. plan, lot 3)", () => {
-    // Comportement actuel identique cote UI et cote hote C#. A durcir : refuser
-    // les identifiants commencant par '-' pour eviter toute confusion avec un
-    // argument winget.
-    expect(isValidPackageId("--source")).toBe(true);
+  it("durcissement 4.0-beta : refuse un identifiant commencant par un non-alphanumerique", () => {
+    for (const id of ["--source", "-e", ".hidden", "+x", "_foo", "-Google.Chrome"]) {
+      expect(isValidPackageId(id), JSON.stringify(id)).toBe(false);
+    }
   });
 
   it("rejette les valeurs non-chaines", () => {
@@ -75,7 +74,7 @@ describe("telemetrySafePackageId", () => {
 });
 
 describe("PACKAGE_ID_PATTERN", () => {
-  it("est identique a la regex de l'hote C# (^[A-Za-z0-9.+_-]+$)", () => {
-    expect(PACKAGE_ID_PATTERN.source).toBe("^[A-Za-z0-9.+_-]+$");
+  it("est identique a la regex de l'hote C# (^[A-Za-z0-9][A-Za-z0-9.+_-]*$)", () => {
+    expect(PACKAGE_ID_PATTERN.source).toBe("^[A-Za-z0-9][A-Za-z0-9.+_-]*$");
   });
 });

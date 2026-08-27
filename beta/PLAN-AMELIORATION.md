@@ -40,61 +40,66 @@ comportement de l'application.
 | Prettier                                                                  | `beta/.prettierrc.json`                             |
 | Vitest + seuils de couverture                                             | `beta/vitest.config.js`                             |
 | Type-check éditeur (JSDoc + `checkJs`)                                    | `beta/jsconfig.json`                                |
-| 5 modules purs extraits + testés (93 tests)                               | `beta/src/modules/*.js`, `beta/test/*`              |
+| 5 modules purs extraits + testés (97 tests)                               | `beta/src/modules/*.js`, `beta/test/*`              |
 | Test de **parité** avec `app.js` (le module doit égaler l'inline)         | `beta/test/parity.test.js`                          |
 | Catalogue externalisé en JSON + schéma + vérif. de dérive                 | `beta/catalog/`, `beta/scripts/extract-catalog.mjs` |
 | Projet MSBuild pour l'hôte C# (traduction fidèle de `build.ps1`)          | `beta/csharp/OwlSetup.csproj`                       |
-| Workflow CI qualité (prêt, non activé)                                    | `beta/ci/quality.yml`                               |
+| Workflow CI qualité **activé**                                            | `.github/workflows/quality.yml`                     |
 
 **Modules extraits (purs, 0 effet de bord) :** `escape-html`, `package-id`,
 `winget-brand`, `redaction` (anonymisation des journaux — sensible vie privée),
 `theme`.
 
-**Critères d'acceptation :** `npm run check` vert (lint + format + 93 tests +
-catalogue synchronisé). ✅ atteint.
+**Critères d'acceptation :** `npm run check` vert (lint + format + 97 tests +
+catalogue synchronisé). ✅ atteint. `Test-ReleaseCandidateReadiness.ps1` reste
+verte. ✅
 
 **Reste à faire pour clôturer le lot (côté mainteneur) :**
 
 - [ ] Valider `beta/csharp/OwlSetup.csproj` par un premier `msbuild` / `dotnet build`
       et comparer l'octet-à-octet du binaire à celui de `build.ps1`.
-- [ ] Copier `beta/ci/quality.yml` → `.github/workflows/quality.yml`.
+- [x] Copier `beta/ci/quality.yml` → `.github/workflows/quality.yml`. _(fait en 4.0.0-beta.2)_
 - [ ] Décider de la position finale du dossier : `beta/` reste, ou son contenu
       remonte à la racine (recommandé une fois adopté).
 
 ---
 
-## Lot 1 — Catalogue ouvert et contribuable
+## Lot 1 — Catalogue ouvert et contribuable — 🟡 amorcé en 4.0.0-beta.2
 
 **Pourquoi :** c'est l'écart produit n°1 face à UniGetUI / WinUtil. Un catalogue
 figé dans `app.js` interdit toute contribution simple.
 
-**Étapes :**
+**Fait en 4.0.0-beta.2 :**
 
-1. `build.ps1` : ajouter la génération `apps.json → catalog.generated.js`
-   (`npm run catalog:build`) et l'embarquer **avant** `app.js`
-   (`/resource:catalog.generated.js`).
-2. `index.html` : `<script src="catalog.generated.js"></script>` avant `app.js`.
-   Le point d'entrée `window.PC_SETUP_CATALOG` **existe déjà** dans `app.js`
-   (`apps.splice(0, apps.length, ...window.PC_SETUP_CATALOG)`).
-3. Supprimer le bloc `const apps` / `apps.push` de `app.js` une fois le test de
-   parité catalogue vert avec la source inversée.
-4. Étendre le schéma (`beta/catalog/catalog.schema.json`) : champ `addedIn`,
-   `verifiedAt`, `officialSignature` (éditeur attendu, cf. `InstallSignedPublisherFallback`).
-5. CI : `catalog-health.yml` valide `apps.json` contre le schéma + `winget show`
-   (déjà partiellement fait par `tools/check-catalog.mjs` et
-   `tools/Test-OwlSetupCatalog.ps1`).
-6. `CONTRIBUTING.md` : « pour ajouter une application, éditez `catalog/apps.json` ».
-7. **Interface** : autoriser l'installation d'un résultat `SearchWinget` **après
-   confirmation explicite** (aujourd'hui bridé depuis la bêta 54), avec marquage
-   « hors catalogue vérifié ».
+- [x] `build.ps1` génère `catalog.generated.js` depuis `beta/catalog/apps.json`
+      (via Node, avec repli sur le fichier versionné) et l'embarque avant `app.js`.
+- [x] `index.html` charge `catalog.generated.js` avant `app.js` ; le point
+      d'entrée `window.PC_SETUP_CATALOG` de `app.js` prend le relais.
+- [x] `OwlSetupWebView.cs` extrait et vérifie l'intégrité SHA-256 de
+      `catalog.generated.js` comme les autres ressources.
+- [x] `catalog:verify` contrôle la chaîne complète
+      `app.js → apps.json → catalog.generated.js` (CI + `Test-ReleaseCandidateReadiness`).
+- [x] Le bloc `const apps` **reste** dans `app.js` comme repli (défense en
+      profondeur) : aucun risque de régression si le script généré ne charge pas.
 
-**Risque :** moyen (chemin de build + chargement). **Mitigation :** la parité
-catalogue échoue au moindre écart ; `VerifyInterfaceIntegrity` protège le
-runtime.
+**Reste à faire :**
 
-**Effort :** 3–5 j. **Acceptation :** ajouter une app = 1 PR ne touchant que
-`apps.json` ; `app.js` ne contient plus de données catalogue ; `catalog:verify`
-en CI.
+- [ ] Inverser la source de vérité : `apps.json` devient canonique, le bloc
+      `const apps` / `apps.push` est retiré de `app.js`, `check-catalog.mjs` et le
+      test de parité lisent `apps.json`.
+- [ ] Étendre le schéma : `addedIn`, `verifiedAt`, `officialSignature` (éditeur
+      attendu, cf. `InstallSignedPublisherFallback`).
+- [ ] `catalog-health.yml` : valider `apps.json` contre le schéma + `winget show`.
+- [ ] `CONTRIBUTING.md` : « pour ajouter une application, éditez
+      `beta/catalog/apps.json` ».
+- [ ] **Interface** : autoriser l'installation d'un résultat `SearchWinget`
+      **après confirmation explicite** (bridé depuis la bêta 54), avec marquage
+      « hors catalogue vérifié ».
+
+**Risque restant :** faible (le plus dur — chemin de build + chargement + intégrité
+— est fait et vérifié au runtime). **Effort restant :** 2–3 j.
+**Acceptation :** ajouter une app = 1 PR ne touchant que `apps.json` ; `app.js`
+ne contient plus de données catalogue.
 
 ---
 
@@ -149,11 +154,12 @@ commande, sans analyseur ni découpage.
 3. Centraliser la construction des arguments `winget` : un unique
    `WingetCommand` avec échappement et tests (Pester) sur les cas limites.
 4. **Corrections de sécurité ciblées :**
-   - refuser un identifiant commençant par `-` (`^[A-Za-z0-9.+_-]+$` accepte
-     aujourd'hui `--source` ; cf. `beta/test/package-id.test.js`), des deux côtés ;
-   - valider systématiquement les chemins reçus (déjà fait pour la plupart via
-     jeton `^[a-f0-9]{32}$` — généraliser) ;
-   - journaliser toute opération élevée dans l'historique local.
+   - [x] refuser un identifiant commençant par un non-alphanumérique — regex
+         passée à `^[A-Za-z0-9][A-Za-z0-9.+_-]*$` dans `app.js`, `OwlSetupWebView.cs`
+         (20 occurrences), `tools/check-catalog.mjs` et `beta/` _(4.0.0-beta.2)_ ;
+   - [ ] valider systématiquement les chemins reçus (déjà fait pour la plupart via
+         jeton `^[a-f0-9]{32}$` — généraliser) ;
+   - [ ] journaliser toute opération élevée dans l'historique local.
 5. Envisager la migration `net462 → net48` (toujours sans redistribuable) puis
    étudier `.NET 8 + WebView2` auto-contenu (gros chantier, lot ultérieur).
 
