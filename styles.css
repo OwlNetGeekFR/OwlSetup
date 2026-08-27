@@ -658,3 +658,15 @@ code,pre,kbd,samp,
 .toast.toast-warning>span{color:#e0a94b}
 .toast.toast-info>span{color:#6fa8dc}
 .toast.toast-error small,.toast.toast-warning small,.toast.toast-info small{color:#9aa7b8}
+
+/* Inventaire Windows Update (lecture seule) — 4.0.0-beta.15 */
+#windowsUpdatePanel .windows-update-summary{margin:6px 0 0;color:var(--muted);font-size:8px;line-height:1.5}
+.windows-update-list{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.windows-update-list.hidden{display:none}
+.windows-update-row{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.02)}
+.windows-update-row .wu-kind{flex:none;margin-top:1px;padding:1px 7px;border-radius:999px;border:1px solid #2c3d52;background:#16283f;color:#8fb6e6;font-size:7px;white-space:nowrap}
+.windows-update-row.wu-driver .wu-kind{border-color:#5b4a86;background:#221a3f;color:#b39be6}
+.windows-update-row .wu-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.windows-update-row .wu-body strong{font-size:8px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.windows-update-row .wu-body small{color:var(--muted);font-size:7px}
+.windows-update-row .wu-sev{flex:none;margin-top:1px;padding:1px 6px;border-radius:6px;border:1px solid #7a5230;background:#2c1e10;color:#e0a94b;font-size:7px;white-space:nowrap}

@@ -1,5 +1,32 @@
 # Historique des versions
 
+## [4.0.0-beta.15] - 2026-08-27
+
+### Windows Update : inventaire réel (composants + pilotes)
+
+Premier incrément du lot « Windows Update réel ». Jusqu'ici OwlSetup se
+contentait de **déclencher** une recherche Windows Update à l'aveugle
+(`DetectNow`) sans jamais dire ce qui était en attente.
+
+- Nouveau `SearchWindowsUpdates` (hôte) : interroge l'API WUA
+  (`Microsoft.Update.Session`) en **lecture seule** — ne télécharge ni
+  n'installe rien — et renvoie la liste des mises à jour en attente :
+  titre, article KB, taille, gravité, déjà téléchargée ou non, et
+  **composant / pilote**. Sortie du script forcée en ASCII (`\uXXXX`) pour
+  ne pas casser les accents sur un flux redirigé.
+- Onglet **Tout mettre à jour** : nouveau panneau « Composants et pilotes
+  Microsoft » avec bouton *Analyser* et *Ouvrir Windows Update*. La liste
+  distingue visuellement composants et pilotes. L'installation reste faite
+  par Windows Update (l'écriture arrivera dans un incrément suivant).
+- L'étape Windows Update de « Tout mettre à jour » annonce désormais le
+  nombre réel de mises à jour en attente (dont pilotes) au lieu d'un simple
+  « recherche lancée ».
+- Module testé `beta/src/modules/windows-update.js` (11 tests) +
+  `tests/Test-WindowsUpdateInventory.ps1` (marqueurs, câblage interface, et
+  recherche WUA réelle par réflexion). 148 tests beta.
+- Vérifié : la bêta démarre, intégrité des 5 ressources OK, suite
+  `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.14] - 2026-08-27
 
 ### WinGet : un seul point d'entrée pour le CLI

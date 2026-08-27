@@ -24,7 +24,7 @@ fonctionner à l'identique.
 ```bash
 cd beta
 npm install
-npm run check      # lint + format + 137 tests + catalogue synchronisé
+npm run check      # lint + format + 148 tests + catalogue synchronisé
 ```
 
 Scripts utiles :
@@ -40,12 +40,13 @@ npm run format            # applique Prettier sur beta/
 
 ### Lot 0 — fondations
 
-- Outillage lint/format/test opérationnel, **137 tests verts**.
-- 8 modules purs extraits de `app.js` / `OwlSetupWebView.cs` : `escape-html`,
+- Outillage lint/format/test opérationnel, **148 tests verts**.
+- 9 modules purs extraits de `app.js` / `OwlSetupWebView.cs` : `escape-html`,
   `package-id`, `winget-brand`, `redaction` (anonymisation des journaux),
   `theme`, `update-heuristics` (lanceurs auto-gérés), `operations-reconcile`
   (faux échecs du Centre des opérations), `winget-table` (analyse de la sortie
-  tabulaire de `winget`, portée en C#).
+  tabulaire de `winget`, portée en C#), `windows-update` (inventaire WUA :
+  lecture des marqueurs + synthèse composants/pilotes).
 - **Test de parité** : chaque module doit produire exactement le même résultat
   que la version encore présente dans `app.js`. Il échoue à la moindre
   divergence — c'est le garde-fou pendant la modularisation (lot 2).

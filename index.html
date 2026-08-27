@@ -309,7 +309,7 @@
       <div class="update-grid">
         <article class="update-card"><span class="update-card-icon blue"><svg aria-hidden="true"><use href="#nav-apps"/></svg></span><div><strong>Logiciels installés</strong><small>Applications reconnues par winget, y compris les versions inconnues</small></div><span class="included">INCLUS</span></article>
         <article class="update-card"><span class="update-card-icon cyan"><svg aria-hidden="true"><use href="#nav-windows"/></svg></span><div><strong>Composants Windows</strong><small>Mises à jour de sécurité et de qualité via Windows Update</small></div><span class="included">INCLUS</span></article>
-        <article class="update-card"><span class="update-card-icon violet"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span><div><strong>Pilotes Microsoft</strong><small>OwlSetup ouvre Windows Update ; les pilotes proposés par Microsoft s'y installent</small></div><span class="included">VIA WINDOWS UPDATE</span></article>
+        <article class="update-card"><span class="update-card-icon violet"><svg aria-hidden="true"><use href="#nav-settings"/></svg></span><div><strong>Pilotes Microsoft</strong><small>OwlSetup liste les pilotes proposés par Microsoft ; leur installation se fait dans Windows Update</small></div><span class="included">VIA WINDOWS UPDATE</span></article>
       </div>
       <div class="update-preview-panel">
         <div class="section-heading"><div><span class="label">APERÇU DES VERSIONS</span><h2>Mises à jour disponibles</h2></div><div class="update-list-actions"><button class="text-button hidden" id="selectAllUpdates" type="button">Tout sélectionner</button><button class="text-button hidden" id="clearUpdates" type="button">Tout désélectionner</button><button class="text-button" id="scanUpdatesBtn">↻ Rechercher</button></div></div>
@@ -317,6 +317,13 @@
         <div class="available-updates hidden" id="availableUpdates"></div>
         <div class="no-updates hidden" id="noUpdates"><span>✓</span><div><strong>Vos applications sont à jour</strong><small>Aucune nouvelle version détectée dans le catalogue.</small></div></div>
         <div class="ignored-updates-bar hidden" id="ignoredUpdatesBar"><span id="ignoredUpdatesText"></span><button class="text-button" id="restoreIgnoredUpdates" type="button">Réafficher</button></div>
+      </div>
+      <div class="update-preview-panel" id="windowsUpdatePanel">
+        <div class="section-heading"><div><span class="label">WINDOWS UPDATE</span><h2>Composants et pilotes Microsoft</h2></div><div class="update-list-actions"><button class="text-button" id="openWindowsUpdateBtn" type="button">Ouvrir Windows Update</button><button class="text-button" id="scanWindowsUpdatesBtn" type="button">↻ Analyser</button></div></div>
+        <div class="update-scan-state hidden" id="windowsUpdateScanState"><span class="scan-spinner">↻</span><div><strong>Analyse de Windows Update</strong><small>La recherche interroge Microsoft et peut durer jusqu'à deux minutes.</small></div></div>
+        <p class="windows-update-summary" id="windowsUpdateSummary">Lancez l'analyse pour lister les composants et pilotes proposés par Microsoft. OwlSetup ne les installe pas : l'installation se fait dans Windows Update.</p>
+        <div class="windows-update-list hidden" id="windowsUpdateList"></div>
+        <div class="no-updates hidden" id="noWindowsUpdates"><span>✓</span><div><strong>Windows est à jour</strong><small>Aucun composant ni pilote en attente côté Microsoft.</small></div></div>
       </div>
       <div class="update-action-panel">
         <div class="update-action-copy"><span class="status-dot"></span><div><strong id="updateReadyTitle">Analyse en cours</strong><small id="updateReadyDetail">Les versions seront affichées avant toute installation.</small></div></div>
@@ -328,7 +335,7 @@
         <ol class="update-steps">
           <li><b>1</b><span><strong>Contrôle administrateur</strong><small>Relance automatique avec les droits nécessaires.</small></span></li>
           <li><b>2</b><span><strong>Mise à jour des applications</strong><small>Installation silencieuse des nouvelles versions disponibles.</small></span></li>
-          <li><b>3</b><span><strong>Windows Update</strong><small>Ouverture des Paramètres Windows pour les composants et pilotes proposés par Microsoft.</small></span></li>
+          <li><b>3</b><span><strong>Windows Update</strong><small>Analyse des composants et pilotes proposés par Microsoft, puis ouverture des Paramètres Windows pour les installer.</small></span></li>
           <li><b>4</b><span><strong>Rapport final</strong><small>Journal conservé dans le dossier local de OwlSetup.</small></span></li>
         </ol>
       </div>

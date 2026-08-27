@@ -2045,6 +2045,80 @@ function renderAvailableUpdates() {
   $("#updateReadyDetail").textContent = hasUpdates ? "Vérifiez les versions puis lancez uniquement votre sélection." : "Vous pouvez relancer une recherche à tout moment.";
 }
 
+// --- Windows Update (inventaire lecture seule) --------------------------------
+let windowsUpdateScanRunning = false;
+
+function formatWindowsUpdateBytes(bytes) {
+  const n = Number(bytes);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const mo = n / (1024 * 1024);
+  return mo < 1024 ? `${Math.round(mo)} Mo` : `${(mo / 1024).toFixed(1).replace(".", ",")} Go`;
+}
+
+function requestWindowsUpdateScan() {
+  if (!window.chrome?.webview) {
+    notify("Windows Update", "Cette analyse est disponible dans l'application Windows.", "info");
+    return;
+  }
+  windowsUpdateScanRunning = true;
+  $("#windowsUpdateScanState")?.classList.remove("hidden");
+  $("#windowsUpdateList")?.classList.add("hidden");
+  $("#noWindowsUpdates")?.classList.add("hidden");
+  const btn = $("#scanWindowsUpdatesBtn");
+  if (btn) btn.disabled = true;
+  window.chrome.webview.postMessage({ action: "scan-windows-updates", payload: {} });
+}
+
+function renderWindowsUpdates(message) {
+  windowsUpdateScanRunning = false;
+  $("#windowsUpdateScanState")?.classList.add("hidden");
+  const btn = $("#scanWindowsUpdatesBtn");
+  if (btn) btn.disabled = false;
+  const list = Array.isArray(message.updates) ? message.updates : [];
+  const summaryEl = $("#windowsUpdateSummary");
+  const listEl = $("#windowsUpdateList");
+  const emptyEl = $("#noWindowsUpdates");
+
+  if (message.warning) {
+    if (summaryEl) summaryEl.textContent = `Analyse Windows Update indisponible : ${message.warning}`;
+    listEl?.classList.add("hidden");
+    emptyEl?.classList.add("hidden");
+    setNavAlert("#updatesNavBadge", 0, false);
+    return;
+  }
+
+  const driverCount = Number(message.driverCount || 0);
+  const checkedAt = message.checkedAt ? ` · vérifié à ${message.checkedAt}` : "";
+  if (list.length === 0) {
+    if (summaryEl) summaryEl.textContent = `Windows est à jour${checkedAt}.`;
+    listEl?.classList.add("hidden");
+    emptyEl?.classList.remove("hidden");
+    return;
+  }
+
+  const bits = [`${list.length} mise${list.length > 1 ? "s" : ""} à jour Windows en attente`];
+  if (driverCount > 0) bits.push(`${driverCount} pilote${driverCount > 1 ? "s" : ""}`);
+  const totalBytes = list.reduce((sum, u) => sum + (Number(u.bytes) || 0), 0);
+  const totalLabel = formatWindowsUpdateBytes(totalBytes);
+  if (totalLabel) bits.push(totalLabel);
+  if (summaryEl) summaryEl.textContent = `${bits.join(" · ")}${checkedAt}.`;
+
+  emptyEl?.classList.add("hidden");
+  if (listEl) {
+    listEl.classList.remove("hidden");
+    listEl.innerHTML = list
+      .map(u => {
+        const kindLabel = u.kind === "driver" ? "Pilote" : "Composant";
+        const meta = [u.kb, formatWindowsUpdateBytes(u.bytes), u.downloaded ? "déjà téléchargé" : ""]
+          .filter(Boolean)
+          .join(" · ");
+        const sev = u.severity ? `<span class="wu-sev">${escapeHtml(u.severity)}</span>` : "";
+        return `<div class="windows-update-row wu-${u.kind === "driver" ? "driver" : "software"}"><span class="wu-kind">${kindLabel}</span><span class="wu-body"><strong>${escapeHtml(u.title)}</strong><small>${escapeHtml(meta)}</small></span>${sev}</div>`;
+      })
+      .join("");
+  }
+}
+
 let lastHealthState = null;
 
 function getHealthBreakdown(message) {
@@ -3316,6 +3390,21 @@ function handleInstallMessage(message) {
     $("#scanUpdatesBtn").disabled = true;
     return;
   }
+  if (message.type === "windows-updates-scanning") {
+    windowsUpdateScanRunning = true;
+    $("#windowsUpdateScanState")?.classList.remove("hidden");
+    const wuBtn = $("#scanWindowsUpdatesBtn");
+    if (wuBtn) wuBtn.disabled = true;
+    return;
+  }
+  if (message.type === "windows-updates") {
+    renderWindowsUpdates(message);
+    return;
+  }
+  if (message.type === "windows-update-open-failed") {
+    notify("Windows Update", `Ouverture impossible : ${message.message || "erreur inconnue"}`, "error");
+    return;
+  }
   if (message.type === "updates-found") {
     availableUpdates = message.updates || [];
     const ignoredUpdateIds = getIgnoredUpdateIds();
@@ -3476,6 +3565,13 @@ function handleInstallMessage(message) {
     const fullyCompleted=applicationsVerified&&message.windowsStarted===true;
     const selfManagedNote=message.selfManagedMessage || "";
     const withSelfManaged=text=>selfManagedNote?`${text}\n\n${selfManagedNote}`:text;
+    const wuCount=Number(message.windowsUpdateCount);
+    const wuDrivers=Number(message.windowsDriverCount||0);
+    const windowsUpdateNote=!Number.isFinite(wuCount)||wuCount<0
+      ? ""
+      : wuCount===0
+        ? "Windows est à jour, aucun composant en attente."
+        : `${wuCount} mise${wuCount>1?"s":""} à jour Windows en attente${wuDrivers>0?` (dont ${wuDrivers} pilote${wuDrivers>1?"s":""})`:""}. Ouvrez Windows Update pour les installer.`;
     $("#updateModal").dataset.running = "false";
     $("#closeUpdateModal").disabled = false;
     $("#updateProgressBar").style.width = "100%";
@@ -3483,7 +3579,7 @@ function handleInstallMessage(message) {
     $("#updateProgressTitle").textContent = fullyCompleted ? "Votre PC est à jour" : applicationsVerified ? "Applications à jour" : "Mise à jour terminée avec avertissement";
     $("#updateProgressDetail").textContent = withSelfManaged(applicationsVerified ? (message.windowsStarted ? "Applications vérifiées et recherche Windows Update lancée" : "Applications vérifiées. Ouvrez Windows Update pour contrôler le système.") : (message.errorMessage || `Certaines applications sont à vérifier (code ${message.code})`));
     setBackgroundUpdate(fullyCompleted ? "Mise à jour terminée" : applicationsVerified ? "Applications mises à jour" : "Mise à jour terminée avec avertissement", applicationsVerified ? (message.windowsStarted ? "Applications traitées avec succès" : "Windows Update reste à contrôler séparément") : (message.errorMessage || "Consultez le résultat pour les détails."), 100, applicationsVerified ? "complete" : "warning");
-    $("#updateSummary").textContent = `${message.windowsStarted ? "Recherche Windows Update lancée." : "Windows Update n'a pas pu être lancé."} Rapport : ${message.logName}`;
+    $("#updateSummary").textContent = `${windowsUpdateNote || (message.windowsStarted ? "Recherche Windows Update lancée." : "Windows Update n'a pas pu être lancé.")} Rapport : ${message.logName}`;
     document.querySelectorAll("[data-update-step]").forEach(step => { step.classList.remove("active"); step.classList.add("done"); });
     lastUpdateIssue=applicationsVerified?null:{category:"Mise à jour d'une application",title:"La mise à jour des applications se termine avec un avertissement",description:message.errorMessage||`WinGet n’a pas terminé la mise à jour (code ${message.code ?? "non communiqué"}).`,steps:"1. Ouvrir Tout mettre à jour\n2. Sélectionner les mises à jour proposées\n3. Lancer l’opération et attendre la fin",technical:`Opération : mise à jour\nCode de sortie : ${message.code ?? "non communiqué"}\nJournal local : ${message.logName || "non indiqué"}\nWindows Update lancé : ${message.windowsStarted?"oui":"non"}\n\nLe journal complet reste sur le PC et n’est pas joint automatiquement.`};
     if (applicationsVerified) resolveOperationalTelemetry("update");
@@ -4074,6 +4170,8 @@ $("#collectFeedbackDiagnostics").addEventListener("click", collectFeedbackDiagno
 $("#openFeedbackLogs").addEventListener("click", () => window.chrome?.webview?.postMessage({action:"open-log-folder",payload:{}}));
 $("#updateAllBtn").addEventListener("click", openUpdateModal);
 $("#scanUpdatesBtn").addEventListener("click", requestUpdateScan);
+$("#scanWindowsUpdatesBtn")?.addEventListener("click", requestWindowsUpdateScan);
+$("#openWindowsUpdateBtn")?.addEventListener("click", () => window.chrome?.webview?.postMessage({ action: "open-windows-update", payload: {} }));
 $("#selectAllUpdates").addEventListener("click",()=>{const ignored=getIgnoredUpdateIds();selectedUpdates=new Set(availableUpdates.filter(update=>!ignored.has(update.id)).map(update=>update.id));renderAvailableUpdates();});
 $("#clearUpdates").addEventListener("click",()=>{selectedUpdates.clear();renderAvailableUpdates();});
 $("#restoreIgnoredUpdates").addEventListener("click", restoreIgnoredUpdates);

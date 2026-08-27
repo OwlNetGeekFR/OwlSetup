@@ -55,6 +55,7 @@ internal sealed class WebAppForm : Form
     bool browserCleanupRunning;
     bool healthScanning;
     bool updatesScanning;
+    bool windowsUpdatesScanning;
     bool selfUpdateRunning;
     readonly Dictionary<string,DateTime> cleanupSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<string,DateTime> uninstallSimulations=new Dictionary<string,DateTime>(StringComparer.OrdinalIgnoreCase);
@@ -237,6 +238,8 @@ internal sealed class WebAppForm : Form
             else if (action == "install-app-update") InstallAppUpdate();
             else if (action == "scan-health") ScanHealth();
             else if (action == "scan-updates") ScanUpdates();
+            else if (action == "scan-windows-updates") ScanWindowsUpdates();
+            else if (action == "open-windows-update") OpenWindowsUpdateSettings();
             else if (action == "install") RunInstall(payload);
             else if (action == "preflight-install") RunInstallPreflight(payload);
             else if (action == "choose-install-location") ChooseInstallLocation(payload);
@@ -2877,6 +2880,7 @@ internal sealed class WebAppForm : Form
             var remaining=new List<Dictionary<string,object>>();
             var selfManagedItems=new List<Dictionary<string,object>>();
             bool windowsStarted=false;
+            int windowsUpdateCount=-1,windowsDriverCount=0;
             try
             {
                 report.AppendLine("OWLSETUP - RAPPORT DE MISE A JOUR");
@@ -2935,7 +2939,22 @@ internal sealed class WebAppForm : Form
                     report.AppendLine("A MISE A JOUR INTEGREE (ouvrir le logiciel pour finaliser) : "+String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["id"]))));
                 }
 
-                SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Ouverture de Windows Update", detail="Composants et pilotes proposés par Microsoft" });
+                SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Analyse de Windows Update", detail="Recherche des composants et pilotes proposés par Microsoft" });
+                try
+                {
+                    string wuWarning;bool wuDone;
+                    var wuList=SearchWindowsUpdates(report,out wuWarning,out wuDone);
+                    if(wuDone)
+                    {
+                        windowsUpdateCount=wuList.Count;
+                        windowsDriverCount=wuList.Count(u=>Convert.ToString(u["kind"])=="driver");
+                    }
+                }
+                catch(Exception wuEx){report.AppendLine();report.AppendLine("Analyse Windows Update impossible : "+wuEx.Message);}
+                string wuDetail=windowsUpdateCount<0?"Ouverture de Windows Update"
+                    :windowsUpdateCount==0?"Aucune mise à jour Windows en attente"
+                    :windowsUpdateCount+" mise(s) à jour Windows en attente"+(windowsDriverCount>0?" (dont "+windowsDriverCount+" pilote(s))":"");
+                SendToWeb(new { type="update-stage", stage="windows", percent=90, title="Windows Update", detail=wuDetail });
                 windowsStarted=TriggerWindowsUpdate(report);
             }
             catch(Exception ex)
@@ -2969,7 +2988,7 @@ internal sealed class WebAppForm : Form
                 }
                 try { File.WriteAllText(logPath,report.ToString(),Encoding.UTF8); } catch { }
                 updateRunning=false;
-                SendToWeb(new { type="update-complete", success=success, appsSuccess=appsSuccess, windowsStarted=windowsStarted, pendingCount=remaining.Count, code=appsSuccess?lastCode:failedCode, errorMessage=errorMessage, failureKind=failedItems.Count>0?Convert.ToString(failedItems[0]["kind"]):"", failedItems=failedItems.ToArray(), selfManagedItems=selfManagedItems.ToArray(), selfManagedMessage=selfManagedMessage, logName=logName });
+                SendToWeb(new { type="update-complete", success=success, appsSuccess=appsSuccess, windowsStarted=windowsStarted, windowsUpdateCount=windowsUpdateCount, windowsDriverCount=windowsDriverCount, pendingCount=remaining.Count, code=appsSuccess?lastCode:failedCode, errorMessage=errorMessage, failureKind=failedItems.Count>0?Convert.ToString(failedItems[0]["kind"]):"", failedItems=failedItems.ToArray(), selfManagedItems=selfManagedItems.ToArray(), selfManagedMessage=selfManagedMessage, logName=logName });
             }
         });
     }
@@ -2994,6 +3013,109 @@ internal sealed class WebAppForm : Form
         finally
         {
             if(instance!=null && Marshal.IsComObject(instance)) try { Marshal.FinalReleaseComObject(instance); } catch { }
+        }
+    }
+
+    // Inventaire Windows Update via l'API WUA (Microsoft.Update.Session), en
+    // LECTURE SEULE : ne télécharge ni n'installe rien. La recherche WUA peut
+    // durer de 10 s à 2 min et nécessite Internet ; à n'appeler que sur action
+    // explicite de l'utilisateur. Chaque mise à jour est émise sur une ligne
+    // « PCSETUP_WU_ITEM|{json} », suivie de « PCSETUP_WU_END|ok|<n> » ou
+    // « PCSETUP_WU_END|error|<message> ».
+    List<Dictionary<string,object>> SearchWindowsUpdates(StringBuilder report,out string warning,out bool completed)
+    {
+        warning=null;completed=false;
+        var updates=new List<Dictionary<string,object>>();
+        // La sortie est forcée en ASCII pur (échappement \uXXXX) : PowerShell 5.1
+        // n'écrit pas de l'UTF-8 fiable sur un flux redirigé, or les titres de
+        // mises à jour contiennent des accents. JavaScriptSerializer redécode
+        // les \uXXXX correctement côté hôte.
+        string script="$ErrorActionPreference='Stop';"+
+            "function Out-Ascii($p){ $b=New-Object System.Text.StringBuilder; foreach($ch in $p.ToCharArray()){ if([int]$ch -lt 128){ [void]$b.Append($ch) } else { [void]$b.AppendFormat('\\u{0:x4}',[int]$ch) } }; [Console]::Out.WriteLine($b.ToString()) }"+
+            "try{"+
+            "$s=New-Object -ComObject Microsoft.Update.Session;"+
+            "$searcher=$s.CreateUpdateSearcher();"+
+            "$r=$searcher.Search('IsInstalled=0 AND IsHidden=0');"+
+            "foreach($u in $r.Updates){"+
+            "$drv=$false; foreach($c in $u.Categories){ if($c.Name -eq 'Drivers'){ $drv=$true } };"+
+            "$kb=@(); foreach($k in $u.KBArticleIDs){ $kb+=('KB'+$k) };"+
+            "$o=[ordered]@{ title=[string]$u.Title; kb=($kb -join ','); kind=$(if($drv){'driver'}else{'software'}); bytes=[int64]$u.MaxDownloadSize; downloaded=[bool]$u.IsDownloaded; severity=[string]$u.MsrcSeverity };"+
+            "Out-Ascii ('PCSETUP_WU_ITEM|'+($o | ConvertTo-Json -Compress)); };"+
+            "Out-Ascii ('PCSETUP_WU_END|ok|'+$r.Updates.Count);"+
+            "}catch{ Out-Ascii ('PCSETUP_WU_END|error|'+$_.Exception.Message); }";
+        string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+        var raw=new StringBuilder();
+        RunHiddenProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,raw);
+        report.Append(raw.ToString());
+        foreach(string line in raw.ToString().Split(new[]{"\r\n","\r","\n"},StringSplitOptions.RemoveEmptyEntries))
+        {
+            if(line.StartsWith("PCSETUP_WU_ITEM|",StringComparison.Ordinal))
+            {
+                try
+                {
+                    var item=json.DeserializeObject(line.Substring("PCSETUP_WU_ITEM|".Length)) as Dictionary<string,object>;
+                    if(item==null)continue;
+                    string title=Convert.ToString(item.ContainsKey("title")?item["title"]:"").Trim();
+                    if(title.Length==0)continue;
+                    long bytes=0;try{bytes=Convert.ToInt64(item.ContainsKey("bytes")?item["bytes"]:0);}catch{}
+                    updates.Add(new Dictionary<string,object>
+                    {
+                        {"title",title},
+                        {"kb",Convert.ToString(item.ContainsKey("kb")?item["kb"]:"")},
+                        {"kind",Convert.ToString(item.ContainsKey("kind")?item["kind"]:"software")=="driver"?"driver":"software"},
+                        {"bytes",bytes},
+                        {"downloaded",item.ContainsKey("downloaded") && Convert.ToBoolean(item["downloaded"])},
+                        {"severity",Convert.ToString(item.ContainsKey("severity")?item["severity"]:"")}
+                    });
+                }
+                catch{}
+            }
+            else if(line.StartsWith("PCSETUP_WU_END|",StringComparison.Ordinal))
+            {
+                string[] parts=line.Split('|');
+                if(parts.Length>=2 && parts[1]=="ok")completed=true;
+                else if(parts.Length>=3 && parts[1]=="error")warning=parts[2];
+            }
+        }
+        if(!completed && String.IsNullOrEmpty(warning))warning="La recherche Windows Update ne s'est pas terminée.";
+        return updates;
+    }
+
+    void ScanWindowsUpdates()
+    {
+        if(windowsUpdatesScanning)return;
+        windowsUpdatesScanning=true;
+        SendToWeb(new { type="windows-updates-scanning" });
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            var updates=new List<Dictionary<string,object>>();
+            string warning=null;bool completed=false;
+            try { updates=SearchWindowsUpdates(report,out warning,out completed); }
+            catch(Exception ex) { warning=ex.Message; }
+            finally
+            {
+                windowsUpdatesScanning=false;
+                int drivers=updates.Count(u=>Convert.ToString(u["kind"])=="driver");
+                SendToWeb(new {
+                    type="windows-updates",
+                    updates=updates.ToArray(),
+                    count=updates.Count,
+                    driverCount=drivers,
+                    softwareCount=updates.Count-drivers,
+                    completed=completed,
+                    warning=warning ?? "",
+                    checkedAt=DateTime.Now.ToString("HH:mm")
+                });
+            }
+        });
+    }
+
+    void OpenWindowsUpdateSettings()
+    {
+        try { Process.Start(new ProcessStartInfo("ms-settings:windowsupdate"){UseShellExecute=true}); }
+        catch(Exception ex)
+        {
+            SendToWeb(new { type="windows-update-open-failed", message=ex.Message });
         }
     }
 
