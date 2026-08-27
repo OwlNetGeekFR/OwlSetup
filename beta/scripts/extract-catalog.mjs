@@ -1,14 +1,10 @@
 /**
- * Extrait le catalogue d'applications encore code en dur dans `../app.js`
- * (`const apps`, `apps.push(...)`, table `appLogos`) vers un fichier de donnees
- * unique : `beta/catalog/apps.json`.
+ * MIGRATION UNIQUE (jusqu'a 4.0.0-beta.10). Extrayait le catalogue code en dur
+ * dans `../app.js` vers `beta/catalog/apps.json`.
  *
- *   node scripts/extract-catalog.mjs           # (re)genere apps.json
- *   node scripts/extract-catalog.mjs --check   # echoue si apps.json a derive
- *
- * Objectif du plan : `app.js` chargera ce JSON via `window.PC_SETUP_CATALOG`
- * (le point d'extension existe deja dans le fichier), et les contributions au
- * catalogue deviendront de simples modifications de donnees, verifiables en CI.
+ * Depuis 4.0.0-beta.11 : `apps.json` EST la source de verite (edite a la main),
+ * `app.js` le charge via `window.PC_SETUP_CATALOG`. Ce script ne sert plus qu'a
+ * rejouer la migration si besoin ; en fonctionnement normal il ne fait rien.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -22,7 +18,11 @@ const source = readFileSync(ROOT_APP_JS, "utf8");
 const appsStart = source.indexOf("const apps = [");
 const appsEnd = source.indexOf("\nif (Array.isArray(window.PC_SETUP_CATALOG)", appsStart);
 if (appsStart < 0 || appsEnd < 0) {
-  throw new Error("Bloc `const apps` introuvable dans app.js (structure modifiee ?)");
+  console.log(
+    "Migration deja effectuee : app.js ne contient plus de catalogue en dur. " +
+      "La source est beta/catalog/apps.json (editez-le directement)."
+  );
+  process.exit(0);
 }
 const appsBlock = source.slice(appsStart, appsEnd);
 
@@ -47,31 +47,28 @@ const orphanLogos = Object.keys(appLogos).filter((id) => !apps.some((app) => app
 
 const catalog = {
   $schema: "./catalog.schema.json",
-  generatedFrom: "app.js",
-  note: "Fichier genere par beta/scripts/extract-catalog.mjs — ne pas editer a la main tant que app.js reste la source.",
+  generatedFrom: "app.js (migration unique)",
+  note: "apps.json est desormais la source de verite du catalogue. Editez-le directement (validé par catalog.schema.json). L'ordre est celui de l'affichage.",
   count: apps.length,
-  applications: apps
-    .slice()
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .map((app) => ({
-      id: app.id,
-      name: app.name,
-      category: app.category,
-      desc: app.desc,
-      icon: app.icon,
-      color: app.color,
-      site: app.site,
-      logo: app.logo || "",
-      ...(app.tags ? { tags: app.tags } : {}),
-      ...(app.source ? { source: app.source } : {}),
-      ...(app.repairMode ? { repairMode: app.repairMode } : {}),
-      ...(app.portable ? { portable: true } : {}),
-      ...(app.launchable ? { launchable: true } : {}),
-      ...(app.manualInstall ? { manualInstall: true } : {}),
-      ...(app.manualInstallUrl ? { manualInstallUrl: app.manualInstallUrl } : {}),
-      ...(app.webService ? { webService: true } : {}),
-      ...(app.systemComponent ? { systemComponent: true } : {}),
-    })),
+  applications: apps.slice().map((app) => ({
+    id: app.id,
+    name: app.name,
+    category: app.category,
+    desc: app.desc,
+    icon: app.icon,
+    color: app.color,
+    site: app.site,
+    logo: app.logo || "",
+    ...(app.tags ? { tags: app.tags } : {}),
+    ...(app.source ? { source: app.source } : {}),
+    ...(app.repairMode ? { repairMode: app.repairMode } : {}),
+    ...(app.portable ? { portable: true } : {}),
+    ...(app.launchable ? { launchable: true } : {}),
+    ...(app.manualInstall ? { manualInstall: true } : {}),
+    ...(app.manualInstallUrl ? { manualInstallUrl: app.manualInstallUrl } : {}),
+    ...(app.webService ? { webService: true } : {}),
+    ...(app.systemComponent ? { systemComponent: true } : {}),
+  })),
 };
 
 const serialized = JSON.stringify(catalog, null, 2) + "\n";

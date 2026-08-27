@@ -2,3 +2,5 @@ node_modules/
 coverage/
 catalog/apps.json
 catalog/catalog.generated.js
+csharp/bin/
+csharp/obj/
