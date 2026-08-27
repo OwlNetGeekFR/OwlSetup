@@ -2348,28 +2348,57 @@ internal sealed class WebAppForm : Form
         Task.Run(delegate {
             var report=new StringBuilder();int code=-1;string logName="PC-Setup-Reparation-WinGet-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
+            string sourcesNote="";
             try
             {
+                // 1) re-enregistrement App Installer + simple actualisation des sources.
+                // 2) seulement si ça échoue : sauvegarde des sources personnalisées,
+                //    reset --force, puis ré-ajout des sources non standard.
                 string script="$ErrorActionPreference='Stop';"+
                     "$pkg=Get-AppxPackage Microsoft.DesktopAppInstaller;"+
                     "if(-not $pkg){throw 'App Installer est absent. Installez-le depuis le Microsoft Store.'};"+
                     "Add-AppxPackage -DisableDevelopmentMode -Register (Join-Path $pkg.InstallLocation 'AppxManifest.xml');"+
                     "$winget=Join-Path $env:LOCALAPPDATA 'Microsoft\\WindowsApps\\winget.exe';"+
                     "if(-not (Test-Path $winget)){$winget='winget.exe'};"+
+                    "& $winget source update --disable-interactivity;"+
+                    "if($LASTEXITCODE -eq 0){ Write-Output 'PCSETUP_WG|updated'; exit 0 };"+
+                    // `winget source export` produit une ligne JSON par source (NDJSON).
+                    // On ne conserve que les sources ajoutées par l'utilisateur
+                    // (TrustLevel sans 'StoreOrigin' = pas une source Microsoft intégrée).
+                    "$std=@('winget','winget-font','msstore'); $custom=@(); try{ foreach($ln in (& $winget source export 2>$null)){ $t=$ln.Trim(); if(-not $t.StartsWith('{')){continue}; try{ $o=ConvertFrom-Json $t; $store=$o.TrustLevel -and ($o.TrustLevel -contains 'StoreOrigin'); if($o.Name -and $o.Arg -and -not $store -and ($std -notcontains $o.Name)){ $custom+=$o } }catch{} } }catch{};"+
                     "& $winget source reset --force --disable-interactivity;"+
                     "& $winget source update --disable-interactivity;"+
-                    "exit $LASTEXITCODE";
+                    "$restored=0; $failed=@();"+
+                    "foreach($s in $custom){ try{ if($s.Type){ & $winget source add --name $s.Name --arg $s.Arg --type $s.Type --disable-interactivity 2>$null } else { & $winget source add --name $s.Name --arg $s.Arg --disable-interactivity 2>$null }; if($LASTEXITCODE -eq 0){ $restored++ } else { $failed+=$s.Name } }catch{ $failed+=$s.Name } };"+
+                    "if($custom.Count -gt 0){ Write-Output ('PCSETUP_WG|reset|restored='+$restored+'|failed='+($failed -join ',')) } else { Write-Output 'PCSETUP_WG|reset' };"+
+                    "exit 0";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
                 SendToWeb(new { type="tool-progress", tool="winget", percent=35, status="Reenregistrement et actualisation des sources..." });
                 code=RunHiddenProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
                 SendToWeb(new { type="tool-progress", tool="winget", percent=90, status="Verification du resultat..." });
+                string text=report.ToString();
+                if(text.Contains("PCSETUP_WG|updated"))sourcesNote="Sources actualisées sans réinitialisation.";
+                else
+                {
+                    Match r=Regex.Match(text,@"PCSETUP_WG\|reset(?:\|restored=(\d+)\|failed=([^\r\n]*))?");
+                    if(r.Success)
+                    {
+                        if(r.Groups[1].Success)
+                        {
+                            string failed=r.Groups[2].Value.Trim();
+                            sourcesNote="Réinitialisation complète. Sources personnalisées ré-ajoutées : "+r.Groups[1].Value+".";
+                            if(failed.Length>0)sourcesNote+=" À ré-ajouter manuellement : "+failed+".";
+                        }
+                        else sourcesNote="Réinitialisation complète des sources (aucune source personnalisée détectée).";
+                    }
+                }
             }
             catch(Exception ex){report.AppendLine("ERREUR : "+ex.Message);}
             finally
             {
                 try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
                 SendToWeb(new { type="tool-progress", tool="winget", percent=100, status=code==0?"Reparation terminee.":"Reparation a verifier." });
-                SendToWeb(new { type="winget-repair-complete",success=code==0,code=code,logName=logName });
+                SendToWeb(new { type="winget-repair-complete",success=code==0,code=code,sourcesNote=sourcesNote,logName=logName });
             }
         });
     }
@@ -2381,46 +2410,51 @@ internal sealed class WebAppForm : Form
         Task.Run(delegate {
             var report=new StringBuilder();int code=-1;string logName="PC-Setup-Point-Restauration-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
-            string marker="";
+            string marker="";int recentHours=0;
             try
             {
                 string label="OwlSetup "+BuildInfo.DisplayVersion+" - "+DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                // 1) Vérifie que la protection système est active. 2) Neutralise
-                // temporairement la limite Windows de 1 point / 24 h (sinon
-                // Checkpoint-Computer ne fait rien tout en renvoyant 0).
-                // 3) Confirme la création en comparant le nombre de points.
+                // 1) Vérifie que la protection système est active.
+                // 2) Tente la création et confirme via le nombre de points.
+                // 3) Si Windows a refusé à cause de sa limite de 1 point / 24 h,
+                //    signale qu'un point récent protège déjà le PC (pas de
+                //    modification du registre : c'est fragile si le process meurt).
                 string script=
                     "$ErrorActionPreference='Stop';"+
                     "$k='HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore';"+
                     "$disabled=$false; try{ $disabled=((Get-ItemProperty $k -Name DisableSR -EA SilentlyContinue).DisableSR -eq 1) }catch{};"+
                     "if($disabled){ Write-Output 'PCSETUP_SR|disabled'; exit 3 };"+
-                    "$freq=$null; try{ $freq=(Get-ItemProperty $k -Name 'SystemRestorePointCreationFrequency' -EA SilentlyContinue).SystemRestorePointCreationFrequency }catch{};"+
-                    "$restore=$false; if($null -eq $freq -or $freq -ne 0){ try{ New-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -Value 0 -PropertyType DWord -Force | Out-Null; $restore=$true }catch{} };"+
                     "$before=@(Get-ComputerRestorePoint -EA SilentlyContinue).Count;"+
-                    "try{ Checkpoint-Computer -Description '"+label.Replace("'","''")+"' -RestorePointType 'MODIFY_SETTINGS' }"+
-                    "finally{ if($restore){ if($null -eq $freq){ Remove-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -EA SilentlyContinue } else { Set-ItemProperty -Path $k -Name 'SystemRestorePointCreationFrequency' -Value $freq -EA SilentlyContinue } } };"+
-                    "$after=@(Get-ComputerRestorePoint -EA SilentlyContinue).Count;"+
-                    "if($after -gt $before){ Write-Output 'PCSETUP_SR|created'; exit 0 } else { Write-Output 'PCSETUP_SR|not-created'; exit 4 }";
+                    "try{ Checkpoint-Computer -Description '"+label.Replace("'","''")+"' -RestorePointType 'MODIFY_SETTINGS' }catch{};"+
+                    "$points=@(Get-ComputerRestorePoint -EA SilentlyContinue);"+
+                    "if($points.Count -gt $before){ Write-Output 'PCSETUP_SR|created'; exit 0 };"+
+                    "$last=$points | Sort-Object { [Management.ManagementDateTimeConverter]::ToDateTime($_.CreationTime) } | Select-Object -Last 1;"+
+                    "if($last){ $age=(New-TimeSpan -Start ([Management.ManagementDateTimeConverter]::ToDateTime($last.CreationTime)) -End (Get-Date)).TotalHours; if($age -lt 24){ Write-Output ('PCSETUP_SR|recent|'+[int]$age); exit 5 } };"+
+                    "Write-Output 'PCSETUP_SR|not-created'; exit 4";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
                 SendToWeb(new { type="tool-progress", tool="restore", percent=40, status="Creation par Windows..." });
                 code=RunElevatedProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
                 SendToWeb(new { type="tool-progress", tool="restore", percent=90, status="Verification du point..." });
-                Match m=Regex.Match(report.ToString(),@"PCSETUP_SR\|([a-z-]+)");
+                Match m=Regex.Match(report.ToString(),@"PCSETUP_SR\|([a-z-]+)(?:\|(\d+))?");
                 if(m.Success)marker=m.Groups[1].Value;
+                if(m.Success && m.Groups[2].Success)Int32.TryParse(m.Groups[2].Value,out recentHours);
             }
             catch(Exception ex){report.AppendLine("ERREUR : "+ex.Message);}
             finally
             {
                 try{File.WriteAllText(logPath,report.ToString(),Encoding.UTF8);}catch{}
-                bool created=code==0 && marker!="not-created";
-                SendToWeb(new { type="tool-progress", tool="restore", percent=100, status=created?"Point cree.":"Creation a verifier." });
+                // Un point < 24 h protège déjà le PC : on considère l'objectif atteint.
+                // (le script sort avec un code != 0 pour « recent », d'où le test sur le marqueur.)
+                bool created=marker=="created" || marker=="recent";
+                SendToWeb(new { type="tool-progress", tool="restore", percent=100, status=created?(marker=="recent"?"Point recent existant.":"Point cree."):"Creation a verifier." });
                 string reason;
-                if(created)reason="created";
+                if(marker=="created")reason="created";
+                else if(marker=="recent")reason="recent";
                 else if(code==1223)reason="uac-cancelled";
                 else if(marker=="disabled")reason="system-protection-disabled";
                 else if(marker=="not-created")reason="not-created";
                 else reason="system-protection-disabled";
-                SendToWeb(new { type="restore-point-complete",success=created,code=code,reason=reason,logName=logName });
+                SendToWeb(new { type="restore-point-complete",success=created,code=code,reason=reason,recentHours=recentHours,logName=logName });
             }
         });
     }

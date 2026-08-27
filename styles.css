@@ -652,3 +652,9 @@ code,pre,kbd,samp,
 
 /* Quarantaine : groupe d'actions de la barre d'outils — 4.0.0-beta.7 */
 .quarantine-toolbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* Toast : variantes info / avertissement / erreur — 4.0.0-beta.9 */
+.toast.toast-error>span{color:#e8807f}
+.toast.toast-warning>span{color:#e0a94b}
+.toast.toast-info>span{color:#6fa8dc}
+.toast.toast-error small,.toast.toast-warning small,.toast.toast-info small{color:#9aa7b8}

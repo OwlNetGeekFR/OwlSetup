@@ -327,12 +327,18 @@ function updateTopMenuAlert(group) {
   summary.textContent = total > 0 ? String(total) : "!";
 }
 
-function notify(title, detail) {
+function notify(title, detail, kind = "success") {
+  const glyphs = { success: "✓", info: "i", warning: "!", error: "✕" };
+  const toast = $("#toast");
+  const icon = $("#toastIcon");
+  if (icon) icon.textContent = glyphs[kind] || "✓";
+  toast.classList.remove("toast-info", "toast-warning", "toast-error");
+  if (kind === "info" || kind === "warning" || kind === "error") toast.classList.add(`toast-${kind}`);
   $("#toastTitle").textContent = title;
   $("#toastText").textContent = detail;
-  $("#toast").classList.add("show");
+  toast.classList.add("show");
   clearTimeout(window.toastTimer);
-  window.toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 2600);
+  window.toastTimer = setTimeout(() => toast.classList.remove("show"), kind === "error" ? 4000 : 2600);
 }
 
 function getErrorTelemetryMode() {
@@ -1865,7 +1871,7 @@ function restorePreferences(serialized){
 }
 
 function collectFeedbackDiagnostics() {
-  if (!window.chrome?.webview) return notify("Diagnostic indisponible", "Cette fonction nécessite l'application Windows.");
+  if (!window.chrome?.webview) return notify("Diagnostic indisponible", "Cette fonction nécessite l'application Windows.", "error");
   $("#collectFeedbackDiagnostics").disabled=true;
   $("#collectFeedbackDiagnostics").textContent="Analyse en cours...";
   window.chrome.webview.postMessage({action:"feedback-diagnostics",payload:{}});
@@ -3139,8 +3145,9 @@ function handleInstallMessage(message) {
     return;
   }
   if (message.type === "winget-repair-complete") {
-    $("#wingetDiagnosticText").textContent = message.success ? "WinGet a été réparé et ses sources ont été actualisées." : `Réparation incomplète (code ${message.code}). Consultez ${message.logName}.`;
-    notify(message.success ? "WinGet réparé" : "Réparation à vérifier", $("#wingetDiagnosticText").textContent);
+    const base = message.success ? "WinGet a été réparé et ses sources ont été actualisées." : `Réparation incomplète (code ${message.code}). Consultez ${message.logName}.`;
+    $("#wingetDiagnosticText").textContent = message.sourcesNote ? `${base} ${message.sourcesNote}` : base;
+    notify(message.success ? "WinGet réparé" : "Réparation à vérifier", $("#wingetDiagnosticText").textContent, message.success ? "success" : "error");
     setNavAlert("#toolsNavBadge", message.success ? 0 : "!", true);
     return;
   }
@@ -3150,18 +3157,20 @@ function handleInstallMessage(message) {
   }
   if (message.type === "restore-point-complete") {
     const reason=message.reason||(Number(message.code)===1223?"uac-cancelled":"system-protection-disabled");
+    const recentText=`Un point de restauration récent existe déjà (créé il y a environ ${Number(message.recentHours)||"<24"} h) et protège déjà votre PC. Windows limite la création à un point par 24 h.`;
     const failureText=reason==="uac-cancelled"
       ? "Création annulée : la demande administrateur Windows a été refusée ou fermée."
       : reason==="not-created"
-        ? "Windows n’a pas créé de nouveau point (un point très récent existe peut-être déjà). Ouvrez la protection du système pour vérifier."
+        ? "Windows n’a pas pu créer de point de restauration. Ouvrez la protection du système pour vérifier qu’elle est activée sur le lecteur C:."
         : "Création impossible : vérifiez que la protection du système est activée sur le lecteur C:.";
-    $("#restorePointText").textContent = message.success ? "Point de restauration créé avec succès." : failureText;
-    notify(message.success ? "Point créé" : "Protection non disponible", $("#restorePointText").textContent);
+    const okText = reason==="recent" ? recentText : "Point de restauration créé avec succès.";
+    $("#restorePointText").textContent = message.success ? okText : failureText;
+    notify(message.success ? (reason==="recent" ? "Point récent déjà présent" : "Point créé") : "Protection non disponible", $("#restorePointText").textContent, message.success ? "success" : "error");
     if(pendingProtectedAction){
       const pending=pendingProtectedAction; pendingProtectedAction=null;
-      if(message.success){ notify("Protection activée",`Le point a été créé avant ${pending.label}.`); window.setTimeout(pending.action,150); }
+      if(message.success){ notify("Protection en place",`${reason==="recent"?"Un point récent protège déjà votre PC avant":"Le point a été créé avant"} ${pending.label}.`); window.setTimeout(pending.action,150); }
       else {
-        notify("Opération arrêtée en sécurité","Aucune modification n’a été effectuée. Ouvrez l’aide pour choisir la suite.");
+        notify("Opération arrêtée en sécurité","Aucune modification n’a été effectuée. Ouvrez l’aide pour choisir la suite.","warning");
         openRestoreProtectionDialog(reason);
       }
     } else if(!message.success) {
@@ -3436,8 +3445,9 @@ function handleInstallMessage(message) {
     return;
   }
   if (message.type === "quarantine-action") {
-    notify(message.success ? "Action terminée" : "Action impossible", message.message);
+    notify(message.success ? "Action terminée" : "Action impossible", message.message, message.success ? "success" : "error");
     requestHealth();
+    requestQuarantine();
     return;
   }
   if (message.type === "cleanup-start") {
@@ -4071,7 +4081,7 @@ $("#copyNativeError").addEventListener("click", async () => {
     await navigator.clipboard.writeText(lastNativeError);
     notify("Diagnostic copié", "Vous pouvez le joindre à un signalement sans transmettre automatiquement vos journaux.");
   } catch {
-    notify("Copie impossible", "Sélectionnez le diagnostic affiché puis copiez-le manuellement.");
+    notify("Copie impossible", "Sélectionnez le diagnostic affiché puis copiez-le manuellement.", "error");
   }
 });
 $("#openNativeErrorHelp").addEventListener("click", () => {
