@@ -1,5 +1,30 @@
 # Historique des versions
 
+## [4.0.0-beta.22] - 2026-08-28
+
+### Lot 2 — `app.js` devient un fichier généré
+
+Première étape du découpage du front-end. Aucun changement de comportement
+attendu : c'est de l'outillage.
+
+- `app.js` (racine) n'est plus édité à la main. Il est **assemblé** par
+  `beta/scripts/build-js.mjs` : concaténation déterministe des modules purs de
+  `beta/src/modules/` (aucun pour l'instant) puis de
+  `beta/src/app/legacy.js` — le corps historique, déplacé **tel quel** —, le
+  tout enveloppé dans une IIFE.
+- Concaténation volontaire plutôt qu'un bundler : `legacy.js` apparaît
+  **verbatim** dans `app.js`, ce qui préserve les 34 contrôles de présence
+  PowerShell et les 53 tests de parité pendant la migration incrémentale.
+- Pas de `"use strict"` ajouté : sémantique identique à l'ancien script.
+- `build.ps1` régénère `app.js` quand Node est disponible (comme
+  `catalog.generated.js`) ; sinon le fichier versionné sert de repli.
+- Garde-fou `beta/test/bundle.test.js` : sortie déterministe, IIFE présente,
+  `legacy.js` inclus verbatim, repères clés conservés. 161 tests beta.
+- `beta/src/app/README.md` décrit la marche à suivre pour migrer un domaine.
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  `Test-ReleaseCandidateReadiness.ps1` verte. **Le rendu de l'interface reste
+  à confirmer sur le PC de test** (l'IIFE change la portée des symboles).
+
 ## [4.0.0-beta.21] - 2026-08-28
 
 ### CLI : la sortie s'affiche enfin dans une vraie console

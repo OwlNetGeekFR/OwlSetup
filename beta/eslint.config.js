@@ -6,13 +6,19 @@ import globals from "globals";
  *
  * Deux profils :
  *  - `src/modules/**` + `test/**` : modules ES modernes, extraits et testables.
- *  - `../app.js` (racine) : script navigateur historique, un seul fichier global.
- *    Analyse en lecture seule via `npm run lint:root:full` pour mesurer la dette,
- *    sans imposer les regles strictes tout de suite.
+ *  - `src/app/legacy.js` : corps historique de l'interface, deplace tel quel
+ *    depuis `../app.js` (lot 2). Non analyse tant qu'il n'est pas decoupe en
+ *    modules ; `node --check` via `lint:root` garde le garde-fou de syntaxe.
+ *  - `../app.js` (racine) : desormais genere par `scripts/build-js.mjs`.
  */
 export default [
   {
-    ignores: ["node_modules/**", "coverage/**", "catalog/catalog.generated.js"],
+    ignores: [
+      "node_modules/**",
+      "coverage/**",
+      "catalog/catalog.generated.js",
+      "src/app/legacy.js",
+    ],
   },
   js.configs.recommended,
   {

@@ -73,6 +73,18 @@ if (-not (Test-Path $catalogOutput)) {
     throw "catalog.generated.js introuvable et Node absent : impossible de generer le catalogue."
 }
 
+# Interface : regenere app.js depuis beta/src/app/ (concatenation deterministe)
+# quand Node est disponible ; sinon le fichier deja versionne est utilise.
+$jsScript = Join-Path $root "beta\scripts\build-js.mjs"
+$jsOutput = Join-Path $root "app.js"
+if ($node -and (Test-Path $jsScript)) {
+    & $node.Source $jsScript
+    if ($LASTEXITCODE -ne 0) { throw "Generation de app.js echouee (code $LASTEXITCODE)." }
+}
+if (-not (Test-Path $jsOutput)) {
+    throw "app.js introuvable et Node absent : impossible de generer l'interface."
+}
+
 $arguments = @(
     "/nologo", "/target:winexe", "/optimize+", "/platform:x64",
     "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
