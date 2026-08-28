@@ -33,18 +33,18 @@ _Branche : `beta/4.0-foundations` · base : v3.7.0 stable · date : 2026-08-27_
 **Objectif :** rendre le code JavaScript mesurable et testable sans changer le
 comportement de l'application.
 
-| Livrable                                                                  | Fichier                                             |
-| ------------------------------------------------------------------------- | --------------------------------------------------- |
-| `package.json` + scripts (`lint`, `format`, `test`, `catalog:*`, `check`) | `beta/package.json`                                 |
-| ESLint 9 (flat config)                                                    | `beta/eslint.config.js`                             |
-| Prettier                                                                  | `beta/.prettierrc.json`                             |
-| Vitest + seuils de couverture                                             | `beta/vitest.config.js`                             |
-| Type-check éditeur (JSDoc + `checkJs`)                                    | `beta/jsconfig.json`                                |
-| 7 modules purs extraits + testés (121 tests)                              | `beta/src/modules/*.js`, `beta/test/*`              |
-| Test de **parité** avec `app.js` (le module doit égaler l'inline)         | `beta/test/parity.test.js`                          |
-| Catalogue externalisé en JSON + schéma + vérif. de dérive                 | `beta/catalog/`, `beta/scripts/extract-catalog.mjs` |
-| Projet MSBuild pour l'hôte C# (traduction fidèle de `build.ps1`)          | `beta/csharp/OwlSetup.csproj`                       |
-| Workflow CI qualité **activé**                                            | `.github/workflows/quality.yml`                     |
+| Livrable                                                                  | Fichier                                           |
+| ------------------------------------------------------------------------- | ------------------------------------------------- |
+| `package.json` + scripts (`lint`, `format`, `test`, `catalog:*`, `check`) | `beta/package.json`                               |
+| ESLint 9 (flat config)                                                    | `beta/eslint.config.js`                           |
+| Prettier                                                                  | `beta/.prettierrc.json`                           |
+| Vitest + seuils de couverture                                             | `beta/vitest.config.js`                           |
+| Type-check éditeur (JSDoc + `checkJs`)                                    | `beta/jsconfig.json`                              |
+| 7 modules purs extraits + testés (121 tests)                              | `beta/src/modules/*.js`, `beta/test/*`            |
+| Test de **parité** avec `app.js` (le module doit égaler l'inline)         | `beta/test/parity.test.js`                        |
+| Catalogue externalisé en JSON + schéma + validation (id, catégorie, logo) | `beta/catalog/`, `beta/scripts/build-catalog.mjs` |
+| Projet MSBuild pour l'hôte C# (traduction fidèle de `build.ps1`)          | `beta/csharp/OwlSetup.csproj`                     |
+| Workflow CI qualité **activé**                                            | `.github/workflows/quality.yml`                   |
 
 **Modules extraits (purs, 0 effet de bord) :** `escape-html`, `package-id`,
 `winget-brand`, `redaction` (anonymisation des journaux — sensible vie privée),

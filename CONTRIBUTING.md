@@ -23,11 +23,14 @@ plus rien à modifier dans `app.js` pour cela.
 
 1. Ajoutez ou modifiez l’entrée dans `beta/catalog/apps.json` (schéma :
    `beta/catalog/catalog.schema.json` — `site` en `https://`, identifiant
-   commençant par un caractère alphanumérique, etc.).
-2. Si l’application a un logo, déposez-le dans `assets/logos/` et ajoutez la
-   correspondance à la table `appLogos` de `app.js`.
-3. Vérifiez : `node tools/check-catalog.mjs` puis, dans `beta/`,
-   `npm run catalog:build && npm run check`.
+   commençant par un caractère alphanumérique, `category` dans la liste fermée
+   du schéma, etc.).
+2. Déposez le logo dans `assets/logos/` (SVG de préférence, sinon PNG/ICO) et
+   renseignez le champ `logo` de l’entrée : `"logo": "assets/logos/<fichier>"`.
+   C’est la seule source de vérité — il n’y a plus de table `appLogos`.
+3. Vérifiez, dans `beta/` : `npm run catalog:build && npm run check`.
+   `catalog:build` refuse un identifiant en double, une catégorie inconnue ou
+   un fichier logo absent.
 
 `catalog.generated.js` est régénéré automatiquement par `build.ps1` ; ne l’éditez
 pas à la main.

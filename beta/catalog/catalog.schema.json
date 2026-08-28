@@ -19,7 +19,7 @@
   "definitions": {
     "application": {
       "type": "object",
-      "required": ["id", "name", "category", "desc", "icon", "color", "site"],
+      "required": ["id", "name", "category", "desc", "icon", "color", "site", "logo"],
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -30,14 +30,32 @@
         "name": { "type": "string", "minLength": 1 },
         "category": {
           "type": "string",
-          "minLength": 1,
-          "description": "Navigateurs, Utilitaires, Multimédia, Bureautique, Communication, Gaming, Développement, Composants, Sécurité, Internet, Création, Virtualisation, Intelligence artificielle."
+          "enum": [
+            "Navigateurs",
+            "Utilitaires",
+            "Multimédia",
+            "Bureautique",
+            "Communication",
+            "Gaming",
+            "Développement",
+            "Composants",
+            "Sécurité",
+            "Internet",
+            "Création",
+            "Virtualisation",
+            "Intelligence artificielle"
+          ],
+          "description": "Categorie d'affichage. La liste est fermee : ajouter une valeur ici ET dans build-catalog.mjs (CATEGORIES)."
         },
         "desc": { "type": "string", "minLength": 1 },
         "icon": { "type": "string", "minLength": 1, "maxLength": 4 },
         "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
         "site": { "type": "string", "pattern": "^https://" },
-        "logo": { "type": "string" },
+        "logo": {
+          "type": "string",
+          "pattern": "^assets/logos/[^/]+\\.(svg|png|ico)$",
+          "description": "Chemin du logo depuis la racine du depot. Le fichier doit exister (verifie par build-catalog.mjs)."
+        },
         "tags": {
           "type": "array",
           "items": { "type": "string", "enum": ["essentiel", "dev", "gaming"] }

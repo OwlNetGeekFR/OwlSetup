@@ -1,5 +1,34 @@
 # Historique des versions
 
+## [4.0.0-beta.32] - 2026-08-28
+
+### Lot 1 — durcissement du chemin de contribution au catalogue
+
+- **Une seule source de vérité pour les logos.** Le champ `logo` de
+  `beta/catalog/apps.json` est désormais conservé dans `catalog.generated.js`
+  et lu directement au runtime. La table `appLogos` (93 entrées, en tête de
+  `app.js`) est **supprimée** — elle dupliquait `apps.json`. Ajouter une
+  application = 1 entrée JSON (avec `"logo": "assets/logos/<fichier>"`) + 1
+  fichier, plus aucune ligne de code à toucher.
+- **`build-catalog.mjs` valide le catalogue** à chaque `catalog:build` /
+  `catalog:verify` : identifiants uniques, `category` dans la liste fermée,
+  champ `logo` bien formé, **fichier logo présent** dans le dépôt, `count`
+  cohérent. Un ajout mal formé échoue avec un message explicite.
+- **Schéma resserré** (`catalog.schema.json`) : `category` devient un `enum`
+  (13 valeurs), `logo` devient **obligatoire** avec un motif
+  `^assets/logos/….(svg|png|ico)$`.
+- Docs mises à jour : `beta/catalog/README.md` et `CONTRIBUTING.md` (section
+  « Ajouter une application »). Script de migration unique
+  `beta/scripts/extract-catalog.mjs` (obsolète depuis beta.11) retiré.
+- Tests adaptés : `beta/test/catalog-parity.test.js` (le `logo` fait partie de
+  la parité), `tests/Test-AppLogoCoverage.ps1` (lit `apps.json`),
+  `tests/Test-AiCatalog.ps1` / `Test-BrowserCatalog.ps1` /
+  `Test-HealthGaugeAndAppIcons.ps1` (lisent le catalogue généré). 126 tests
+  beta.
+- Aucun changement visible : mêmes logos, même catalogue (93 applications).
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  des 5 ressources OK, l'application démarre.
+
 ## [4.0.0-beta.31] - 2026-08-28
 
 ### Lot 2 — modules `update-heuristics` et `operations-reconcile` branchés

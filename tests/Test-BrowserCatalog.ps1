@@ -7,8 +7,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$appJs = Get-Content -LiteralPath (Join-Path $repoRoot 'app.js') -Raw
 # Catalogue : catalog.generated.js (source beta/catalog/apps.json) depuis 4.0.0-beta.11.
+# Depuis 4.0.0-beta.32, chaque entrée porte son `logo` (plus de table appLogos).
 $catalogJs = Get-Content -LiteralPath (Join-Path $repoRoot 'catalog.generated.js') -Raw
 $packages = @(
     [pscustomobject]@{ Id='Google.Chrome'; Logo='googlechrome.svg'; Name='Google Chrome' },
@@ -34,7 +34,7 @@ $assetResults = foreach ($item in $packages) {
         Name = $item.Name
         Id = $item.Id
         CatalogEntry = $catalogJs.Contains(('"id": "' + $item.Id + '"'))
-        LogoMapping = $appJs.Contains(('"' + $item.Id + '":"' + $item.Logo + '"'))
+        LogoMapping = $catalogJs.Contains(('"logo": "assets/logos/' + $item.Logo + '"'))
         LogoFile = Test-Path -LiteralPath $logoPath
     }
 }
