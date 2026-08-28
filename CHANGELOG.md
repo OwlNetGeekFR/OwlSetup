@@ -1,5 +1,33 @@
 # Historique des versions
 
+## [4.0.0-beta.31] - 2026-08-28
+
+### Lot 2 — modules `update-heuristics` et `operations-reconcile` branchés
+
+- **`update-heuristics`.** La liste `SELF_MANAGED_UPDATERS` (lanceurs qui
+  embarquent leur propre updater : Ankama, EA, Battle.net…) et les heuristiques
+  `isVersionPrefixMismatch` / `isSelfManagedUpdate` ne sont plus copiées dans
+  `app.js` : elles viennent du module `beta/src/modules/update-heuristics.js`
+  (6ᵉ entrée de `MODULES`). `app.js` dérive toujours le `Set` local en
+  minuscules de cette constante.
+- **`operations-reconcile`.** La décision « cet échec du Centre des opérations
+  n'en est pas vraiment un » (tous les paquets auto-gérés, tous masqués, ou
+  alerte de plus de 14 jours sans récidive) est déléguée à
+  `classifyStaleFailure` du module `beta/src/modules/operations-reconcile.js`
+  (7ᵉ entrée). `reconcileMaintenanceOperations` ne garde que les effets de bord
+  (libellé de résolution, sauvegarde, notifications) — seuil des 14 jours et
+  garde `occurrences > 1` sortent du corps de la fonction.
+- Les deux modules sont purs (miroirs de `OwlSetupWebView.cs`) et couverts par
+  `beta/test/update-heuristics.test.js` (10) et
+  `beta/test/operations-reconcile.test.js` (13) ; `test/parity.test.js` gagne
+  deux blocs « migré ». 126 tests beta.
+- Aucun changement de comportement : mêmes libellés `resolvedBy`, même seuil,
+  mêmes textes de résolution.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert (dont
+  `Test-MaintenanceHardening`, `Test-OperationGhostCleanup`,
+  `Test-VerifiedOperationStates`), intégrité SHA-256 des 5 ressources OK,
+  l'application démarre.
+
 ## [4.0.0-beta.30] - 2026-08-28
 
 ### Thème clair : harmonisation « bleu ardoise atténué »

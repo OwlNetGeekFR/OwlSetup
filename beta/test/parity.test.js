@@ -15,6 +15,8 @@ import {
   wingetFallbackColor,
 } from "../src/modules/winget-brand.js";
 import { redactLogDiagnostic, telemetryFingerprint } from "../src/modules/redaction.js";
+import { SELF_MANAGED_UPDATERS, isSelfManagedUpdate } from "../src/modules/update-heuristics.js";
+import { classifyStaleFailure, STALE_FAILURE_DAYS } from "../src/modules/operations-reconcile.js";
 
 const HTML_SAMPLES = [
   `<script>alert('x')</script>`,
@@ -169,5 +171,62 @@ describe("redaction — migré vers le module", () => {
     expect(telemetryFingerprint(FINGERPRINT_SAMPLES[0])).toBe(
       telemetryFingerprint(FINGERPRINT_SAMPLES[0])
     );
+  });
+});
+
+// `update-heuristics` MIGRÉ (lot 2, 4.0.0-beta.31) : la liste des lanceurs
+// auto-gérés et les heuristiques viennent du module (miroir de
+// `OwlSetupWebView.cs`), inlinées par build-js.mjs. Comportement couvert par
+// beta/test/update-heuristics.test.js.
+describe("update-heuristics — migré vers le module", () => {
+  it("app.js n'a plus le tableau d'ids codé en dur", () => {
+    expect(rootSource).not.toContain("const SELF_MANAGED_UPDATER_IDS = new Set([");
+  });
+
+  it("app.js dérive le Set de la constante du module", () => {
+    expect(rootSource).toContain("const SELF_MANAGED_UPDATERS = [");
+    expect(rootSource).toContain(
+      "const SELF_MANAGED_UPDATER_IDS = new Set(SELF_MANAGED_UPDATERS.map(id => id.toLowerCase()));"
+    );
+    expect(rootSource).toContain("function isSelfManagedUpdate(id, current, available) {");
+  });
+
+  it("le module couvre toujours les cas de référence", () => {
+    expect(SELF_MANAGED_UPDATERS).toContain("Ankama.AnkamaLauncher");
+    expect(isSelfManagedUpdate("Ankama.AnkamaLauncher", "3.15.2", "3.16.0")).toBe(true);
+    expect(isSelfManagedUpdate("Some.OtherApp", "3.15.2", "3.15.2.20509")).toBe(true);
+    expect(isSelfManagedUpdate("Mozilla.Firefox", "127.0", "128.0")).toBe(false);
+  });
+});
+
+// `operations-reconcile` MIGRÉ (lot 2, 4.0.0-beta.31) : la décision « cet échec
+// n'en est pas vraiment un » vit dans le module ; `reconcileMaintenanceOperations`
+// ne garde que les effets de bord. Comportement couvert par
+// beta/test/operations-reconcile.test.js.
+describe("operations-reconcile — migré vers le module", () => {
+  it("reconcileMaintenanceOperations délègue à classifyStaleFailure", () => {
+    expect(rootSource).toContain("function classifyStaleFailure(op, opts = {}) {");
+    const fn = rootSource.slice(
+      rootSource.indexOf("function reconcileMaintenanceOperations"),
+      rootSource.indexOf(
+        "\nfunction ",
+        rootSource.indexOf("function reconcileMaintenanceOperations") + 1
+      )
+    );
+    expect(fn).toContain("classifyStaleFailure(");
+    expect(fn).not.toContain("14*24*3600*1000");
+  });
+
+  it("le module couvre toujours les cas de référence", () => {
+    expect(STALE_FAILURE_DAYS).toBe(14);
+    expect(
+      classifyStaleFailure({
+        status: "failed",
+        type: "install",
+        packageIds: ["Foo.Bar"],
+        completedAt: new Date(Date.now() - 20 * 24 * 3600 * 1000).toISOString(),
+      })
+    ).toEqual({ resolvedBy: "stale" });
+    expect(classifyStaleFailure({ status: "running" })).toBeNull();
   });
 });

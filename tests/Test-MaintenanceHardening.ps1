@@ -21,7 +21,10 @@ Assert-Has $native '{"unknownVersion",unknownVersion}' "Le champ unknownVersion 
 Assert-Has $native 'SelfManagedUpdaters = new HashSet<string>' "La liste des lanceurs auto-gérés a disparu de l'hôte."
 Assert-Has $native 'bool IsVersionPrefixMismatch' "La détection d'écart de schéma de version a disparu."
 Assert-Has $native 'lenientPackages.Contains(id)' "RunUpdate ne traite plus les paquets tolérés sans échec."
-Assert-Has $app  'const SELF_MANAGED_UPDATER_IDS = new Set([' "app.js ne connaît plus la liste des lanceurs auto-gérés."
+# Migré en module (lot 2, 4.0.0-beta.31) : la liste est inlinée depuis
+# beta/src/modules/update-heuristics.js et le Set en est dérivé.
+Assert-Has $app  'const SELF_MANAGED_UPDATERS = [' "app.js ne connaît plus la liste des lanceurs auto-gérés."
+Assert-Has $app  'const SELF_MANAGED_UPDATER_IDS = new Set(SELF_MANAGED_UPDATERS.map(' "app.js ne dérive plus le Set des lanceurs auto-gérés du module."
 
 # --- Liste d'ignorés des mises à jour (beta.4) ---
 Assert-Has $app  'owlsetup-update-ignore-v1' "La clé de stockage de la liste d'ignorés a changé sans migration."

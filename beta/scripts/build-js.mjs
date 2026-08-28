@@ -20,6 +20,8 @@ const MODULES = [
   "../src/modules/winget-brand.js",
   "../src/modules/redaction.js",
   "../src/modules/theme.js",
+  "../src/modules/update-heuristics.js",
+  "../src/modules/operations-reconcile.js",
 ];
 
 /**

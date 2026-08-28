@@ -3,7 +3,9 @@
 `../../app.js` (racine du dépôt) n'est plus édité à la main : il est **généré**
 par `../scripts/build-js.mjs`, qui concatène dans une IIFE :
 
-1. les modules purs de `../modules/` listés dans `MODULES` (vide pour l'instant) ;
+1. les modules purs de `../modules/` listés dans `MODULES` (`escape-html`,
+   `package-id`, `winget-brand`, `redaction`, `theme`, `update-heuristics`,
+   `operations-reconcile`) ;
 2. `legacy.js` — le corps historique de l'interface, déplacé **tel quel** depuis
    l'ancien `app.js`.
 

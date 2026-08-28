@@ -68,10 +68,17 @@ describe("parité de la liste (module <-> C# <-> app.js)", () => {
     expect(csIds.sort()).toEqual(expected);
   });
 
-  it("== SELF_MANAGED_UPDATER_IDS (app.js, 4.0.0-beta.6)", () => {
+  // Migré (lot 2, 4.0.0-beta.31) : app.js n'a plus de tableau d'ids codé en
+  // dur ; la liste vient du module, inlinée par build-js.mjs, et le Set en est
+  // dérivé. On vérifie que la liste inlinée reste identique au module.
+  it("== app.js (liste inlinée depuis le module + Set dérivé)", () => {
     const js = readFileSync(fileURLToPath(new URL("../../app.js", import.meta.url)), "utf8");
-    const start = js.indexOf("const SELF_MANAGED_UPDATER_IDS = new Set([");
-    const block = js.slice(start, js.indexOf("].map(", start));
+    expect(js).not.toContain("const SELF_MANAGED_UPDATER_IDS = new Set([");
+    expect(js).toContain(
+      "const SELF_MANAGED_UPDATER_IDS = new Set(SELF_MANAGED_UPDATERS.map(id => id.toLowerCase()));"
+    );
+    const start = js.indexOf("const SELF_MANAGED_UPDATERS = [");
+    const block = js.slice(start, js.indexOf("];", start));
     const jsIds = [...block.matchAll(/"([A-Za-z0-9][A-Za-z0-9.+_-]*)"/g)].map((m) =>
       m[1].toLowerCase()
     );
