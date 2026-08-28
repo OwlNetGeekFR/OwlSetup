@@ -1,5 +1,23 @@
 # Historique des versions
 
+## [4.0.0-beta.27] - 2026-08-28
+
+### Lot 2 — module `redaction` branché
+
+- `redactLogDiagnostic` et `telemetryFingerprint` n'ont plus de copie inline
+  dans `app.js` : ils viennent du module `beta/src/modules/redaction.js`
+  (4ᵉ entrée de `MODULES`). C'est du code **sensible à la vie privée**
+  (anonymisation des journaux avant tout signalement) — le module est pur et
+  couvert à 100 % par `beta/test/redaction.test.js`.
+- Les règles de masquage (chemins profil, e-mails, `DOMAINE\compte`, noms de
+  machine) et la longueur max (420) deviennent des constantes du module.
+- `test/parity.test.js` : tous les blocs sont désormais des contrôles
+  « migré » (plus d'extraction de fonction depuis `app.js`).
+- Aucun changement de comportement : mêmes masquages, même empreinte
+  déterministe d'incident.
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  122 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
+
 ## [4.0.0-beta.26] - 2026-08-28
 
 ### Lot 2 — module `winget-brand` branché
