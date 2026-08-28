@@ -19,6 +19,7 @@ const MODULES = [
   "../src/modules/package-id.js",
   "../src/modules/winget-brand.js",
   "../src/modules/redaction.js",
+  "../src/modules/theme.js",
 ];
 
 /**
