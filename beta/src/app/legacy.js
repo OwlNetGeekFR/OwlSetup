@@ -88,13 +88,10 @@ let installSubmissionPending = false;
 let availableUpdates = [];
 let selectedUpdates = new Set();
 // Miroir de SelfManagedUpdaters (OwlSetupWebView.cs) : lanceurs qui embarquent
-// leur propre mise à jour et que WinGet reproposera toujours.
-const SELF_MANAGED_UPDATER_IDS = new Set([
-  "Ankama.AnkamaLauncher","ElectronicArts.EADesktop","EpicGames.EpicGamesLauncher",
-  "Blizzard.BattleNet","Ubisoft.Connect","GOG.Galaxy","Valve.Steam","Discord.Discord",
-  "RiotGames.LeagueOfLegends.EUW","RiotGames.Valorant.EU","Overwolf.CurseForge",
-  "Amazon.Games","Logitech.GHUB"
-].map(id => id.toLowerCase()));
+// leur propre mise à jour et que WinGet reproposera toujours. La liste et les
+// heuristiques vivent dans le module `update-heuristics.js` (branché par
+// build-js.mjs) ; ici on n'a besoin que du Set en minuscules.
+const SELF_MANAGED_UPDATER_IDS = new Set(SELF_MANAGED_UPDATERS.map(id => id.toLowerCase()));
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
 let currentBuildVersion = "inconnue";
 let currentBuildChannel = "stable";
@@ -1381,26 +1378,24 @@ function loadOperationFeed() {
 //  - ou l'alerte a plus de 14 jours et ne s'est pas reproduite.
 function reconcileMaintenanceOperations() {
   const ignored=getIgnoredUpdateIds();
-  const staleBefore=Date.now()-14*24*3600*1000;
+  const now=Date.now();
   let changed=false;
+  // La décision par item (auto-géré / masqué / trop vieux) est déléguée au
+  // module `operations-reconcile.js` ; ici on ne garde que les effets de bord
+  // (libellé de résolution, sauvegarde, notifications).
   operationFeed=operationFeed.map(item=>{
     if(item.status!=="failed")return item;
-    const ids=getOperationPackageIds(item);
-    if(item.type==="update"&&ids.length){
-      const allSelfManaged=ids.every(id=>SELF_MANAGED_UPDATER_IDS.has(String(id).toLowerCase()));
-      const allIgnored=ids.every(id=>ignored.has(id));
-      if(allSelfManaged||allIgnored){
-        changed=true;
-        return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:allIgnored?"update-ignored":"self-managed",
-          detail:allIgnored?"Classé résolu : ces mises à jour ont été masquées dans la liste.":"Classé résolu : ces logiciels se mettent à jour eux-mêmes à leur lancement."};
-      }
-    }
-    const at=new Date(item.completedAt||item.startedAt||0).getTime();
-    if(at&&at<staleBefore&&!(Number(item.occurrences)>1)){
-      changed=true;
-      return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:"stale",detail:"Ancienne alerte archivée automatiquement après 14 jours sans récidive."};
-    }
-    return item;
+    const verdict=classifyStaleFailure(
+      {status:item.status,type:item.type,packageIds:getOperationPackageIds(item),completedAt:item.completedAt,startedAt:item.startedAt,occurrences:item.occurrences},
+      {selfManagedIds:SELF_MANAGED_UPDATER_IDS,ignoredIds:ignored,now});
+    if(!verdict)return item;
+    changed=true;
+    const detail=verdict.resolvedBy==="update-ignored"
+      ?"Classé résolu : ces mises à jour ont été masquées dans la liste."
+      :verdict.resolvedBy==="self-managed"
+        ?"Classé résolu : ces logiciels se mettent à jour eux-mêmes à leur lancement."
+        :"Ancienne alerte archivée automatiquement après 14 jours sans récidive.";
+    return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:verdict.resolvedBy,detail};
   });
   if(changed){
     saveOperationFeed();

@@ -107,28 +107,33 @@ describe("classifyStaleFailure", () => {
   });
 });
 
-describe("parité avec app.js (reconcileMaintenanceOperations)", () => {
+// Migré (lot 2, 4.0.0-beta.31) : la décision par item vit dans ce module,
+// inliné dans app.js par build-js.mjs. `reconcileMaintenanceOperations` ne
+// garde que les effets de bord (libellé, sauvegarde, notifications).
+describe("parité avec app.js (reconcileMaintenanceOperations) — migré", () => {
   const src = readFileSync(fileURLToPath(new URL("../../app.js", import.meta.url)), "utf8");
   const fn = src.slice(
     src.indexOf("function reconcileMaintenanceOperations"),
     src.indexOf("\nfunction ", src.indexOf("function reconcileMaintenanceOperations") + 1)
   );
 
-  it("le seuil est bien de 14 jours", () => {
+  it("app.js contient la fonction du module", () => {
     expect(STALE_FAILURE_DAYS).toBe(14);
-    expect(fn).toContain("14*24*3600*1000");
+    expect(src).toContain("function classifyStaleFailure(op, opts = {}) {");
   });
 
-  it("mêmes valeurs de resolvedBy", () => {
-    expect(fn).toContain('resolvedBy:allIgnored?"update-ignored":"self-managed"');
-    expect(fn).toContain('resolvedBy:"stale"');
+  it("la fonction délègue la décision au module", () => {
+    expect(fn).toContain("classifyStaleFailure(");
+    expect(fn).toContain("selfManagedIds:SELF_MANAGED_UPDATER_IDS");
+    // plus de seuil ni de garde codés en dur dans la fonction
+    expect(fn).not.toContain("14*24*3600*1000");
+    expect(fn).not.toContain("!(Number(item.occurrences)>1)");
   });
 
-  it("même garde sur occurrences", () => {
-    expect(fn).toContain("!(Number(item.occurrences)>1)");
-  });
-
-  it("ne s'applique qu'aux échecs de type update pour le volet auto-géré / masqué", () => {
-    expect(fn).toContain('item.type==="update"&&ids.length');
+  it("garde les mêmes valeurs de resolvedBy et libellés", () => {
+    expect(fn).toContain("resolvedBy:verdict.resolvedBy");
+    expect(fn).toContain('verdict.resolvedBy==="update-ignored"');
+    expect(fn).toContain("ces logiciels se mettent à jour eux-mêmes à leur lancement.");
+    expect(fn).toContain("Ancienne alerte archivée automatiquement après 14 jours sans récidive.");
   });
 });

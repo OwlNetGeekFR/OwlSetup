@@ -255,6 +255,126 @@ function resolveTheme(preference, systemPrefersLight) {
   return selected;
 }
 
+// ----- ../src/modules/update-heuristics.js -----
+/**
+ * Heuristiques « ce n'est pas une vraie mise à jour » pour les lanceurs qui
+ * embarquent leur propre updater (Ankama, EA, Battle.net…).
+ *
+ * Miroir de `OwlSetupWebView.cs` :
+ *  - `SelfManagedUpdaters` (liste)
+ *  - `IsVersionPrefixMismatch(current, available)`
+ *  - `IsSelfManagedUpdate(id, current, available)`
+ *
+ * Le test `beta/test/update-heuristics.test.js` vérifie que la liste ci-dessous
+ * reste identique à celle de l'hôte C#.
+ */
+
+/** IDs WinGet dont la mise à jour est gérée par le logiciel lui-même. */
+const SELF_MANAGED_UPDATERS = [
+  "Ankama.AnkamaLauncher",
+  "ElectronicArts.EADesktop",
+  "EpicGames.EpicGamesLauncher",
+  "Blizzard.BattleNet",
+  "Ubisoft.Connect",
+  "GOG.Galaxy",
+  "Valve.Steam",
+  "Discord.Discord",
+  "RiotGames.LeagueOfLegends.EUW",
+  "RiotGames.Valorant.EU",
+  "Overwolf.CurseForge",
+  "Amazon.Games",
+  "Logitech.GHUB",
+];
+
+const SELF_MANAGED_SET = new Set(SELF_MANAGED_UPDATERS.map((id) => id.toLowerCase()));
+
+/**
+ * Vrai quand une version n'est que le préfixe étendu de l'autre
+ * (ex. installée `3.15.2`, proposée `3.15.2.20509`) : presque toujours une
+ * différence de schéma de version, pas une vraie mise à jour.
+ *
+ * @param {unknown} current
+ * @param {unknown} available
+ * @returns {boolean}
+ */
+function isVersionPrefixMismatch(current, available) {
+  const a = String(current ?? "").trim();
+  const b = String(available ?? "").trim();
+  if (!a || !b || a.toLowerCase() === b.toLowerCase()) return false;
+  return (
+    b.toLowerCase().startsWith(a.toLowerCase() + ".") ||
+    a.toLowerCase().startsWith(b.toLowerCase() + ".")
+  );
+}
+
+/**
+ * @param {unknown} id identifiant WinGet
+ * @param {unknown} current version installée
+ * @param {unknown} available version proposée
+ * @returns {boolean} vrai si WinGet ne devrait pas piloter cette mise à jour
+ */
+function isSelfManagedUpdate(id, current, available) {
+  return (
+    SELF_MANAGED_SET.has(String(id ?? "").toLowerCase()) ||
+    isVersionPrefixMismatch(current, available)
+  );
+}
+
+// ----- ../src/modules/operations-reconcile.js -----
+/**
+ * Décision « cet échec du Centre des opérations n'en est pas vraiment un ».
+ *
+ * Miroir de la boucle `reconcileMaintenanceOperations()` de `../../app.js`
+ * (introduite en 4.0.0-beta.6). Fonction pure : elle reçoit une opération déjà
+ * normalisée (ids de paquets canoniques) et renvoie la raison de résolution,
+ * ou `null` si l'échec doit rester affiché.
+ *
+ * Le test `beta/test/operations-reconcile.test.js` vérifie que les constantes
+ * et libellés restent alignés avec `app.js`.
+ */
+
+/** Une alerte d'échec plus vieille que ça, sans récidive, est archivée. */
+const STALE_FAILURE_DAYS = 14;
+
+/**
+ * @typedef {Object} OperationLike
+ * @property {string} [status]
+ * @property {string} [type]
+ * @property {string[]} [packageIds] identifiants déjà canoniques
+ * @property {string} [completedAt]
+ * @property {string} [startedAt]
+ * @property {number} [occurrences]
+ */
+
+/**
+ * @param {OperationLike} op
+ * @param {{selfManagedIds?: Set<string>, ignoredIds?: Set<string>, now?: number}} [opts]
+ * @returns {{resolvedBy: "update-ignored" | "self-managed" | "stale"} | null}
+ */
+function classifyStaleFailure(op, opts = {}) {
+  const selfManagedIds = opts.selfManagedIds || new Set();
+  const ignoredIds = opts.ignoredIds || new Set();
+  const now = typeof opts.now === "number" ? opts.now : Date.now();
+
+  if (!op || op.status !== "failed") return null;
+
+  const ids = Array.isArray(op.packageIds) ? op.packageIds.filter(Boolean) : [];
+  if (op.type === "update" && ids.length) {
+    const allIgnored = ids.every((id) => ignoredIds.has(id));
+    const allSelfManaged = ids.every((id) => selfManagedIds.has(String(id).toLowerCase()));
+    // app.js : `resolvedBy: allIgnored ? "update-ignored" : "self-managed"`
+    if (allIgnored) return { resolvedBy: "update-ignored" };
+    if (allSelfManaged) return { resolvedBy: "self-managed" };
+  }
+
+  const at = new Date(op.completedAt || op.startedAt || 0).getTime();
+  const staleBefore = now - STALE_FAILURE_DAYS * 24 * 3600 * 1000;
+  if (at && at < staleBefore && !(Number(op.occurrences) > 1)) {
+    return { resolvedBy: "stale" };
+  }
+  return null;
+}
+
 // ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
@@ -346,13 +466,10 @@ let installSubmissionPending = false;
 let availableUpdates = [];
 let selectedUpdates = new Set();
 // Miroir de SelfManagedUpdaters (OwlSetupWebView.cs) : lanceurs qui embarquent
-// leur propre mise à jour et que WinGet reproposera toujours.
-const SELF_MANAGED_UPDATER_IDS = new Set([
-  "Ankama.AnkamaLauncher","ElectronicArts.EADesktop","EpicGames.EpicGamesLauncher",
-  "Blizzard.BattleNet","Ubisoft.Connect","GOG.Galaxy","Valve.Steam","Discord.Discord",
-  "RiotGames.LeagueOfLegends.EUW","RiotGames.Valorant.EU","Overwolf.CurseForge",
-  "Amazon.Games","Logitech.GHUB"
-].map(id => id.toLowerCase()));
+// leur propre mise à jour et que WinGet reproposera toujours. La liste et les
+// heuristiques vivent dans le module `update-heuristics.js` (branché par
+// build-js.mjs) ; ici on n'a besoin que du Set en minuscules.
+const SELF_MANAGED_UPDATER_IDS = new Set(SELF_MANAGED_UPDATERS.map(id => id.toLowerCase()));
 let appUpdateReleasePage = "https://github.com/OwlNetGeekFR/OwlSetup/releases/latest";
 let currentBuildVersion = "inconnue";
 let currentBuildChannel = "stable";
@@ -1639,26 +1756,24 @@ function loadOperationFeed() {
 //  - ou l'alerte a plus de 14 jours et ne s'est pas reproduite.
 function reconcileMaintenanceOperations() {
   const ignored=getIgnoredUpdateIds();
-  const staleBefore=Date.now()-14*24*3600*1000;
+  const now=Date.now();
   let changed=false;
+  // La décision par item (auto-géré / masqué / trop vieux) est déléguée au
+  // module `operations-reconcile.js` ; ici on ne garde que les effets de bord
+  // (libellé de résolution, sauvegarde, notifications).
   operationFeed=operationFeed.map(item=>{
     if(item.status!=="failed")return item;
-    const ids=getOperationPackageIds(item);
-    if(item.type==="update"&&ids.length){
-      const allSelfManaged=ids.every(id=>SELF_MANAGED_UPDATER_IDS.has(String(id).toLowerCase()));
-      const allIgnored=ids.every(id=>ignored.has(id));
-      if(allSelfManaged||allIgnored){
-        changed=true;
-        return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:allIgnored?"update-ignored":"self-managed",
-          detail:allIgnored?"Classé résolu : ces mises à jour ont été masquées dans la liste.":"Classé résolu : ces logiciels se mettent à jour eux-mêmes à leur lancement."};
-      }
-    }
-    const at=new Date(item.completedAt||item.startedAt||0).getTime();
-    if(at&&at<staleBefore&&!(Number(item.occurrences)>1)){
-      changed=true;
-      return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:"stale",detail:"Ancienne alerte archivée automatiquement après 14 jours sans récidive."};
-    }
-    return item;
+    const verdict=classifyStaleFailure(
+      {status:item.status,type:item.type,packageIds:getOperationPackageIds(item),completedAt:item.completedAt,startedAt:item.startedAt,occurrences:item.occurrences},
+      {selfManagedIds:SELF_MANAGED_UPDATER_IDS,ignoredIds:ignored,now});
+    if(!verdict)return item;
+    changed=true;
+    const detail=verdict.resolvedBy==="update-ignored"
+      ?"Classé résolu : ces mises à jour ont été masquées dans la liste."
+      :verdict.resolvedBy==="self-managed"
+        ?"Classé résolu : ces logiciels se mettent à jour eux-mêmes à leur lancement."
+        :"Ancienne alerte archivée automatiquement après 14 jours sans récidive.";
+    return {...item,status:"resolved",previousDetail:item.previousDetail||item.detail||"",resolvedAt:new Date().toISOString(),resolvedBy:verdict.resolvedBy,detail};
   });
   if(changed){
     saveOperationFeed();
