@@ -38,8 +38,10 @@ Assert-Has $native '--silent --accept-package-agreements --accept-source-agreeme
 # --apply n'accepte qu'une configuration exportee par l'interface.
 Assert-Has $native 'Convert.ToString(root["format"])!="pc-setup-configuration"' "--apply ne valide plus le format de configuration."
 Assert-Has $native 'CliConfigIds(root,"selectedPackages")' "--apply ne lit plus selectedPackages."
-# Sortie deja redirigee : on ne rattache pas de console (sinon tampon invisible).
-Assert-Has $native 'Console.IsOutputRedirected' "CliAttachConsole ne detecte plus une sortie deja redirigee."
+# Console : on ne s'abstient QUE si les deux flux vont vers un vrai tube/fichier
+# (un handle nul de winexe via le shim .com doit quand meme brancher CONOUT$).
+Assert-Has $native 'CliStdIsRealRedirect(STD_OUTPUT_HANDLE)' "CliAttachConsole ne distingue plus une vraie redirection d'un handle nul."
+Assert-Has $native 'FileStream("CONOUT$"' "Le repli d'ecriture console CONOUT$ a disparu."
 
 # 1b) Shim console OwlSetup.com (4.5 / beta.19)
 $shimSource = Join-Path $root "OwlSetupCli.cs"
