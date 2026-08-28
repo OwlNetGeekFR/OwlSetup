@@ -17,11 +17,20 @@ Assert-Has $native 'static int RunCli(string[] commandLine)' "Le point d'entree 
 Assert-Has $native 'static bool IsCliInvocation(string value)' "La detection d'invocation CLI a disparu."
 Assert-Has $native 'AttachConsole' "Le rattachement de console (winexe -> sortie CLI) a disparu."
 Assert-Has $native 'if(commandLine.Length>=2 && IsCliInvocation(commandLine[1]))' "Main() ne route plus vers le mode CLI."
-Assert-Has $native 'case "--install": return CliInstallOrRemove(rest,false);' "Le verbe --install a disparu."
-Assert-Has $native 'case "--uninstall": return CliInstallOrRemove(rest,true);' "Le verbe --uninstall a disparu."
+Assert-Has $native 'case "--install": return CliInstallOrRemove(rest,false,dryRun,silent);' "Le verbe --install a disparu."
+Assert-Has $native 'case "--uninstall": return CliInstallOrRemove(rest,true,dryRun,silent);' "Le verbe --uninstall a disparu."
 Assert-Has $native 'case "--list": return CliList(' "Le verbe --list a disparu."
 Assert-Has $native 'case "--search": return CliSearch(rest);' "Le verbe --search a disparu."
-Assert-Has $native 'case "--apply": return CliApply(rest);' "Le verbe --apply a disparu."
+Assert-Has $native 'case "--apply": return CliApply(rest,dryRun,silent);' "Le verbe --apply a disparu."
+# --dry-run / --silent (beta.20)
+Assert-Has $native 'bool dryRun=flags.Any(a=>a=="--dry-run");' "L'option --dry-run a disparu."
+Assert-Has $native 'a=="--silent" || a=="--quiet"' "L'option --silent a disparu."
+Assert-Has $native '[simulation] Aucune modification effectu' "Le mode simulation n'affiche plus qu'il ne change rien."
+# --apply : nettoyage des zones de la config si session elevee + journal fichier
+Assert-Has $native 'RunElevatedCleanupWorker(String.Join(",",cleanup),cleanupLog)' "--apply n'execute plus les zones de nettoyage."
+Assert-Has $native 'CliCleanupZones.Where(zone=>raw.Contains(zone' "--apply ne filtre plus les zones de nettoyage sur la liste autorisee."
+Assert-Has $native 'PC-Setup-CLI-' "--apply n'ecrit plus de journal fichier."
+if ($native -match 'CliApply\(rest\)\s*;') { throw "CliApply est encore appele sans les options dryRun/silent." }
 # Les identifiants CLI sont valides par la meme regex que le reste de l'hote.
 Assert-Has $native '^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$' "La validation d'identifiant du mode CLI a disparu."
 # --install passe toujours les drapeaux silencieux WinGet.
@@ -87,6 +96,24 @@ if (Test-Path $exe) {
         if ($bad.Text -match 'Installation de ') { throw "--apply format invalide : ne doit rien installer." }
     }
     finally { Remove-Item -LiteralPath $badFmt -Force -ErrorAction SilentlyContinue }
+
+    # --dry-run : liste ce qui serait fait, ne lance jamais WinGet, code 0.
+    $dryI = Invoke-Cli @('--install', 'VideoLAN.VLC,7zip.7zip', '--dry-run')
+    if ($dryI.Code -ne 0) { throw "--install --dry-run : code attendu 0 (obtenu $($dryI.Code))." }
+    if ($dryI.Text -notmatch '\[simulation\]' -or $dryI.Text -notmatch 'VideoLAN\.VLC') { throw "--install --dry-run : plan absent." }
+    if ($dryI.Text -match 'Installation de VideoLAN\.VLC \.\.\.') { throw "--install --dry-run : ne doit rien installer." }
+
+    $goodCfg = New-TemporaryFile
+    Set-Content -LiteralPath $goodCfg -Value '{"format":"pc-setup-configuration","selectedPackages":["7zip.7zr","../evil"],"cleanupChoices":["recycle-bin","zone-inconnue"]}' -Encoding UTF8
+    try {
+        $dryA = Invoke-Cli @('--apply', $goodCfg, '--dry-run')
+        if ($dryA.Code -ne 0) { throw "--apply --dry-run : code attendu 0 (obtenu $($dryA.Code))." }
+        if ($dryA.Text -notmatch '7zip\.7zr') { throw "--apply --dry-run : identifiant valide absent du plan." }
+        if ($dryA.Text -match '\.\./evil' -or $dryA.Text -match 'zone-inconnue') { throw "--apply --dry-run : entree non filtree dans le plan." }
+        if ($dryA.Text -notmatch 'recycle-bin') { throw "--apply --dry-run : zone de nettoyage valide absente du plan." }
+        if ($dryA.Text -match 'Installation de 7zip\.7zr \.\.\.') { throw "--apply --dry-run : ne doit rien installer." }
+    }
+    finally { Remove-Item -LiteralPath $goodCfg -Force -ErrorAction SilentlyContinue }
 
     # Shim console : compile a cote de l'exe, doit relayer et attendre.
     $shim = [IO.Path]::ChangeExtension($exe, ".com")
