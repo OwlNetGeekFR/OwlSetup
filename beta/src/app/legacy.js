@@ -730,13 +730,8 @@ function installedSourceInfo(id) {
 }
 
 function extendedWingetText(fr,en){return window.owlI18n?.getLanguage?.()==="en"?en:fr;}
-function wingetInitials(name){return String(name||"APP").split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase().slice(0,3)||"APP";}
-function normalizeWingetBrand(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("en").replace(/\b(x64|x86|arm64|desktop|client|community|installer|setup)\b/g,"").replace(/[^a-z0-9]+/g,"");}
-function wingetFallbackColor(value){
-  const palette=["#3178c6","#7c5ce5","#16a085","#d35454","#ca7a2b","#2788a8","#a64d79","#558b45"];
-  const hash=[...String(value||"APP")].reduce((total,char)=>((total*31)+char.charCodeAt(0))>>>0,0);
-  return palette[hash%palette.length];
-}
+// `wingetInitials` / `normalizeWingetBrand` / `wingetFallbackColor` : fournis par
+// beta/src/modules/winget-brand.js, inlin\u00e9s en t\u00eate de app.js.
 function resolveWingetBrand(item){
   const id=String(item?.id||"");
   const nameKey=normalizeWingetBrand(item?.name);

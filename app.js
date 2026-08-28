@@ -75,6 +75,77 @@ function telemetrySafePackageId(id) {
   return typeof id === "string" && TELEMETRY_PACKAGE_PATTERN.test(id) ? id : "";
 }
 
+// ----- ../src/modules/winget-brand.js -----
+/**
+ * Aides d'affichage pour les paquets WinGet decouverts hors catalogue
+ * (initiales, couleur de repli deterministe, normalisation de marque).
+ *
+ * Reference : `app.js` (racine) : `wingetInitials`, `normalizeWingetBrand`,
+ * `wingetFallbackColor`.
+ */
+
+const FALLBACK_PALETTE = [
+  "#3178c6",
+  "#7c5ce5",
+  "#16a085",
+  "#d35454",
+  "#ca7a2b",
+  "#2788a8",
+  "#a64d79",
+  "#558b45",
+];
+
+/** Marques combinantes Unicode retirees apres normalisation NFD. */
+const COMBINING_MARKS = /[\u0300-\u036f]/g;
+
+/**
+ * Deux/trois lettres a afficher dans la pastille d'une application.
+ * @param {unknown} name
+ * @returns {string}
+ */
+function wingetInitials(name) {
+  return (
+    String(name || "APP")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 3) || "APP"
+  );
+}
+
+/**
+ * Reduit un nom/identifiant a une cle comparable (sans accents, sans suffixes
+ * d'architecture ni ponctuation) pour rapprocher un paquet installe d'une
+ * entree du catalogue.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function normalizeWingetBrand(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(COMBINING_MARKS, "")
+    .toLocaleLowerCase("en")
+    .replace(/\b(x64|x86|arm64|desktop|client|community|installer|setup)\b/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Couleur stable derivee du nom : la meme entree donne toujours la meme teinte.
+ * @param {unknown} value
+ * @returns {string} couleur hexadecimale de la palette
+ */
+function wingetFallbackColor(value) {
+  const hash = [...String(value || "APP")].reduce(
+    (total, char) => (total * 31 + char.charCodeAt(0)) >>> 0,
+    0
+  );
+  return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
+}
+
+
 // ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
@@ -808,13 +879,8 @@ function installedSourceInfo(id) {
 }
 
 function extendedWingetText(fr,en){return window.owlI18n?.getLanguage?.()==="en"?en:fr;}
-function wingetInitials(name){return String(name||"APP").split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase().slice(0,3)||"APP";}
-function normalizeWingetBrand(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("en").replace(/\b(x64|x86|arm64|desktop|client|community|installer|setup)\b/g,"").replace(/[^a-z0-9]+/g,"");}
-function wingetFallbackColor(value){
-  const palette=["#3178c6","#7c5ce5","#16a085","#d35454","#ca7a2b","#2788a8","#a64d79","#558b45"];
-  const hash=[...String(value||"APP")].reduce((total,char)=>((total*31)+char.charCodeAt(0))>>>0,0);
-  return palette[hash%palette.length];
-}
+// `wingetInitials` / `normalizeWingetBrand` / `wingetFallbackColor` : fournis par
+// beta/src/modules/winget-brand.js, inlin\u00e9s en t\u00eate de app.js.
 function resolveWingetBrand(item){
   const id=String(item?.id||"");
   const nameKey=normalizeWingetBrand(item?.name);
