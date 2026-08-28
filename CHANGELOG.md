@@ -1,5 +1,22 @@
 # Historique des versions
 
+## [4.0.0-beta.23] - 2026-08-28
+
+### Lot 2 — premier module branché : `escapeHtml`
+
+- `escapeHtml` n'a plus de copie inline dans `app.js` : la fonction vient
+  désormais du module `beta/src/modules/escape-html.js`, inliné en tête de
+  `app.js` par `build-js.mjs` (`MODULES` passe de `[]` à cette entrée).
+- `stripExports` du script d'assemblage gère aussi `export default`.
+- Le test de parité correspondant devient un contrôle « migré » : `app.js` ne
+  contient plus `const escapeHtml =`, il contient la fonction du module.
+- `tests/Test-SecurityControls.ps1` accepte les deux formes (`const` /
+  `function`) pour la garantie « neutralisation HTML présente ».
+- Aucun changement de comportement : même échappement des 5 caractères
+  `& < > " '`.
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  157 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
+
 ## [4.0.0-beta.22] - 2026-08-28
 
 ### Lot 2 — `app.js` devient un fichier généré

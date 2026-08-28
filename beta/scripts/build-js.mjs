@@ -11,17 +11,28 @@ import { fileURLToPath } from "node:url";
 
 const here = (relative) => fileURLToPath(new URL(relative, import.meta.url));
 
-// Modules purs (de ../src/modules/) inlinés en tête, dans l'ordre. Vide pour
-// l'instant : chaque entrée ajoutée ici doit s'accompagner du retrait du code
-// équivalent dans legacy.js (sinon double déclaration).
-const MODULES = [];
+// Modules purs (de ../src/modules/) inlinés en tête, dans l'ordre. Chaque entrée
+// ajoutée ici doit s'accompagner du retrait du code équivalent dans legacy.js
+// (sinon double déclaration).
+const MODULES = ["../src/modules/escape-html.js"];
 
-/** Retire le mot-clé `export` en tête de déclaration ; garde le corps tel quel. */
+/**
+ * Transforme un module ES en code inlinable dans l'IIFE :
+ *  - `export function/const/... ` -> retire `export `
+ *  - `export default function/class ` -> retire `export default `
+ *  - lignes `export default <ident>;` et `export { ... };` -> supprimées
+ *    (ré-exports inutiles une fois le code inline).
+ */
 function stripExports(source) {
-  return source.replace(
-    /^export\s+(?=(?:default\s+)?(?:const|let|var|function|class|async)\b)/gm,
-    ""
-  );
+  return source
+    .split("\n")
+    .filter((line) => !/^\s*export\s*\{[^}]*\}\s*;?\s*$/.test(line))
+    .filter((line) => !/^\s*export\s+default\s+[A-Za-z_$][\w$]*\s*;?\s*$/.test(line))
+    .map((line) => line.replace(/^(\s*)export\s+default\s+(?=function\b|class\b)/, "$1"))
+    .map((line) =>
+      line.replace(/^(\s*)export\s+(?=(?:const|let|var|function|class|async)\b)/, "$1")
+    )
+    .join("\n");
 }
 
 // Pas de `"use strict"` : `legacy.js` est un script historique en mode

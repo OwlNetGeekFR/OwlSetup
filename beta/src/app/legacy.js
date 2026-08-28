@@ -176,7 +176,8 @@ const browserCategoryDetails = {
 const browserProtectedLabels=["Mots de passe","Favoris","Extensions","Téléchargements","Sessions ouvertes","Profils"];
 
 const $ = selector => document.querySelector(selector);
-const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
+// `escapeHtml` est fourni par beta/src/modules/escape-html.js, inliné en tête de
+// app.js par beta/scripts/build-js.mjs (lot 2).
 
 const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
 function getThemePreference() {

@@ -1,5 +1,22 @@
 /* Genere par beta/scripts/build-js.mjs depuis beta/src/app/. Ne pas editer a la main. */
 (function () {
+// ----- ../src/modules/escape-html.js -----
+/**
+ * Echappement HTML pour l'insertion sure de texte dans `innerHTML`.
+ *
+ * Reference : `app.js` (racine), constante `escapeHtml`. Ce module est la version
+ * extraite et testee ; le bundler (etape 2 du plan) remplacera l'implementation
+ * inline par un import de cette fonction.
+ *
+ * @param {unknown} value valeur brute (toute valeur est convertie en chaine)
+ * @returns {string} chaine ou `& < > " '` sont neutralises
+ */
+function escapeHtml(value) {
+  const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
+}
+
+
 // ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
@@ -179,7 +196,8 @@ const browserCategoryDetails = {
 const browserProtectedLabels=["Mots de passe","Favoris","Extensions","Téléchargements","Sessions ouvertes","Profils"];
 
 const $ = selector => document.querySelector(selector);
-const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
+// `escapeHtml` est fourni par beta/src/modules/escape-html.js, inliné en tête de
+// app.js par beta/scripts/build-js.mjs (lot 2).
 
 const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
 function getThemePreference() {
