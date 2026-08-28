@@ -413,22 +413,23 @@ code,pre,kbd,samp,
 .settings-panel-heading>span.theme{background:linear-gradient(145deg,#173b5a,#27305d);color:#84c8ff}.appearance-settings{margin-top:15px;padding:16px 18px;border:1px solid #2d4967;border-radius:13px;background:#0d1723;display:flex;align-items:center;justify-content:space-between;gap:18px}.appearance-settings>div{display:flex;align-items:center;gap:12px}.appearance-settings>div>span{width:38px;height:38px;flex:0 0 auto;border-radius:9px;background:linear-gradient(145deg,#173b5a,#27305d);color:#84c8ff;display:grid;place-items:center}.appearance-settings svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.appearance-settings p,.appearance-settings strong,.appearance-settings small{display:block;margin:0}.appearance-settings small{margin-top:4px;color:#7f91a8}.appearance-settings label{color:#8394aa;font-size:10px;font-weight:800;text-transform:uppercase}.appearance-settings select{display:block;min-width:175px;height:39px;margin-top:5px;padding:0 10px;border:1px solid #334a67;border-radius:8px;background:#09121c;color:#dce8f7}
 @media(max-width:920px){.appearance-settings{align-items:stretch;flex-direction:column}.appearance-settings label,.appearance-settings select{width:100%}}
 
-:root[data-theme="light"]{--bg:#eef3f8;--panel:#ffffff;--panel-2:#f6f8fb;--line:#cbd7e5;--muted:#617085;--text:#152033;--blue:#2867da;--cyan:#138fa8;--green:#14845f;color-scheme:light}
-:root[data-theme="light"] body{color:var(--text);background:linear-gradient(135deg,#f8fafc 0,#edf3f9 55%,#e9f1fa 100%)}
+:root[data-theme="light"]{--bg:#e6eaf0;--panel:#f6f8fb;--panel-2:#eceff4;--line:#d2d9e3;--muted:#69758a;--text:#1d2a3a;--blue:#3a67b5;--cyan:#2c7c8e;--green:#2b7a5b;color-scheme:light}
+:root[data-theme="light"] body{color:var(--text);background:linear-gradient(160deg,#edf0f4 0,#e6eaf0 55%,#e3e7ee 100%)}
 :root[data-theme="light"] .ambient{opacity:.07}
 :root[data-theme="light"] .sidebar{border-color:#cbd7e5;background:rgba(249,251,254,.97);box-shadow:8px 0 28px rgba(39,63,91,.06)}
 :root[data-theme="light"] .topbar,:root[data-theme="light"] .horizontal-nav{border-color:#cbd7e5;background:rgba(248,251,254,.95)}
 :root[data-theme="light"] .breadcrumb,:root[data-theme="light"] .top-nav-item,:root[data-theme="light"] .top-nav-toggle,:root[data-theme="light"] .top-nav-settings{color:#526178}
 :root[data-theme="light"] .top-nav-item:hover,:root[data-theme="light"] .top-nav-toggle:hover,:root[data-theme="light"] .top-nav-settings:hover{color:#16243a;background:#edf3fa}
 :root[data-theme="light"] .top-nav-item.active,:root[data-theme="light"] .top-nav-toggle.active,:root[data-theme="light"] .top-nav-group.open .top-nav-toggle{color:#16243a;border-color:#8ba9d5;background:#e7effb;box-shadow:inset 0 -2px #3270da}
-:root[data-theme="light"] .top-nav-menu{border-color:#bdcada;background:#fff;box-shadow:0 18px 45px rgba(37,59,88,.18)}
+:root[data-theme="light"] .top-nav-menu{border-color:#bdcada;background:#f6f8fb;box-shadow:0 16px 40px rgba(37,59,88,.14)}
 :root[data-theme="light"] .top-nav-menu a,:root[data-theme="light"] .top-nav-menu button{color:#26364d}
 :root[data-theme="light"] .top-nav-menu a:hover,:root[data-theme="light"] .top-nav-menu button:hover{background:#eef4fb}
 :root[data-theme="light"] .brand small,:root[data-theme="light"] .side-note,:root[data-theme="light"] .page-intro p,:root[data-theme="light"] .home-copy>p{color:#66758b}
-:root[data-theme="light"] .system-card,:root[data-theme="light"] .settings-panel,:root[data-theme="light"] .app-card,:root[data-theme="light"] .profile-card,:root[data-theme="light"] .queue-item,:root[data-theme="light"] .summary-card,:root[data-theme="light"] .feature-card,:root[data-theme="light"] .health-dashboard,:root[data-theme="light"] .update-preview-panel,:root[data-theme="light"] .quarantine-toolbar,:root[data-theme="light"] .quarantine-item,:root[data-theme="light"] .feedback-form,:root[data-theme="light"] .troubleshooting-help article{border-color:#c5d2e2;background:#fff;box-shadow:0 9px 28px rgba(40,67,96,.06)}
+:root[data-theme="light"] .system-card,:root[data-theme="light"] .settings-panel,:root[data-theme="light"] .app-card,:root[data-theme="light"] .profile-card,:root[data-theme="light"] .queue-item,:root[data-theme="light"] .summary-card,:root[data-theme="light"] .feature-card,:root[data-theme="light"] .health-dashboard,:root[data-theme="light"] .update-preview-panel,:root[data-theme="light"] .quarantine-toolbar,:root[data-theme="light"] .quarantine-item,:root[data-theme="light"] .feedback-form,:root[data-theme="light"] .troubleshooting-help article{border-color:#ccd5e1;background:#f6f8fb;box-shadow:0 6px 20px rgba(40,67,96,.05)}
 :root[data-theme="light"] .settings-panel:hover,:root[data-theme="light"] .app-card:hover,:root[data-theme="light"] .profile-card:hover{border-color:#86a7d2}
 :root[data-theme="light"] .settings-panel-heading,:root[data-theme="light"] .system-title{border-color:#d5dfeb}
-:root[data-theme="light"] .language-settings,:root[data-theme="light"] .appearance-settings,:root[data-theme="light"] .onboarding-replay,:root[data-theme="light"] .accessibility-settings,:root[data-theme="light"] .protection-setting,:root[data-theme="light"] .self-test-actions{border-color:#c7d5e6;background:#f5f8fc}
+:root[data-theme="light"] .language-settings,:root[data-theme="light"] .appearance-settings,:root[data-theme="light"] .onboarding-replay,:root[data-theme="light"] .accessibility-settings,:root[data-theme="light"] .protection-setting,:root[data-theme="light"] .self-test-actions{border-color:#ccd8e6;background:#eef1f6}
+:root[data-theme="light"] .appearance-settings select,:root[data-theme="light"] .alpha-schedule-grid select,:root[data-theme="light"] .alpha-schedule-grid input{border-color:#b6c4d6;background:#fff;color:#1d2a3a}
 :root[data-theme="light"] select,:root[data-theme="light"] input,:root[data-theme="light"] textarea,:root[data-theme="light"] .language-settings select,:root[data-theme="light"] .appearance-settings select,:root[data-theme="light"] .first-run-option select{border-color:#aebed2;background:#fff;color:#17243a}
 :root[data-theme="light"] select option{background:#fff;color:#17243a}
 :root[data-theme="light"] .search,:root[data-theme="light"] .catalog-search,:root[data-theme="light"] .feedback-fields input,:root[data-theme="light"] .feedback-fields select,:root[data-theme="light"] .feedback-fields textarea{border-color:#b9c8da;background:#fff;color:#16243a}
@@ -436,16 +437,16 @@ code,pre,kbd,samp,
 :root[data-theme="light"] .secondary-dialog-button,:root[data-theme="light"] .system-refresh,:root[data-theme="light"] .filter{border-color:#b9c8da;background:#f7f9fc}
 :root[data-theme="light"] .nav-item:hover,:root[data-theme="light"] .nav-group-toggle:hover{color:#1d2d44;background:#edf3fa}
 :root[data-theme="light"] .nav-item.active{color:#122039;background:linear-gradient(90deg,rgba(48,110,218,.18),rgba(48,110,218,.05))}
-:root[data-theme="light"] .health-dashboard article,:root[data-theme="light"] .update-scan-state,:root[data-theme="light"] .no-updates,:root[data-theme="light"] .available-update,:root[data-theme="light"] .tool-empty,:root[data-theme="light"] .history-list article{border-color:#c6d3e2;background:#f7f9fc}
-:root[data-theme="light"] .dialog-overlay,:root[data-theme="light"] .onboarding-overlay,:root[data-theme="light"] .first-run-overlay,:root[data-theme="light"] .language-overlay,:root[data-theme="light"] .quarantine-confirm{background:rgba(43,58,78,.42)}
-:root[data-theme="light"] .dialog,:root[data-theme="light"] .onboarding-dialog,:root[data-theme="light"] .first-run-dialog,:root[data-theme="light"] .language-dialog,:root[data-theme="light"] .quarantine-confirm>div{border-color:#aebfd4;background:radial-gradient(circle at 95% 0,rgba(71,131,224,.11),transparent 33%),linear-gradient(145deg,#fff,#f3f7fb);box-shadow:0 34px 95px rgba(34,52,74,.28)}
-:root[data-theme="light"] .dialog-header,:root[data-theme="light"] .dialog-actions,:root[data-theme="light"] .onboarding-header,:root[data-theme="light"] .first-run-footer{border-color:#cbd7e5;background:rgba(245,248,252,.8)}
-:root[data-theme="light"] .first-run-option,:root[data-theme="light"] .language-choice,:root[data-theme="light"] .onboarding-tip{border-color:#c1cfdf;background:#f7f9fc;color:#17243a}
-:root[data-theme="light"] .first-run-choice-buttons span{border-color:#b6c6d9;background:#fff;color:#56677e}
-:root[data-theme="light"] .first-run-choice-buttons input:checked+span{border-color:#3b73ca;background:#e3edfb;color:#18345c}
-:root[data-theme="light"] .dialog-warning,:root[data-theme="light"] .notice{background:#fff8e6;color:#6f5928}
-:root[data-theme="light"] .security-card,:root[data-theme="light"] .operation-card,:root[data-theme="light"] .cleanup-option,:root[data-theme="light"] .update-progress-steps>div{border-color:#c5d2e1;background:#fff}
-:root[data-theme="light"] .selection-bar{border-color:#adc0d7;background:rgba(255,255,255,.96);box-shadow:0 14px 42px rgba(38,60,87,.18)}
+:root[data-theme="light"] .health-dashboard article,:root[data-theme="light"] .update-scan-state,:root[data-theme="light"] .no-updates,:root[data-theme="light"] .available-update,:root[data-theme="light"] .tool-empty,:root[data-theme="light"] .history-list article{border-color:#ccd7e3;background:#eef1f6}
+:root[data-theme="light"] .dialog-overlay,:root[data-theme="light"] .onboarding-overlay,:root[data-theme="light"] .first-run-overlay,:root[data-theme="light"] .language-overlay,:root[data-theme="light"] .quarantine-confirm{background:rgba(30,42,58,.38)}
+:root[data-theme="light"] .dialog,:root[data-theme="light"] .onboarding-dialog,:root[data-theme="light"] .first-run-dialog,:root[data-theme="light"] .language-dialog,:root[data-theme="light"] .quarantine-confirm>div{border-color:#b4c1d3;background:linear-gradient(145deg,#f7f9fc,#eef2f7);box-shadow:0 28px 80px rgba(34,52,74,.22)}
+:root[data-theme="light"] .dialog-header,:root[data-theme="light"] .dialog-actions,:root[data-theme="light"] .onboarding-header,:root[data-theme="light"] .first-run-footer{border-color:#cfd9e5;background:rgba(238,241,246,.85)}
+:root[data-theme="light"] .first-run-option,:root[data-theme="light"] .language-choice,:root[data-theme="light"] .onboarding-tip{border-color:#c6d1e0;background:#eef1f6;color:#1d2a3a}
+:root[data-theme="light"] .first-run-choice-buttons span{border-color:#bcc9d9;background:#f6f8fb;color:#5a6a80}
+:root[data-theme="light"] .first-run-choice-buttons input:checked+span{border-color:#3a67b5;background:#e3ebf6;color:#22344f}
+:root[data-theme="light"] .dialog-warning,:root[data-theme="light"] .notice{border-color:#e2cea0;background:#f7f0dd;color:#6b5827}
+:root[data-theme="light"] .security-card,:root[data-theme="light"] .operation-card,:root[data-theme="light"] .cleanup-option,:root[data-theme="light"] .update-progress-steps>div{border-color:#ccd5e1;background:#f6f8fb}
+:root[data-theme="light"] .selection-bar{border-color:#b4c3d5;background:rgba(246,248,251,.97);box-shadow:0 12px 34px rgba(38,60,87,.14)}
 :root[data-theme="light"] body.high-contrast{--line:#8193aa;--muted:#415168;--text:#071326}
 .telemetry-settings-panel{grid-column:1/-1}.telemetry-choice-list{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.telemetry-choice-list label{position:relative;cursor:pointer}.telemetry-choice-list input{position:absolute;opacity:0;pointer-events:none}.telemetry-choice-list label>span{min-height:78px;padding:13px;border:1px solid #2c3e56;border-radius:10px;background:#0d1621;display:block}.telemetry-choice-list b,.telemetry-choice-list small{display:block}.telemetry-choice-list b{font-size:11px}.telemetry-choice-list small{margin-top:6px;color:#718198;font-size:9px;line-height:1.45}.telemetry-choice-list input:checked+span{border-color:#4d84df;background:rgba(35,77,133,.22);box-shadow:0 0 0 1px rgba(77,132,223,.2)}.telemetry-choice-list input:focus-visible+span{outline:2px solid #78a9f5;outline-offset:2px}.telemetry-summary{margin-top:10px;padding:11px 12px;border:1px solid #285346;border-radius:9px;background:rgba(31,105,78,.1);display:flex;align-items:center;justify-content:space-between;gap:12px;color:#86a69b;font-size:9px;line-height:1.5}
 .telemetry-preview-dialog{width:min(680px,calc(100% - 28px));padding:0;border:1px solid #345279;border-radius:16px;background:linear-gradient(145deg,#121d2b,#0a111a);color:#eef4fc;box-shadow:0 35px 110px rgba(0,0,0,.75)}.telemetry-preview-dialog::backdrop{background:rgba(2,5,10,.86);backdrop-filter:blur(8px)}.telemetry-preview-heading{padding:19px 21px;border-bottom:1px solid #293a51;display:flex;align-items:center;gap:12px}.telemetry-preview-heading h2{margin:5px 0 0;font-size:21px}.telemetry-preview-dialog>p{margin:17px 21px;color:#8b9aaf;font-size:10px;line-height:1.6}.telemetry-preview-dialog pre{margin:0 21px;padding:14px;border:1px solid #2c405b;border-radius:9px;background:#080e16;color:#9fc5f8;white-space:pre-wrap;font-size:10px;line-height:1.65}.telemetry-preview-exclusions{margin:12px 21px;padding:12px;border:1px solid #285346;border-radius:9px;background:rgba(31,105,78,.1);display:flex;flex-wrap:wrap;gap:7px}.telemetry-preview-exclusions strong{width:100%;font-size:10px}.telemetry-preview-exclusions span{padding:5px 7px;border-radius:7px;background:#12281f;color:#7edbb6;font-size:8px}.telemetry-preview-dialog .dialog-actions{padding:15px 21px;border-top:1px solid #293a51}
@@ -701,3 +702,62 @@ label.windows-update-row{cursor:pointer}
 :root[data-theme="light"] .windows-update-reboot-bar{border-color:#e5c48c;background:#fdf3e0;color:#8a6524}
 :root[data-theme="light"] .windows-update-reboot-bar .text-button{color:#8a6524}
 :root[data-theme="light"] .wu-sev.wu-optional{border-color:#b9d0ee;background:#e7effb;color:#1d4e8f}
+
+/* Thème clair : harmonisation « bleu ardoise atténué » des composants restés sombres — 4.0.0-beta.30 */
+/* Rapports d'erreurs facultatifs (télémétrie) */
+:root[data-theme="light"] .telemetry-choice-list label>span{border-color:#ccd7e3;background:#eef1f6}
+:root[data-theme="light"] .telemetry-choice-list small{color:#69758a}
+:root[data-theme="light"] .telemetry-choice-list input:checked+span{border-color:#3a67b5;background:#e3ebf6;box-shadow:0 0 0 1px rgba(58,103,181,.18)}
+:root[data-theme="light"] .telemetry-summary{border-color:#bcd8cc;background:#e9f4ee;color:#3f6d5a}
+:root[data-theme="light"] .telemetry-preview-dialog{border-color:#b4c1d3;background:linear-gradient(145deg,#f7f9fc,#eef2f7);color:#1d2a3a;box-shadow:0 30px 90px rgba(34,52,74,.25)}
+:root[data-theme="light"] .telemetry-preview-dialog::backdrop{background:rgba(30,42,58,.5)}
+:root[data-theme="light"] .telemetry-preview-heading,:root[data-theme="light"] .telemetry-preview-dialog .dialog-actions{border-color:#cfd9e5}
+:root[data-theme="light"] .telemetry-preview-dialog>p{color:#69758a}
+:root[data-theme="light"] .telemetry-preview-dialog pre{border-color:#c6d1e0;background:#eef1f6;color:#2f5a9e}
+:root[data-theme="light"] .telemetry-preview-exclusions{border-color:#bcd8cc;background:#e9f4ee}
+:root[data-theme="light"] .telemetry-preview-exclusions span{background:#dcefe5;color:#2b7a5b}
+/* Détail transparent du score de maintenance */
+:root[data-theme="light"] .health-details-button{border-color:#bcccdf;background:#e9eef6;color:#3a67b5}
+:root[data-theme="light"] .health-details-button:hover{border-color:#8fabd6;color:#2b4f8f}
+:root[data-theme="light"] .health-details-logo{background:linear-gradient(145deg,#e3ebf6,#eef2f7);color:#3a67b5}
+:root[data-theme="light"] .health-details-total{border-color:#c6d1e0;background:linear-gradient(135deg,#eef2f7,#e6ebf2)}
+:root[data-theme="light"] .health-details-total span{color:#69758a}
+:root[data-theme="light"] .health-details-total strong{color:#1d2a3a}
+:root[data-theme="light"] .health-details-total small{color:#69758a}
+:root[data-theme="light"] .health-details-list article{border-color:#ccd7e3;background:#eef1f6}
+:root[data-theme="light"] .health-details-list small{color:#69758a}
+:root[data-theme="light"] .health-details-list em{color:#8a6524}
+:root[data-theme="light"] .health-details-list article.penalty>span{background:#f7ecd5;color:#8a6524}
+:root[data-theme="light"] .health-details-list article.healthy>span{background:#dcefe5;color:#2b7a5b}
+/* Diagnostic anonymisé du formulaire d'aide */
+:root[data-theme="light"] .feedback-diagnostics{border-color:#c6d1e0;background:#eef1f6;color:#41597a}
+/* Cadres d'icônes du catalogue / des mises à jour */
+:root[data-theme="light"] .app-icon,:root[data-theme="light"] .update-app-icon,:root[data-theme="light"] .report-item-icon{border-color:#cdd6e2;background:linear-gradient(145deg,#ffffff,#eef2f7)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 4px 12px rgba(40,67,96,.12)}
+/* Jauge de maintenance : centre et piste */
+:root[data-theme="light"] .health-ring{background:radial-gradient(circle at center,#eef1f6 57%,transparent 59%),conic-gradient(from 0deg,var(--ring-color) calc(var(--score)*1%),#d7dde6 0)}
+/* Assistance « protection refusée » */
+:root[data-theme="light"] .restore-protection-overlay{background:rgba(30,42,58,.55)}
+:root[data-theme="light"] .restore-protection-dialog{border-color:#c6d1e0;background:linear-gradient(145deg,#f7f9fc,#eef2f7)}
+:root[data-theme="light"] .restore-protection-dialog p{color:#69758a}
+:root[data-theme="light"] .restore-protection-icon{border-color:#e2cea0;background:#f7f0dd;color:#8a6524}
+:root[data-theme="light"] .restore-protection-dialog ol{border-color:#c6d1e0;background:#eef1f6;color:#37475c}
+:root[data-theme="light"] .restore-protection-note{color:#69758a!important}
+/* Petits éléments partagés */
+:root[data-theme="light"] .update-selfmanaged,:root[data-theme="light"] .browser-data-details summary>span{border-color:#b9d0ee;background:#e7effb;color:#1d4e8f}
+:root[data-theme="light"] .ignored-updates-bar{border-color:#c6d1e0;color:#69758a}
+:root[data-theme="light"] .update-ignore{border-color:#c6d1e0;color:#69758a}
+:root[data-theme="light"] .external-catalog-notice{border-color:#e2cea0;background:#f7f0dd;color:#6b5827}
+:root[data-theme="light"] .build-badge{border-color:#e0c48f;background:#f6edda;color:#8a6524}
+/* Nettoyage des navigateurs : surfaces */
+:root[data-theme="light"] .browser-panel,:root[data-theme="light"] .browser-data-details,:root[data-theme="light"] .browser-data-details[open] summary{border-color:#ccd5e1;background:#f6f8fb}
+:root[data-theme="light"] .browser-card,:root[data-theme="light"] .browser-category,:root[data-theme="light"] .browser-presets button,:root[data-theme="light"] .browser-selection-toolbar,:root[data-theme="light"] .browser-cleanup-review>div,:root[data-theme="light"] .browser-close-choice,:root[data-theme="light"] .browser-data-details-grid article,:root[data-theme="light"] .browser-analysis-protection>div{border-color:#ccd7e3;background:#eef1f6}
+:root[data-theme="light"] .browser-empty{border-color:#c6d1e0;color:#69758a}
+:root[data-theme="light"] .browser-overview,:root[data-theme="light"] .browser-analysis-panel{border-color:#c6d1e0;background:linear-gradient(145deg,#eef2f7,#e6ebf2)}
+:root[data-theme="light"] .browser-safety-banner{border-color:#bcd8cc;background:#e9f4ee}
+:root[data-theme="light"] .browser-selection-toolbar button{border-color:#bcccdf;background:#e3ebf6;color:#2b4f8f}
+:root[data-theme="light"] .browser-presets button.active,:root[data-theme="light"] .browser-card.selected,:root[data-theme="light"] .browser-category:has(input:checked){border-color:#3a67b5;background:#e3ebf6}
+/* OwlSetup Alpha : surfaces restées sombres */
+:root[data-theme="light"] .alpha-plan-toggle>span{border-color:#ccd7e3;background:#eef1f6;color:#69758a}
+:root[data-theme="light"] .alpha-safety-pills span{border-color:#ccd7e3;background:#eef1f6;color:#41597a}
+:root[data-theme="light"] .alpha-mode-actions button{border-color:#bcccdf;background:#e3ebf6;color:#2b4f8f}
+:root[data-theme="light"] .alpha-one-click-status,:root[data-theme="light"] .alpha-schedule-status{color:#69758a}

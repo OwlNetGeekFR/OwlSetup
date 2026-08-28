@@ -1,6 +1,28 @@
 # Historique des versions
 
-## [4.0.0-beta.29] - 2026-08-28
+## [4.0.0-beta.30] - 2026-08-28
+
+### Thème clair : harmonisation « bleu ardoise atténué »
+
+- **Palette moins « flash ».** Les jetons du thème clair sont adoucis :
+  panneaux blanc cassé (`--panel:#f6f8fb` au lieu de blanc pur), fond gris-bleu
+  posé (`--bg:#e6eaf0`, dégradé du corps aplani), bordures et ombres moins
+  contrastées, accents désaturés (`--blue:#3a67b5`, `--cyan:#2c7c8e`,
+  `--green:#2b7a5b`). L'identité « bleu OwlSetup » est conservée mais calmée.
+- **Zones restées sombres corrigées.** Ajout des règles
+  `:root[data-theme="light"]` pour les composants qui n'avaient que des
+  couleurs sombres codées en dur : cartes « Rapports d'erreurs facultatifs »
+  (`.telemetry-choice-list`, `.telemetry-summary`, `.telemetry-preview-dialog`
+  et son `pre`/exclusions), détail du score (`.health-details-*`), diagnostic
+  du formulaire d'aide (`.feedback-diagnostics`), cadres d'icônes du catalogue
+  (`.app-icon`, `.update-app-icon`, `.report-item-icon`), centre de la jauge de
+  maintenance (`.health-ring`), dialogue « protection refusée »
+  (`.restore-protection-*`), nettoyage des navigateurs (`.browser-panel`,
+  `.browser-card`, `.browser-category`, `.browser-overview`,
+  `.browser-analysis-panel`, `.browser-data-details`…), écran Alpha
+  (`.alpha-plan-toggle`, `.alpha-safety-pills`, `.alpha-mode-actions`…) et
+  divers badges (`.update-selfmanaged`, `.external-catalog-notice`,
+  `.build-badge`).
 
 ### Corrections signalées sur la bêta 28
 
