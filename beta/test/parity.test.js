@@ -119,19 +119,27 @@ describe("package-id — migré vers le module", () => {
   });
 });
 
-describe("parite winget-brand", () => {
-  const inlineInitials = extractFunction("wingetInitials");
-  const inlineNormalize = extractFunction("normalizeWingetBrand");
-  const inlineColor = extractFunction("wingetFallbackColor");
+// `winget-brand` MIGRÉ (lot 2, 4.0.0-beta.26) : app.js utilise le module
+// `winget-brand.js` inliné par build-js.mjs (comportement couvert par
+// beta/test/winget-brand.test.js).
+describe("winget-brand — migré vers le module", () => {
+  it("app.js n'a plus les copies inline", () => {
+    expect(rootSource).toContain("function wingetInitials(name) {");
+    expect(rootSource).toContain("function normalizeWingetBrand(value) {");
+    expect(rootSource).toContain("function wingetFallbackColor(value) {");
+    // la palette n'est plus définie dans le corps de la fonction :
+    expect(rootSource).not.toMatch(/const palette\s*=\s*\["#3178c6"/);
+  });
 
-  it.each(NAME_SAMPLES.map((v) => [v]))("wingetInitials(%o)", (value) => {
-    expect(wingetInitials(value)).toBe(inlineInitials(value));
-  });
-  it.each(NAME_SAMPLES.map((v) => [v]))("normalizeWingetBrand(%o)", (value) => {
-    expect(normalizeWingetBrand(value)).toBe(inlineNormalize(value));
-  });
-  it.each(NAME_SAMPLES.map((v) => [v]))("wingetFallbackColor(%o)", (value) => {
-    expect(wingetFallbackColor(value)).toBe(inlineColor(value));
+  it("le module couvre toujours les noms de référence", () => {
+    for (const value of NAME_SAMPLES) {
+      expect(typeof wingetInitials(value)).toBe("string");
+      expect(typeof normalizeWingetBrand(value)).toBe("string");
+      expect(wingetFallbackColor(value)).toMatch(/^#[0-9a-f]{6}$/);
+    }
+    expect(wingetInitials("Google Chrome")).toBe("GC");
+    expect(normalizeWingetBrand("Câblé Déjà (x64)")).toBe("cabledeja");
+    expect(wingetFallbackColor("Google Chrome")).toBe(wingetFallbackColor("Google Chrome"));
   });
 });
 

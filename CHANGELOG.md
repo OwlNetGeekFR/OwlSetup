@@ -1,5 +1,23 @@
 # Historique des versions
 
+## [4.0.0-beta.26] - 2026-08-28
+
+### Lot 2 — module `winget-brand` branché
+
+- `wingetInitials`, `normalizeWingetBrand`, `wingetFallbackColor` n'ont plus de
+  copie inline dans `app.js` : elles viennent du module
+  `beta/src/modules/winget-brand.js` (3ᵉ entrée de `MODULES`). La palette de
+  couleurs de repli devient une constante partagée au lieu d'être recréée à
+  chaque appel.
+- `resolveWingetBrand` (reconnaissance locale des logos) reste dans `legacy.js`
+  et utilise les fonctions du module.
+- Test de parité `winget-brand` → contrôle « migré » ; comportement couvert par
+  `beta/test/winget-brand.test.js`.
+- Aucun changement de comportement : mêmes initiales, même normalisation de
+  marque, même couleur déterministe.
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  130 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
+
 ## [4.0.0-beta.25] - 2026-08-28
 
 ### Correctif : désinstallation bloquée pour certains logiciels (Docker, …)
