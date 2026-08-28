@@ -1,5 +1,32 @@
 # Historique des versions
 
+## [4.0.0-beta.29] - 2026-08-28
+
+### Corrections signalées sur la bêta 28
+
+- **Badge de navigation fantôme.** `renderHealth` écrivait dans
+  `#updatesNavBadge` (et la carte « Applications » de la santé) le compteur
+  **brut** `message.updateCount` venu de WinGet, sans retirer les mises à jour
+  masquées (« Ne plus proposer »). Résultat : une pastille « Maintenance 2 »
+  alors que la liste des mises à jour n'affichait rien. `renderHealth` calcule
+  désormais `visibleUpdateCount` en filtrant `availableUpdates` avec
+  `getIgnoredUpdateIds()`, comme `renderAvailableUpdates` et la sélection du
+  plan. `#healthUpdates`, `#healthUpdatesDetail` et `setNavAlert` utilisent ce
+  compteur filtré.
+- **Thème clair des panneaux Windows Update.** L'inventaire et la barre
+  d'installation ajoutés en bêta 15/16 n'avaient que des couleurs sombres
+  codées en dur (`#16283f`, `#2c1e10`, `#8fb6e6`…), d'où des bandeaux sombres en
+  thème clair. Ajout des règles `:root[data-theme="light"]` pour
+  `.windows-update-row` (+ `.wu-kind`, `.wu-driver`, `.wu-sev`, `.wu-check`,
+  `.wu-check-disabled`, `.wu-optional`), `.windows-update-install-bar` et
+  `.windows-update-reboot-bar`.
+- Le **score** de maintenance (calculé côté C#) continue de compter toutes les
+  mises à jour, y compris masquées ; l'aligner sur les ignorées demande de
+  transmettre la liste au natif et reste un incrément séparé.
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  122 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts
+  (`Test-HealthScoreTransparency` et `Test-ThemePreference` inclus).
+
 ## [4.0.0-beta.28] - 2026-08-28
 
 ### Lot 2 — module `theme` branché

@@ -2253,14 +2253,21 @@ function renderHealth(message) {
   $("#healthStatus").textContent = message.score >= 85 ? "Excellent état" : message.score >= 65 ? "Quelques actions conseillées" : "Entretien recommandé";
   $("#healthRing").classList.remove("good", "warning", "critical");
   $("#healthRing").classList.add(message.score >= 85 ? "good" : message.score >= 65 ? "warning" : "critical");
-  $("#healthUpdates").textContent = message.error ? "Indisponible" : `${message.updateCount} disponible${message.updateCount > 1 ? "s" : ""}`;
-  $("#healthUpdatesDetail").textContent = message.error ? "WinGet doit être vérifié" : message.updateCount ? "Nouvelles versions détectées" : "Applications à jour";
+  // Le compte de mises à jour de la santé/du badge doit EXCLURE les mises à
+  // jour masquées (« Ne plus proposer »), comme `renderAvailableUpdates`.
+  // `message.updateCount` venu de WinGet est brut : on retire les ignorées.
+  const ignoredUpdateIds = getIgnoredUpdateIds();
+  const visibleUpdateCount = message.error
+    ? 0
+    : availableUpdates.filter(update => !ignoredUpdateIds.has(update.id)).length;
+  $("#healthUpdates").textContent = message.error ? "Indisponible" : `${visibleUpdateCount} disponible${visibleUpdateCount > 1 ? "s" : ""}`;
+  $("#healthUpdatesDetail").textContent = message.error ? "WinGet doit être vérifié" : visibleUpdateCount ? "Nouvelles versions détectées" : "Applications à jour";
   $("#healthDisk").textContent = `${message.freeGb} Go libres`;
   $("#healthDiskDetail").textContent = `${message.freePercent} % de ${message.totalGb} Go`;
   $("#healthRestart").textContent = message.pendingRestart ? "Nécessaire" : "Non requis";
   $("#healthQuarantine").textContent = `${message.quarantineCount} élément${message.quarantineCount > 1 ? "s" : ""}`;
   $("#quarantineNavCount").textContent = message.quarantineCount;
-  setNavAlert("#updatesNavBadge", message.error ? "!" : message.updateCount, message.error || message.updateCount > 0);
+  setNavAlert("#updatesNavBadge", message.error ? "!" : visibleUpdateCount, message.error || visibleUpdateCount > 0);
   setNavAlert("#toolsNavBadge", message.error ? "!" : 0, true);
   if (alphaOneClickPending) renderAlphaOneClickResults(message);
 }

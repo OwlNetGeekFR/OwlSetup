@@ -687,3 +687,17 @@ label.windows-update-row{cursor:pointer}
 .windows-update-install-bar.hidden,.windows-update-reboot-bar.hidden{display:none}
 .windows-update-row.wu-browseonly{opacity:.75}
 .wu-sev.wu-optional{border-color:#3a5c86;background:#16283f;color:#8fb6e6}
+
+/* Thème clair : inventaire + installation Windows Update — 4.0.0-beta.29 */
+:root[data-theme="light"] .windows-update-row{border-color:#c6d3e2;background:#f7f9fc}
+:root[data-theme="light"] .windows-update-row .wu-kind{border-color:#b9d0ee;background:#e7effb;color:#1d4e8f}
+:root[data-theme="light"] .windows-update-row.wu-driver .wu-kind{border-color:#cbbdea;background:#f0ebfb;color:#5b3fa6}
+:root[data-theme="light"] .windows-update-row .wu-body small{color:#66758b}
+:root[data-theme="light"] .windows-update-row .wu-sev{border-color:#e5c48c;background:#fdf3e0;color:#8a6524}
+:root[data-theme="light"] .windows-update-row .wu-check{border-color:#aebed2}
+:root[data-theme="light"] .windows-update-row .wu-check-disabled{color:#66758b}
+:root[data-theme="light"] .windows-update-install-bar{border-color:#c6d3e2;background:#f7f9fc}
+:root[data-theme="light"] .windows-update-install-bar>span{color:#66758b}
+:root[data-theme="light"] .windows-update-reboot-bar{border-color:#e5c48c;background:#fdf3e0;color:#8a6524}
+:root[data-theme="light"] .windows-update-reboot-bar .text-button{color:#8a6524}
+:root[data-theme="light"] .wu-sev.wu-optional{border-color:#b9d0ee;background:#e7effb;color:#1d4e8f}
