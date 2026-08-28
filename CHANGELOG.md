@@ -1,5 +1,31 @@
 # Historique des versions
 
+## [4.0.0-beta.20] - 2026-08-28
+
+### CLI : `--apply` complet — simulation, nettoyage, journal
+
+- **`--dry-run`** (sur `--install`, `--uninstall`, `--apply`) : affiche le plan
+  (applications, zones de nettoyage) **sans rien changer**, code de sortie 0.
+- **`--silent`** (alias `--quiet`) : sortie minimale — plus de détail ligne à
+  ligne de WinGet, seulement l'état par application et le résumé ; le détail
+  d'un échec reste affiché.
+- **`--apply` exécute maintenant les zones de nettoyage** de la configuration
+  (`cleanupChoices`) : filtrées et réordonnées sur la liste autorisée
+  (`user-temp`, `windows-temp`, `recycle-bin`, `delivery`, `components`), puis
+  passées au même moteur élevé que l'interface (`RunElevatedCleanupWorker`).
+  Si la session n'est pas administrateur, le nettoyage est **ignoré avec un
+  message** (l'installation, elle, se poursuit).
+- **`--apply` écrit un journal** complet de l'opération dans
+  `%LOCALAPPDATA%\PCSetup\Logs\PC-Setup-CLI-<horodatage>.log` (transcription
+  intégrale, y compris le détail WinGet masqué par `--silent`).
+- `--install` : `winget install` met aussi à jour un paquet déjà présent mais
+  périmé (comportement WinGet) — libellé et aide ajustés.
+- `tests/Test-CliMode.ps1` étendu : `--dry-run` (plan affiché, rien d'installé,
+  entrées invalides filtrées), marqueurs `--silent` / nettoyage / journal.
+- Vérifié : `--apply --dry-run` et `--apply --silent` (installation +
+  désinstallation réelles de 7zr en test), interface OK sans argument,
+  intégrité des 5 ressources OK, `Test-ReleaseCandidateReadiness.ps1` verte.
+
 ## [4.0.0-beta.19] - 2026-08-27
 
 ### CLI : `--apply`, `--list --json`, et un shim console qui « juste marche »

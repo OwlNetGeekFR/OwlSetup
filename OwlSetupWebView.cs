@@ -4479,7 +4479,24 @@ internal static class Bootstrap
             .ToArray();
     }
 
-    static int CliRunWinget(string winget,string arguments)
+    // Transcription : tout ce qui est affiché est aussi conservé ici pour que
+    // --apply puisse écrire un journal fichier de l'opération complète.
+    static readonly StringBuilder CliTranscript = new StringBuilder();
+    static void CliOut(string line){ Console.Out.WriteLine(line); CliTranscript.AppendLine(line); }
+    static void CliErr(string line){ Console.Error.WriteLine(line); CliTranscript.AppendLine(line); }
+
+    static readonly string[] CliCleanupZones = { "user-temp", "windows-temp", "recycle-bin", "delivery", "components" };
+
+    static string CliLogsFolder()
+    {
+        string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PCSetup","Logs");
+        Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    static int CliRunWinget(string winget,string arguments){ return CliRunWinget(winget,arguments,false); }
+
+    static int CliRunWinget(string winget,string arguments,bool silent)
     {
         try
         {
@@ -4489,17 +4506,26 @@ internal static class Bootstrap
                 RedirectStandardOutput=true,RedirectStandardError=true,
                 StandardOutputEncoding=Encoding.UTF8,StandardErrorEncoding=Encoding.UTF8
             };
+            var lines=new List<string>();
+            object sync=new object();
             using(var process=new Process{StartInfo=info})
             {
-                process.OutputDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null)Console.Out.WriteLine("  "+e.Data); };
-                process.ErrorDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null)Console.Error.WriteLine("  "+e.Data); };
+                process.OutputDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null){lock(sync)lines.Add(e.Data);} };
+                process.ErrorDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null){lock(sync)lines.Add(e.Data);} };
                 process.Start();process.BeginOutputReadLine();process.BeginErrorReadLine();process.WaitForExit();
+                // En mode silencieux on ne détaille que si l'opération a échoué.
+                bool show=!silent || process.ExitCode!=0;
+                foreach(string line in lines)
+                {
+                    CliTranscript.AppendLine("  "+line);
+                    if(show)Console.Out.WriteLine("  "+line);
+                }
                 return process.ExitCode;
             }
         }
         catch(Exception ex)
         {
-            Console.Error.WriteLine("  "+ex.Message);
+            CliErr("  "+ex.Message);
             return -1;
         }
     }
@@ -4508,7 +4534,7 @@ internal static class Bootstrap
     {
         Console.Out.WriteLine("OwlSetup "+BuildInfo.DisplayVersion+" ("+BuildInfo.Channel+") — mode ligne de commande");
         Console.Out.WriteLine();
-        Console.Out.WriteLine("  OwlSetup.exe --install <id>[,<id>...]    Installe des logiciels via WinGet");
+        Console.Out.WriteLine("  OwlSetup.exe --install <id>[,<id>...]    Installe / met à jour des logiciels via WinGet");
         Console.Out.WriteLine("  OwlSetup.exe --uninstall <id>[,<id>...]  Désinstalle des logiciels");
         Console.Out.WriteLine("  OwlSetup.exe --apply <config.pcsetup.json>  Rejoue une configuration exportée par l'interface");
         Console.Out.WriteLine("  OwlSetup.exe --list [filtre] [--json]    Liste le catalogue intégré");
@@ -4516,7 +4542,12 @@ internal static class Bootstrap
         Console.Out.WriteLine("  OwlSetup.exe --version                   Version d'OwlSetup");
         Console.Out.WriteLine("  OwlSetup.exe --help                      Cette aide");
         Console.Out.WriteLine();
+        Console.Out.WriteLine("Options : --dry-run (simule sans rien changer), --silent (sortie minimale).");
+        Console.Out.WriteLine("--apply exécute aussi les zones de nettoyage de la config si la session est élevée,");
+        Console.Out.WriteLine("et écrit un journal dans %LOCALAPPDATA%\\PCSetup\\Logs.");
+        Console.Out.WriteLine();
         Console.Out.WriteLine("Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip,Mozilla.Firefox");
+        Console.Out.WriteLine("Exemple : OwlSetup.exe --apply parc.pcsetup.json --silent");
         Console.Out.WriteLine("Sans argument, OwlSetup démarre son interface graphique.");
         Console.Out.WriteLine();
         Console.Out.WriteLine("Codes de sortie : 0 = succès, 1 = un échec au moins, 2 = usage, 3 = WinGet absent.");
@@ -4560,7 +4591,7 @@ internal static class Bootstrap
         return CliRunWinget(winget,"search --query \""+query.Replace("\"","")+"\" --source winget --accept-source-agreements --disable-interactivity");
     }
 
-    static int CliInstallOrRemove(string[] rest,bool remove)
+    static int CliInstallOrRemove(string[] rest,bool remove,bool dryRun,bool silent)
     {
         var ids=CliParseIds(rest);
         if(ids.Length==0)
@@ -4568,75 +4599,137 @@ internal static class Bootstrap
             Console.Error.WriteLine("Aucun identifiant valide. Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip");
             return 2;
         }
-        return CliRunInstallLoop(ids,remove);
+        return CliRunInstallLoop(ids,remove,dryRun,silent);
     }
 
-    static int CliRunInstallLoop(string[] ids,bool remove)
+    static int CliRunInstallLoop(string[] ids,bool remove,bool dryRun,bool silent)
     {
+        if(dryRun)
+        {
+            CliOut("[simulation] "+(remove?"Désinstallerait":"Installerait ou mettrait à jour")+" "+ids.Length+" application(s) :");
+            foreach(string id in ids)CliOut("  - "+id);
+            CliOut("[simulation] Aucune modification effectuée.");
+            return 0;
+        }
         string winget=CliResolveWinget();
         if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez « App Installer » depuis le Microsoft Store.");return 3;}
         if(!remove && !CliIsAdmin())
-            Console.Out.WriteLine("Note : les logiciels installés pour toute la machine demandent des droits administrateur.\n      Relancez depuis une invite « Administrateur » si une installation échoue.\n");
+            CliOut("Note : les logiciels installés pour toute la machine demandent des droits administrateur.\n      Relancez depuis une invite « Administrateur » si une installation échoue.\n");
 
         int ok=0,failed=0;
         foreach(string id in ids)
         {
-            Console.Out.WriteLine((remove?"Désinstallation de ":"Installation de ")+id+" ...");
+            CliOut((remove?"Désinstallation de ":"Installation de ")+id+" ...");
             string arguments=remove
                 ? "uninstall --id \""+id+"\" --exact --silent --accept-source-agreements --disable-interactivity"
                 : "install --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity";
-            int code=CliRunWinget(winget,arguments);
+            int code=CliRunWinget(winget,arguments,silent);
             // 0x8A15002B (-1978335189) = rien à faire (déjà installé / à jour) : on
             // le compte comme un succès pour rester idempotent.
             if(code==0 || code==unchecked((int)0x8A15002B))
             {
                 ok++;
-                Console.Out.WriteLine("  -> OK : "+id);
+                CliOut("  -> OK : "+id);
             }
             else
             {
                 failed++;
-                Console.Error.WriteLine("  -> ÉCHEC : "+id+" (code "+code+")");
+                CliErr("  -> ÉCHEC : "+id+" (code "+code+")");
             }
         }
-        Console.Out.WriteLine();
-        Console.Out.WriteLine((remove?"Désinstallation":"Installation")+" terminée : "+ok+" réussie(s), "+failed+" en échec.");
+        CliOut("");
+        CliOut((remove?"Désinstallation":"Installation")+" terminée : "+ok+" réussie(s), "+failed+" en échec.");
         return failed==0 ? 0 : 1;
     }
 
     // --apply <fichier.pcsetup.json> : rejoue une configuration exportée par
-    // l'interface (champ « selectedPackages », repli sur « installedPackages »).
-    static int CliApply(string[] rest)
+    // l'interface. Installe/met à jour « selectedPackages » (repli
+    // « installedPackages »), puis exécute les zones « cleanupChoices » si la
+    // session est élevée. --dry-run affiche le plan sans rien changer,
+    // --silent réduit la sortie, et un journal est écrit dans le dossier Logs.
+    static int CliApply(string[] rest,bool dryRun,bool silent)
     {
         string path=String.Join(" ",rest).Trim().Trim('"');
-        if(path.Length==0){Console.Error.WriteLine("Usage : OwlSetup.exe --apply <fichier.pcsetup.json>");return 2;}
+        if(path.Length==0){Console.Error.WriteLine("Usage : OwlSetup.exe --apply <fichier.pcsetup.json> [--dry-run] [--silent]");return 2;}
         if(!File.Exists(path)){Console.Error.WriteLine("Fichier introuvable : "+path);return 2;}
+
+        string[] ids;string source;string[] cleanup;
         try
         {
-            var info=new FileInfo(path);
-            if(info.Length>1024*1024){Console.Error.WriteLine("Fichier de configuration trop volumineux (max 1 Mo).");return 2;}
+            var fileInfo=new FileInfo(path);
+            if(fileInfo.Length>1024*1024){Console.Error.WriteLine("Fichier de configuration trop volumineux (max 1 Mo).");return 2;}
             var root=new JavaScriptSerializer().DeserializeObject(File.ReadAllText(path,Encoding.UTF8)) as Dictionary<string,object>;
             if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")
             {
                 Console.Error.WriteLine("Ce fichier n'est pas une configuration OwlSetup (champ « format » attendu).");
                 return 2;
             }
-            var ids=CliConfigIds(root,"selectedPackages");
-            string source="selectedPackages";
+            ids=CliConfigIds(root,"selectedPackages");source="selectedPackages";
             if(ids.Length==0){ids=CliConfigIds(root,"installedPackages");source="installedPackages";}
             if(ids.Length==0){Console.Error.WriteLine("La configuration ne contient aucun identifiant exploitable.");return 2;}
-            var cleanup=root.ContainsKey("cleanupChoices") ? CliConfigIds(root,"cleanupChoices") : new string[0];
-            Console.Out.WriteLine("Configuration : "+Path.GetFileName(path)+" — "+ids.Length+" application(s) ("+source+").");
-            if(cleanup.Length>0)
-                Console.Out.WriteLine(cleanup.Length+" zone(s) de nettoyage ignorée(s) en mode CLI (utilisez l'interface).");
-            Console.Out.WriteLine();
-            return CliRunInstallLoop(ids,false);
+            // Zones de nettoyage : filtrées et réordonnées selon la liste autorisée
+            // (RunElevatedCleanupWorker impose l'ordre exact de CliCleanupZones).
+            var raw=root.ContainsKey("cleanupChoices") ? CliConfigIds(root,"cleanupChoices") : new string[0];
+            cleanup=CliCleanupZones.Where(zone=>raw.Contains(zone,StringComparer.OrdinalIgnoreCase)).ToArray();
         }
         catch(Exception ex)
         {
             Console.Error.WriteLine("Configuration illisible : "+ex.Message);
             return 2;
         }
+
+        CliOut("Configuration : "+Path.GetFileName(path)+" — "+ids.Length+" application(s) ("+source+")"+(cleanup.Length>0?", "+cleanup.Length+" zone(s) de nettoyage":"")+".");
+        CliOut("");
+
+        if(dryRun)
+        {
+            CliOut("[simulation] Installerait ou mettrait à jour :");
+            foreach(string id in ids)CliOut("  - "+id);
+            if(cleanup.Length>0)CliOut("[simulation] Nettoierait : "+String.Join(", ",cleanup)+(CliIsAdmin()?"":" (droits administrateur requis)"));
+            CliOut("[simulation] Aucune modification effectuée.");
+            return 0;
+        }
+
+        int code=CliRunInstallLoop(ids,false,false,silent);
+
+        if(cleanup.Length>0)
+        {
+            CliOut("");
+            if(!CliIsAdmin())
+            {
+                CliOut("Nettoyage ignoré : "+String.Join(", ",cleanup)+" — droits administrateur requis (relancez depuis une invite élevée).");
+            }
+            else
+            {
+                string cleanupLog=Path.Combine(CliLogsFolder(),"PC-Setup-Nettoyage-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log");
+                CliOut("Nettoyage : "+String.Join(", ",cleanup)+" ...");
+                int cleanupCode;
+                try{cleanupCode=RunElevatedCleanupWorker(String.Join(",",cleanup),cleanupLog);}
+                catch(Exception ex){cleanupCode=-1;CliErr("  "+ex.Message);}
+                string recovered="0";
+                try
+                {
+                    if(File.Exists(cleanupLog))
+                    {
+                        Match m=Regex.Match(File.ReadAllText(cleanupLog,Encoding.UTF8),@"PCSETUP_RESULT\|([^\r\n]+)");
+                        if(m.Success)recovered=m.Groups[1].Value.Trim();
+                    }
+                }
+                catch{}
+                if(cleanupCode==0)CliOut("  -> Nettoyage terminé : "+recovered+" récupérés (journal "+Path.GetFileName(cleanupLog)+").");
+                else CliErr("  -> Nettoyage en échec (code "+cleanupCode+").");
+            }
+        }
+
+        try
+        {
+            string transcriptPath=Path.Combine(CliLogsFolder(),"PC-Setup-CLI-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log");
+            File.WriteAllText(transcriptPath,CliTranscript.ToString(),Encoding.UTF8);
+            Console.Out.WriteLine("Journal : "+transcriptPath);
+        }
+        catch{}
+
+        return code;
     }
 
     static string[] CliConfigIds(Dictionary<string,object> root,string key)
@@ -4655,8 +4748,11 @@ internal static class Bootstrap
     {
         CliAttachConsole();
         string verb=commandLine[1];
-        bool asJson=commandLine.Skip(2).Any(a=>a=="--json");
-        var rest=commandLine.Skip(2).Where(a=>a!="--json").ToArray();
+        var flags=commandLine.Skip(2).ToArray();
+        bool asJson=flags.Any(a=>a=="--json");
+        bool dryRun=flags.Any(a=>a=="--dry-run");
+        bool silent=flags.Any(a=>a=="--silent" || a=="--quiet");
+        var rest=flags.Where(a=>a!="--json" && a!="--dry-run" && a!="--silent" && a!="--quiet").ToArray();
         switch(verb)
         {
             case "--help": case "-h": case "/?": CliHelp(); return 0;
@@ -4665,9 +4761,9 @@ internal static class Bootstrap
                 return 0;
             case "--list": return CliList(rest.Length>0?String.Join(" ",rest):null,asJson);
             case "--search": return CliSearch(rest);
-            case "--install": return CliInstallOrRemove(rest,false);
-            case "--uninstall": return CliInstallOrRemove(rest,true);
-            case "--apply": return CliApply(rest);
+            case "--install": return CliInstallOrRemove(rest,false,dryRun,silent);
+            case "--uninstall": return CliInstallOrRemove(rest,true,dryRun,silent);
+            case "--apply": return CliApply(rest,dryRun,silent);
             default:
                 Console.Error.WriteLine("Option inconnue : "+verb);
                 CliHelp();
