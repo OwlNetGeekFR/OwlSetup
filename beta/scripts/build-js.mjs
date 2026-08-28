@@ -14,7 +14,7 @@ const here = (relative) => fileURLToPath(new URL(relative, import.meta.url));
 // Modules purs (de ../src/modules/) inlinés en tête, dans l'ordre. Chaque entrée
 // ajoutée ici doit s'accompagner du retrait du code équivalent dans legacy.js
 // (sinon double déclaration).
-const MODULES = ["../src/modules/escape-html.js"];
+const MODULES = ["../src/modules/escape-html.js", "../src/modules/package-id.js"];
 
 /**
  * Transforme un module ES en code inlinable dans l'IIFE :

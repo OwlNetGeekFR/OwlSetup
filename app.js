@@ -17,6 +17,64 @@ function escapeHtml(value) {
 }
 
 
+// ----- ../src/modules/package-id.js -----
+/**
+ * Validation des identifiants de paquet (WinGet / MS Store) manipules par l'interface.
+ *
+ * Meme expression que :
+ *  - `app.js` (racine) : `isValidPackageId`, filtre de `pcsetup-selection`.
+ *  - `OwlSetupWebView.cs` : `Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")` cote hote.
+ *
+ * Garder les deux cotes strictement identiques : c'est la frontiere de confiance
+ * entre l'UI et l'appel `winget.exe`. Le premier caractere doit etre
+ * alphanumerique : un identifiant en `-...` ne peut donc pas etre confondu avec
+ * un argument `winget` (durcissement 4.0-beta).
+ */
+
+/** Jeu de caracteres autorise dans un identifiant transmis a l'hote. */
+const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/;
+
+/** Longueur defensive utilisee par la telemetrie (`targetPackage`). */
+const TELEMETRY_PACKAGE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/;
+
+/**
+ * @param {unknown} id
+ * @returns {id is string} vrai si `id` est une chaine acceptable par l'hote
+ */
+function isValidPackageId(id) {
+  return typeof id === "string" && PACKAGE_ID_PATTERN.test(id);
+}
+
+/**
+ * Filtre une liste (selection restauree depuis `localStorage`, profils, etc.)
+ * en ne conservant que des identifiants surs et distincts.
+ *
+ * @param {unknown} list
+ * @returns {string[]}
+ */
+function sanitizePackageIds(list) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const value of list) {
+    if (!isValidPackageId(value) || seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+/**
+ * Normalise pour la telemetrie : renvoie l'identifiant s'il est court et sur,
+ * sinon une chaine vide (jamais de donnee libre exfiltree).
+ *
+ * @param {unknown} id
+ * @returns {string}
+ */
+function telemetrySafePackageId(id) {
+  return typeof id === "string" && TELEMETRY_PACKAGE_PATTERN.test(id) ? id : "";
+}
+
 // ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
@@ -69,7 +127,8 @@ apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${a
 const builtInCatalogIds = new Set(apps.map(app => app.id.toLocaleLowerCase("en")));
 
 const customPackagesStorageKey = "owlsetup-custom-packages-v1";
-const isValidPackageId = id => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(id);
+// `isValidPackageId` / `sanitizePackageIds` / `telemetrySafePackageId` :
+// fournis par beta/src/modules/package-id.js, inlinés en tête de app.js.
 // L’ajout libre d’identifiants WinGet a été retiré : seules les applications
 // contrôlées du catalogue OwlSetup peuvent être proposées à l’utilisateur.
 localStorage.removeItem(customPackagesStorageKey);
@@ -293,7 +352,7 @@ function inferTelemetryContext(message = "", supplied = {}) {
   if (!targetPackage && category === "update" && selectedUpdates?.size === 1) targetPackage = [...selectedUpdates][0];
   if (!targetPackage && category === "uninstall") targetPackage = pendingUninstallId || pendingRepairId || "";
   if (!targetPackage && category === "installation" && lastFailedInstallPackages?.length === 1) targetPackage = lastFailedInstallPackages[0];
-  if (!/^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/.test(targetPackage)) targetPackage = "";
+  targetPackage = telemetrySafePackageId(targetPackage);
   const errorKind = supplied.errorKind || (stage === "network" ? "network" : stage === "permissions" ? "permission" : stage === "process-lock" ? "process-lock" : /winget/.test(text) ? "winget" : "application");
   return {operation:view,errorCategory:category,failureStage:stage,targetPackage,errorKind,resolutionStatus:supplied.resolutionStatus || "open"};
 }

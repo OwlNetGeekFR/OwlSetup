@@ -25,6 +25,22 @@ logiciel.
   l'exécutable + `tests/Test-WingetParsing.ps1`). Vérifié : sur la machine de
   test, `Docker.DockerDesktop` se résout maintenant correctement.
 - 160 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
+## [4.0.0-beta.24] - 2026-08-28
+
+### Lot 2 — module `package-id` branché
+
+- `isValidPackageId` n'a plus de copie inline dans `app.js` : la fonction et le
+  motif `PACKAGE_ID_PATTERN` viennent du module
+  `beta/src/modules/package-id.js` (2ᵉ entrée de `MODULES`).
+- Le test regex inline de la télémétrie
+  (`/^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/.test(targetPackage)`) est remplacé par
+  `telemetrySafePackageId(targetPackage)` — même règle, une seule définition.
+- Test de parité `isValidPackageId` → contrôle « migré » ; le comportement
+  reste couvert par `beta/test/package-id.test.js` (9 tests).
+- Aucun changement de comportement : même frontière de confiance UI ↔
+  `winget.exe` (1ᵉʳ caractère alphanumérique obligatoire).
+- Vérifié : intégrité SHA-256 des 5 ressources OK, l'application démarre,
+  149 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
 
 ## [4.0.0-beta.23] - 2026-08-28
 
