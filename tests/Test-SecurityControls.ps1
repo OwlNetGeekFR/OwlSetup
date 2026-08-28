@@ -27,7 +27,13 @@ Assert-Contains $native 'CoreWebView2PermissionState\.Deny' "Les permissions Web
 Assert-Contains $native 'uri\.Scheme != Uri\.UriSchemeHttps' "Les liens externes non chiffrés sont encore autorisés."
 Assert-NotContains $native 'GetEnvironmentVariable\("PATH"\)' "WinGet peut encore être détourné via PATH."
 Assert-Contains $native 'Microsoft\.DesktopAppInstaller_' "L'emplacement officiel d'App Installer n'est pas contrôlé."
-Assert-Contains $native 'mise à jour automatique est désactivée' "La mise à jour automatique non signée est encore active."
+# La mise à jour in-app est activée (4.0.0-beta.33) mais reste vérifiée :
+# empreinte SHA-256 de l'asset, préfixe d'URL des Releases GitHub verrouillé,
+# en-tête MZ, et confirmation explicite via la modale.
+Assert-Contains $native 'La vérification SHA-256 a échoué' "La mise à jour in-app ne contrôle plus l'empreinte SHA-256."
+Assert-Contains $native 'https://github\.com/OwlNetGeekFR/OwlSetup/releases/download/' "La source de la mise à jour n'est plus verrouillée sur les Releases GitHub officielles."
+Assert-Contains $native 'Source de mise à jour non approuvée' "Le contrôle du préfixe d'URL de la mise à jour a disparu."
+Assert-Contains $native "stream\.ReadByte\(\)!=0x4D" "L'en-tête exécutable (MZ) du fichier téléchargé n'est plus vérifié."
 Assert-Contains $native 'sourceInfo\.Length>1024\*1024' "La taille d'une configuration importée n'est pas limitée."
 Assert-Contains $cleanup 'nettoyage intégré sans validation individuelle est désactivé' "Le nettoyage large intégré reste autorisé."
 Assert-Contains $cleanupLauncher 'balayage automatique large des dossiers AppData est désactivé' "Le lanceur peut encore déclencher le balayage AppData automatique."

@@ -3546,12 +3546,55 @@ internal sealed class WebAppForm : Form
         return match.Groups[1].Value.ToUpperInvariant();
     }
 
-    Version ReadReleaseVersion(Dictionary<string,object> release)
+    string ReadReleaseTag(Dictionary<string,object> release)
     {
         string tag=release.ContainsKey("tag_name")?Convert.ToString(release["tag_name"]):"";
-        Version version;
-        if(!Version.TryParse(tag.TrimStart('v','V'),out version))throw new InvalidDataException("Version GitHub invalide.");
-        return version;
+        if(tag!=null && tag.StartsWith("v",StringComparison.OrdinalIgnoreCase))tag=tag.Substring(1);
+        if(ParseAppVersion(tag)==null)throw new InvalidDataException("Version GitHub invalide : "+tag);
+        return tag;
+    }
+
+    // Miroir de beta/src/modules/app-version.js (couvert par app-version.test.js).
+    // Format : X.Y.Z eventuellement suivi de -<canal>.<n> avec <canal> parmi
+    // alpha|beta|rc (cf. build.ps1). Renvoie [major,minor,patch,preRank,preNumber]
+    // ou null si illisible. preRank : alpha=0, beta=1, rc=2, inconnu=-1, pas de
+    // preversion=100 (une stable passe devant la preversion de meme X.Y.Z).
+    static int[] ParseAppVersion(string value)
+    {
+        if(value==null)return null;
+        string text=value.Trim();
+        if(text.StartsWith("v",StringComparison.OrdinalIgnoreCase))text=text.Substring(1);
+        Match m=Regex.Match(text,@"^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z.-]+))?$");
+        if(!m.Success)return null;
+        int major=int.Parse(m.Groups[1].Value);
+        int minor=m.Groups[2].Success?int.Parse(m.Groups[2].Value):0;
+        int patch=m.Groups[3].Success?int.Parse(m.Groups[3].Value):0;
+        int preRank=100,preNumber=0;
+        if(m.Groups[4].Success)
+        {
+            Match p=Regex.Match(m.Groups[4].Value,@"^([A-Za-z]+)(?:[.-]?(\d+))?$");
+            string stage=(p.Success?p.Groups[1].Value:m.Groups[4].Value).ToLowerInvariant();
+            if(stage=="alpha")preRank=0;
+            else if(stage=="beta")preRank=1;
+            else if(stage=="rc")preRank=2;
+            else preRank=-1;
+            if(p.Success && p.Groups[2].Success)preNumber=int.Parse(p.Groups[2].Value);
+        }
+        return new int[]{major,minor,patch,preRank,preNumber};
+    }
+
+    // < 0 : current plus ancienne (mise a jour dispo) ; 0 : identiques ;
+    // > 0 : current plus recente. Leve si l'une des chaines est illisible.
+    static int CompareAppVersions(string current,string candidate)
+    {
+        int[] a=ParseAppVersion(current);
+        int[] b=ParseAppVersion(candidate);
+        if(a==null || b==null)throw new InvalidDataException("Version illisible ("+current+" / "+candidate+").");
+        for(int i=0;i<a.Length;i++)
+        {
+            if(a[i]!=b[i])return a[i]<b[i]?-1:1;
+        }
+        return 0;
     }
 
     string CurrentVersionText()
@@ -3790,7 +3833,8 @@ internal sealed class WebAppForm : Form
     void CheckAppUpdate()
     {
         if(selfUpdateRunning)return;
-        if(BuildInfo.IsBeta)
+        // Build sans version comparable (dev local) : rien a proposer.
+        if(ParseAppVersion(BuildInfo.DisplayVersion)==null)
         {
             SendToWeb(new { type="app-update-state", status="beta", current=CurrentVersionText(), latest="" });
             return;
@@ -3800,10 +3844,9 @@ internal sealed class WebAppForm : Form
             try
             {
                 var release=GetLatestRelease();
-                Version latest=ReadReleaseVersion(release);
-                Version current=Assembly.GetExecutingAssembly().GetName().Version;
-                bool available=latest.CompareTo(current)>0;
-                SendToWeb(new { type="app-update-state", status=available?"available":"current", current=CurrentVersionText(), latest=latest.ToString(3), page=release.ContainsKey("html_url")?Convert.ToString(release["html_url"]):"" });
+                string tag=ReadReleaseTag(release);
+                bool available=CompareAppVersions(BuildInfo.DisplayVersion,tag)<0;
+                SendToWeb(new { type="app-update-state", status=available?"available":"current", current=CurrentVersionText(), latest=tag, page=release.ContainsKey("html_url")?Convert.ToString(release["html_url"]):"" });
             }
             catch(Exception ex){SendToWeb(new { type="app-update-state", status="error", current=CurrentVersionText(), message=ex.Message });}
         });
@@ -3811,9 +3854,12 @@ internal sealed class WebAppForm : Form
 
     void InstallAppUpdate()
     {
-        throw new InvalidOperationException("La mise à jour automatique est désactivée tant qu’OwlSetup ne possède pas une signature de code reconnue. Utilisez uniquement la Release GitHub officielle et vérifiez son empreinte SHA-256.");
-#pragma warning disable 162
-        if(BuildInfo.IsBeta)throw new InvalidOperationException("La mise à jour automatique est désactivée dans la version bêta locale.");
+        // Mise a jour verifiee : l'executable telecharge est controle par son
+        // empreinte SHA-256 (asset SHA256.txt de la Release), par le prefixe
+        // d'URL github.com/OwlNetGeekFR/OwlSetup et par son en-tete MZ. Elle
+        // n'est lancee qu'apres confirmation explicite de l'utilisateur (modale).
+        // OwlSetup n'est pas signe Authenticode : SmartScreen peut avertir au
+        // redemarrage.
         if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de OwlSetup est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         selfUpdateRunning=true;
@@ -3823,9 +3869,8 @@ internal sealed class WebAppForm : Form
             try
             {
                 var release=GetLatestRelease();
-                Version latest=ReadReleaseVersion(release);
-                Version current=Assembly.GetExecutingAssembly().GetName().Version;
-                if(latest.CompareTo(current)<=0)throw new InvalidOperationException("OwlSetup est déjà à jour.");
+                string tag=ReadReleaseTag(release);
+                if(CompareAppVersions(BuildInfo.DisplayVersion,tag)>=0)throw new InvalidOperationException("OwlSetup est déjà à jour.");
                 var exeAsset=FindReleaseAsset(release,"OwlSetup.exe")??FindReleaseAsset(release,"PC-Setup.exe");
                 var hashAsset=FindReleaseAsset(release,"SHA256.txt");
                 if(exeAsset==null || hashAsset==null)throw new FileNotFoundException("La Release ne contient pas les fichiers de mise à jour requis.");
@@ -3834,7 +3879,7 @@ internal sealed class WebAppForm : Form
                 string hashUrl=Convert.ToString(hashAsset["browser_download_url"]);
                 string trustedPrefix="https://github.com/OwlNetGeekFR/OwlSetup/releases/download/";
                 if(!exeUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase) || !hashUrl.StartsWith(trustedPrefix,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Source de mise à jour non approuvée.");
-                string folder=Path.Combine(Path.GetTempPath(),"PCSetup","Update-"+latest.ToString(3));
+                string folder=Path.Combine(Path.GetTempPath(),"PCSetup","Update-"+tag);
                 Directory.CreateDirectory(folder);
                 downloaded=Path.Combine(folder,"OwlSetup.exe");
                 string expected;
@@ -3865,7 +3910,7 @@ internal sealed class WebAppForm : Form
                     "Start-Process -FilePath $destination\r\n"+
                     "Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue\r\n";
                 File.WriteAllText(script,ps,new UTF8Encoding(false));
-                SendToWeb(new { type="app-update-state", status="restarting", current=CurrentVersionText(), latest=latest.ToString(3) });
+                SendToWeb(new { type="app-update-state", status="restarting", current=CurrentVersionText(), latest=tag });
                 Process.Start(new ProcessStartInfo { FileName="powershell.exe", Arguments="-NoLogo -NoProfile -ExecutionPolicy Bypass -File \""+script+"\"", UseShellExecute=true, WindowStyle=ProcessWindowStyle.Hidden });
                 BeginInvoke(new Action(Close));
             }
@@ -3876,7 +3921,6 @@ internal sealed class WebAppForm : Form
                 SendToWeb(new { type="app-update-state", status="error", current=CurrentVersionText(), message=ex.Message });
             }
         });
-#pragma warning restore 162
     }
 
     void ExportConfiguration(Dictionary<string, object> payload)

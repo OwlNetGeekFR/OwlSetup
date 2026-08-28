@@ -3019,7 +3019,22 @@ function closeAppUpdateModal() {
 }
 
 function beginAppUpdate() {
-  window.open(appUpdateReleasePage, "_blank", "noopener");
+  if (!window.chrome?.webview) {
+    window.open(appUpdateReleasePage, "_blank", "noopener");
+    return;
+  }
+  const modal = $("#appUpdateModal");
+  modal.dataset.running = "true";
+  $("#installAppUpdate").disabled = true;
+  $("#closeAppUpdate").disabled = true;
+  $("#cancelAppUpdate").disabled = true;
+  const icon = $("#appUpdateStateIcon");
+  icon.classList.add("spinning");
+  icon.textContent = "↻";
+  $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
+  $("#appUpdateStateDetail").textContent =
+    "Téléchargement puis vérification de l'empreinte SHA-256…";
+  window.chrome.webview.postMessage({ action: "install-app-update", payload: {} });
 }
 
 function renderAppUpdateState(message) {
@@ -3040,12 +3055,12 @@ function renderAppUpdateState(message) {
     notification.setAttribute("aria-label", `Mise à jour OwlSetup ${message.latest} disponible`);
     if (notification.dataset.notified !== message.latest) {
       notification.dataset.notified = message.latest;
-      notifyAction("Mise à jour disponible", `OwlSetup ${message.latest} est disponible sur GitHub.`);
-      addNotification({key:`owlsetup-update-${message.latest}`, title:`OwlSetup ${message.latest} est disponible`, detail:"Téléchargez la nouvelle version depuis la Release GitHub officielle.", kind:"warning", action:"self-update", symbol:"↻"});
+      notifyAction("Mise à jour disponible", `OwlSetup ${message.latest} est disponible.`);
+      addNotification({key:`owlsetup-update-${message.latest}`, title:`OwlSetup ${message.latest} est disponible`, detail:"Ouvrez « Mettre OwlSetup à jour » : téléchargement vérifié SHA-256 puis redémarrage.", kind:"warning", action:"self-update", symbol:"↻"});
     }
     icon.textContent = "↓";
     $("#appUpdateStateTitle").textContent = `OwlSetup ${message.latest} est disponible`;
-    $("#appUpdateStateDetail").textContent = "Ouvrez la Release officielle GitHub pour télécharger cette version.";
+    $("#appUpdateStateDetail").textContent = "« Installer » télécharge la version vérifiée (SHA-256) depuis GitHub, puis OwlSetup redémarre.";
     install.classList.remove("hidden"); install.disabled = false;
   } else if (message.status === "current") {
     notification.title = "Notifications";
@@ -3067,9 +3082,13 @@ function renderAppUpdateState(message) {
     $("#appUpdateStateTitle").textContent = "Version bêta locale";
     $("#appUpdateStateDetail").textContent = "Cette construction sert aux tests et ne sera pas remplacée automatiquement.";
   } else if (message.status === "downloading") {
+    $("#appUpdateModal").dataset.running = "true";
+    $("#installAppUpdate").disabled = true;
+    $("#closeAppUpdate").disabled = true;
+    $("#cancelAppUpdate").disabled = true;
     icon.textContent = "↻";
     $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
-    $("#appUpdateStateDetail").textContent = "Téléchargement puis vérification de l'empreinte SHA-256...";
+    $("#appUpdateStateDetail").textContent = "Téléchargement puis vérification de l'empreinte SHA-256…";
   } else if (message.status === "restarting") {
     icon.classList.remove("spinning"); icon.textContent = "✓";
     $("#appLatestVersion").textContent = message.latest || "—";
