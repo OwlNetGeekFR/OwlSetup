@@ -18,6 +18,7 @@ const MODULES = [
   "../src/modules/escape-html.js",
   "../src/modules/package-id.js",
   "../src/modules/winget-brand.js",
+  "../src/modules/redaction.js",
 ];
 
 /**

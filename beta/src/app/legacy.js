@@ -348,10 +348,8 @@ async function sendMinimalErrorTelemetry(fingerprint, message, context = {}) {
   return sendTelemetryPayload(minimalTelemetrySample(fingerprint, message, context));
 }
 
-function telemetryFingerprint(context) {
-  const canonical = [context.errorCategory,context.failureStage,context.targetPackage,context.errorCode,context.errorKind].map(value => String(value || "unknown").toLowerCase()).join("|");
-  return [...canonical].reduce((value, character) => ((value * 31) + character.charCodeAt(0)) >>> 0, 2166136261).toString(16).toUpperCase().padStart(8, "0");
-}
+// `telemetryFingerprint` : fourni par beta/src/modules/redaction.js, inliné en
+// tête de app.js.
 
 function reportOperationalTelemetry(context) {
   const fingerprint = telemetryFingerprint(context);
@@ -568,14 +566,8 @@ function closeLogViewer() {
   $("#logModal").classList.add("hidden");
 }
 
-function redactLogDiagnostic(line) {
-  return String(line || "")
-    .replace(/\b[A-Z]:\\Users\\[^\\\s]+/gi, "%USERPROFILE%")
-    .replace(/\b[\w.%+-]+@[\w.-]+\.[A-Z]{2,}\b/gi, "[E-MAIL MASQUÉ]")
-    .replace(/\b(?:Nom d['’]utilisateur|Utilisateur runAs|Ordinateur)\s*:.*$/i, value => `${value.split(":")[0]} : [MASQUÉ]`)
-    .replace(/\b[A-Z0-9_-]+\\[A-Z0-9._-]+\b/gi, "[COMPTE WINDOWS]")
-    .slice(0, 420);
-}
+// `redactLogDiagnostic` : fourni par beta/src/modules/redaction.js, inliné en
+// tête de app.js.
 
 function prepareLogFeedback() {
   if (!currentLogIssues.length) return notify("Aucune erreur à signaler", "Ce journal ne contient aucun élément nécessitant un signalement.");

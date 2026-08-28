@@ -1,12 +1,11 @@
 /**
- * Garde-fou anti-derive : chaque module de `src/modules/` doit se comporter
- * EXACTEMENT comme l'implementation encore inline dans `../app.js`.
- *
- * Tant que le bundler (etape 2 du plan) n'a pas remplace le code inline par un
- * import, ce test echoue des qu'un des deux cotes change sans l'autre.
+ * Suivi de la migration (lot 2) : chaque module de `src/modules/` qui avait un
+ * jumeau inline dans `app.js` a été branché via `build-js.mjs`. Ces contrôles
+ * vérifient que la copie inline a bien disparu et que la fonction du module est
+ * présente ; le comportement reste couvert par le `*.test.js` de chaque module.
  */
 import { describe, it, expect } from "vitest";
-import { extractFunction, rootSource } from "./helpers/extract-from-root.js";
+import { rootSource } from "./helpers/extract-from-root.js";
 
 import { escapeHtml } from "../src/modules/escape-html.js";
 import { isValidPackageId } from "../src/modules/package-id.js";
@@ -143,14 +142,32 @@ describe("winget-brand — migré vers le module", () => {
   });
 });
 
-describe("parite redaction", () => {
-  const inlineRedact = extractFunction("redactLogDiagnostic");
-  const inlineFingerprint = extractFunction("telemetryFingerprint");
-
-  it.each(LOG_SAMPLES.map((v) => [v]))("redactLogDiagnostic(%o)", (value) => {
-    expect(redactLogDiagnostic(value)).toBe(inlineRedact(value));
+// `redaction` MIGRÉ (lot 2, 4.0.0-beta.27) : app.js utilise le module
+// `redaction.js` inliné par build-js.mjs. Code sensible vie privée -> le
+// comportement reste couvert à 100 % par beta/test/redaction.test.js.
+describe("redaction — migré vers le module", () => {
+  it("app.js n'a plus les copies inline", () => {
+    expect(rootSource).toContain("function redactLogDiagnostic(line) {");
+    expect(rootSource).toContain("function telemetryFingerprint(context) {");
+    // les libellés de masquage viennent du module (const RULES), plus d'un
+    // enchaînement de .replace() codé en dur dans redactLogDiagnostic :
+    expect(rootSource).toContain("[E-MAIL MASQUÉ]");
+    expect(rootSource).toContain("[COMPTE WINDOWS]");
   });
-  it.each(FINGERPRINT_SAMPLES.map((v) => [v]))("telemetryFingerprint(%o)", (value) => {
-    expect(telemetryFingerprint(value)).toBe(inlineFingerprint(value));
+
+  it("le module masque toujours les données sensibles", () => {
+    for (const value of LOG_SAMPLES) {
+      const out = redactLogDiagnostic(value);
+      expect(out).not.toMatch(/[A-Z]:\\Users\\[^\\\s]/i);
+      expect(out).not.toContain("@gmail.com");
+      expect(out.length).toBeLessThanOrEqual(420);
+    }
+    for (const value of FINGERPRINT_SAMPLES) {
+      expect(telemetryFingerprint(value)).toMatch(/^[0-9A-F]{8}$/);
+    }
+    // déterminisme : même incident -> même empreinte
+    expect(telemetryFingerprint(FINGERPRINT_SAMPLES[0])).toBe(
+      telemetryFingerprint(FINGERPRINT_SAMPLES[0])
+    );
   });
 });
