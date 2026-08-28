@@ -180,21 +180,23 @@ const $ = selector => document.querySelector(selector);
 // `escapeHtml` est fourni par beta/src/modules/escape-html.js, inliné en tête de
 // app.js par beta/scripts/build-js.mjs (lot 2).
 
+// Décision pure du thème (normalizeThemePreference / resolveTheme) : fournie par
+// beta/src/modules/theme.js, inlinée en tête de app.js. Les effets de bord
+// (localStorage, matchMedia, dataset du document) restent ici.
 const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
 function getThemePreference() {
-  const saved=localStorage.getItem(themeStorageKey);
-  return ["system","dark","light"].includes(saved)?saved:"system";
+  return normalizeThemePreference(localStorage.getItem(themeStorageKey));
 }
 function applyThemePreference(preference=getThemePreference()) {
-  const selected=["system","dark","light"].includes(preference)?preference:"system";
-  const resolved=selected==="system"?(systemThemeQuery?.matches?"light":"dark"):selected;
+  const selected=normalizeThemePreference(preference);
+  const resolved=resolveTheme(selected,systemThemeQuery?.matches);
   document.documentElement.dataset.theme=resolved;
   document.documentElement.dataset.themePreference=selected;
   document.documentElement.style.colorScheme=resolved;
   document.querySelectorAll("#appTheme,#firstRunTheme").forEach(control=>{control.value=selected;});
 }
 function saveThemePreference(preference) {
-  const selected=["system","dark","light"].includes(preference)?preference:"system";
+  const selected=normalizeThemePreference(preference);
   localStorage.setItem(themeStorageKey,selected);
   applyThemePreference(selected);
 }

@@ -1,5 +1,24 @@
 # Historique des versions
 
+## [4.0.0-beta.28] - 2026-08-28
+
+### Lot 2 — module `theme` branché
+
+- La **décision** du thème (`normalizeThemePreference`, `resolveTheme`,
+  `THEME_PREFERENCES`) vient du module `beta/src/modules/theme.js` (5ᵉ entrée
+  de `MODULES`). `getThemePreference` / `applyThemePreference` /
+  `saveThemePreference` gardent leurs **effets de bord** dans `app.js`
+  (`localStorage`, `matchMedia`, `dataset` du document, sélecteurs) mais
+  délèguent la logique au module.
+- Le module est pur (0 DOM / stockage) et couvert par
+  `beta/test/theme.test.js`.
+- Aucun changement de comportement : « Selon Windows » suit toujours
+  `prefers-color-scheme`, un thème imposé l'ignore, une valeur invalide
+  retombe sur « system ».
+- Vérifié : `tests/Test-ThemePreference.ps1` vert (application du thème résolu,
+  suivi des changements Windows, export de la préférence), intégrité SHA-256
+  des 5 ressources OK, l'application démarre, 122 tests beta.
+
 ## [4.0.0-beta.27] - 2026-08-28
 
 ### Lot 2 — module `redaction` branché

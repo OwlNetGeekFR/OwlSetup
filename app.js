@@ -214,6 +214,47 @@ function telemetryFingerprint(context) {
     .padStart(8, "0");
 }
 
+// ----- ../src/modules/theme.js -----
+/**
+ * Logique pure de resolution du theme (clair / sombre / selon Windows).
+ *
+ * Reference : `app.js` (racine) : `getThemePreference`, `applyThemePreference`.
+ * Les effets de bord (lecture `localStorage`, `matchMedia`, ecriture sur
+ * `document.documentElement`) restent dans `app.js` ; ce module ne contient que
+ * la decision, facile a tester.
+ */
+
+/** @typedef {"system" | "dark" | "light"} ThemePreference */
+/** @typedef {"dark" | "light"} ResolvedTheme */
+
+const THEME_PREFERENCES = /** @type {const} */ (["system", "dark", "light"]);
+const DEFAULT_PREFERENCE = "system";
+
+/**
+ * Ramene une valeur quelconque (contenu `localStorage`, `<select>`) a une
+ * preference valide.
+ * @param {unknown} value
+ * @returns {ThemePreference}
+ */
+function normalizeThemePreference(value) {
+  return THEME_PREFERENCES.includes(/** @type {ThemePreference} */ (value))
+    ? /** @type {ThemePreference} */ (value)
+    : DEFAULT_PREFERENCE;
+}
+
+/**
+ * Theme effectivement applique a l'interface.
+ * @param {unknown} preference preference brute
+ * @param {boolean} systemPrefersLight resultat de
+ *   `matchMedia("(prefers-color-scheme: light)").matches`
+ * @returns {ResolvedTheme}
+ */
+function resolveTheme(preference, systemPrefersLight) {
+  const selected = normalizeThemePreference(preference);
+  if (selected === "system") return systemPrefersLight ? "light" : "dark";
+  return selected;
+}
+
 // ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
@@ -397,21 +438,23 @@ const $ = selector => document.querySelector(selector);
 // `escapeHtml` est fourni par beta/src/modules/escape-html.js, inliné en tête de
 // app.js par beta/scripts/build-js.mjs (lot 2).
 
+// Décision pure du thème (normalizeThemePreference / resolveTheme) : fournie par
+// beta/src/modules/theme.js, inlinée en tête de app.js. Les effets de bord
+// (localStorage, matchMedia, dataset du document) restent ici.
 const systemThemeQuery = window.matchMedia?.("(prefers-color-scheme: light)");
 function getThemePreference() {
-  const saved=localStorage.getItem(themeStorageKey);
-  return ["system","dark","light"].includes(saved)?saved:"system";
+  return normalizeThemePreference(localStorage.getItem(themeStorageKey));
 }
 function applyThemePreference(preference=getThemePreference()) {
-  const selected=["system","dark","light"].includes(preference)?preference:"system";
-  const resolved=selected==="system"?(systemThemeQuery?.matches?"light":"dark"):selected;
+  const selected=normalizeThemePreference(preference);
+  const resolved=resolveTheme(selected,systemThemeQuery?.matches);
   document.documentElement.dataset.theme=resolved;
   document.documentElement.dataset.themePreference=selected;
   document.documentElement.style.colorScheme=resolved;
   document.querySelectorAll("#appTheme,#firstRunTheme").forEach(control=>{control.value=selected;});
 }
 function saveThemePreference(preference) {
-  const selected=["system","dark","light"].includes(preference)?preference:"system";
+  const selected=normalizeThemePreference(preference);
   localStorage.setItem(themeStorageKey,selected);
   applyThemePreference(selected);
 }
