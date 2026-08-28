@@ -1,6 +1,3 @@
-/* Genere par beta/scripts/build-js.mjs depuis beta/src/app/. Ne pas editer a la main. */
-(function () {
-// ----- beta/src/app/legacy.js -----
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
 // d integrite SHA-256 de l hote. Le tableau reste modifiable (logos, etc.).
@@ -4436,4 +4433,3 @@ refreshProfiles(); renderFilters(); renderApps(); renderSelection(); renderFeedb
   loadOperationFeed();readInterruptedOperation();updateExpertPreviews();
 window.addEventListener("owlsetup:language-selected", () => window.setTimeout(startFirstRunFlow,120));
 window.setTimeout(startFirstRunFlow,650);
-})();

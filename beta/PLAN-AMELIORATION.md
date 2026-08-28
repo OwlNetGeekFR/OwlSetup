@@ -108,10 +108,14 @@ régression élevé (57 bêtas pour la 3.7).
 
 **Étapes :**
 
-1. Ajouter **esbuild** dans `beta/` : `scripts/build-js.mjs` →
-   `esbuild src/app/main.js --bundle --format=iife --target=es2019 --outfile=../app.js`.
-   Sortie **déterministe**, un seul fichier, compatible CSP `script-src 'self'`
-   et compatible `node --check`.
+1. ✅ _(4.0.0-beta.22)_ **Pipeline d'assemblage en place.** `app.js` (racine)
+   est désormais **généré** par `beta/scripts/build-js.mjs` : concaténation
+   déterministe `modules purs → legacy.js` dans une IIFE (pas de bundler pour
+   l'instant — `legacy.js` apparaît verbatim, ce qui préserve les 34 contrôles
+   PowerShell et les 53 tests de parité). `build.ps1` régénère `app.js` si Node
+   est présent. Garde-fou `beta/test/bundle.test.js`. Voir
+   `beta/src/app/README.md`. _Le passage à esbuild/rollup viendra quand
+   `legacy.js` aura fondu._
 2. Découper progressivement, par domaine (un module + ses tests par PR) :
    `core/` (dom, state, ipc, storage, i18n-bridge, telemetry),
    `features/` (catalog, install, updates, uninstall, cleanup, browser,
