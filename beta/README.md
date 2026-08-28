@@ -41,12 +41,14 @@ npm run format            # applique Prettier sur beta/
 ### Lot 0 — fondations
 
 - Outillage lint/format/test opérationnel, **157 tests verts**.
-- 9 modules purs extraits de `app.js` / `OwlSetupWebView.cs` : `escape-html`,
+- 10 modules purs extraits de `app.js` / `OwlSetupWebView.cs` : `escape-html`,
   `package-id`, `winget-brand`, `redaction` (anonymisation des journaux),
   `theme`, `update-heuristics` (lanceurs auto-gérés), `operations-reconcile`
   (faux échecs du Centre des opérations), `winget-table` (analyse de la sortie
   tabulaire de `winget`, portée en C#), `windows-update` (inventaire WUA :
-  lecture des marqueurs, sélection composants/pilotes, résultats d'installation).
+  lecture des marqueurs, sélection composants/pilotes, résultats d'installation),
+  `app-version` (comparaison de versions `X.Y.Z-beta.N` pour la mise à jour
+  in-app, portée en C#).
 - **Test de parité** : chaque module doit produire exactement le même résultat
   que la version encore présente dans `app.js`. Il échoue à la moindre
   divergence — c'est le garde-fou pendant la modularisation (lot 2).

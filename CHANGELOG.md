@@ -1,5 +1,36 @@
 # Historique des versions
 
+## [4.0.0-beta.33] - 2026-08-28
+
+### Lot 5 — mise à jour in-app activée (sans signature de code)
+
+- **`InstallAppUpdate` n'est plus bloqué.** La mécanique existait déjà mais
+  était désactivée « tant qu'OwlSetup n'a pas de signature reconnue ». Elle est
+  maintenant active, l'intégrité reposant sur : l'**empreinte SHA-256** de
+  l'exécutable vérifiée contre l'asset `SHA256.txt` de la Release, le préfixe
+  d'URL `github.com/OwlNetGeekFR/OwlSetup/releases/download/` verrouillé,
+  l'en-tête `MZ`, et une **confirmation explicite** via la modale. OwlSetup
+  restant non signé, Windows SmartScreen peut afficher un avertissement au
+  redémarrage — le texte de la modale et de la carte Sécurité le disent.
+- **Comparateur de versions `X.Y.Z-beta.N`.** `System.Version` ne sait pas lire
+  `4.0.0-beta.32`. Nouveau `CompareAppVersions` / `ParseAppVersion` (module pur
+  `beta/src/modules/app-version.js` + miroir C#, `beta/test/app-version.test.js`,
+  12 tests) : ordre `X.Y.Z` puis `stable > rc > beta > alpha` puis numéro de
+  préversion. `CheckAppUpdate` et `InstallAppUpdate` l'utilisent à la place de
+  la comparaison `System.Version` aveugle aux préversions ; `CheckAppUpdate` ne
+  court-circuite plus sur `BuildInfo.IsBeta`.
+- Interface : le bouton « Installer la mise à jour » de la modale poste
+  `install-app-update` (il ouvrait juste la page GitHub) ; la modale se
+  verrouille pendant le téléchargement / redémarrage.
+- Nouveau `tests/Test-SelfUpdate.ps1` : garde les contrôles d'intégrité
+  (SHA-256, préfixe d'URL, en-tête MZ) et vérifie le comparateur par réflexion.
+  `tests/Test-SecurityControls.ps1` : le marqueur « mise à jour désactivée »
+  est remplacé par des marqueurs de vérification. 138 tests beta.
+- **Pas encore fait (incrément suivant) :** case « Recevoir les préversions »
+  dans Paramètres + publication réelle des bêtas en _prereleases_ GitHub.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  des 5 ressources OK, l'application démarre.
+
 ## [4.0.0-beta.32] - 2026-08-28
 
 ### Lot 1 — durcissement du chemin de contribution au catalogue

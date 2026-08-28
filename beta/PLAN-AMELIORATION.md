@@ -218,12 +218,19 @@ manuelle = friction que tous les concurrents ont réglée.
 1. **Signature Authenticode** : certificat OV (ou **Azure Trusted Signing**,
    moins cher, adapté à un projet libre). Signer `OwlSetup.exe` et
    `OwlSetup-Setup.exe` dans `release.yml`. Le Ko-fi finance déjà cet objectif
-   (cf. `README`).
-2. **Mises à jour in-app** : `check-app-update` existe déjà ; ajouter le
-   téléchargement + vérification SHA-256 (présent dans les releases) + signature,
-   puis lancement de l'installateur. Jamais d'auto-exécution sans confirmation.
+   (cf. `README`). _(En attente : le logiciel n'est pas encore public.)_
+2. [x] _(4.0.0-beta.33)_ **Mise à jour in-app activée, sans signature.**
+       `InstallAppUpdate` (déjà écrit) n'est plus bloqué : téléchargement de l'exe
+       de la Release, **vérification SHA-256** contre l'asset `SHA256.txt`, préfixe
+       d'URL `github.com/OwlNetGeekFR/OwlSetup` verrouillé, en-tête `MZ`,
+       confirmation explicite via la modale, puis remplacement + redémarrage. Le
+       comparateur `CompareAppVersions` (module `app-version`, miroir C#) gère les
+       préversions `X.Y.Z-beta.N` — `System.Version` en était incapable.
+       `tests/Test-SelfUpdate.ps1` garde les contrôles d'intégrité.
 3. **Canal bêta in-app** : case « Recevoir les préversions » dans Paramètres →
-   la vérification lit les _prereleases_ GitHub. `build-beta.ps1` existe déjà.
+   la vérification lit les _prereleases_ GitHub. **Prérequis :** publier
+   réellement les bêtas comme _prereleases_ GitHub (`build-beta.ps1` = « sans
+   publication » aujourd'hui).
 4. **Delta / silencieux** : `OwlSetup-Setup.exe /VERYSILENT` documenté pour le
    déploiement en parc.
 
