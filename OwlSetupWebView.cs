@@ -4386,7 +4386,23 @@ internal static class Bootstrap
 
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool AttachConsole(int dwProcessId);
     [DllImport("kernel32.dll")] static extern bool FreeConsole();
+    [DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int nStdHandle);
+    [DllImport("kernel32.dll")] static extern uint GetFileType(IntPtr hFile);
     const int ATTACH_PARENT_PROCESS = -1;
+    const int STD_OUTPUT_HANDLE = -11, STD_ERROR_HANDLE = -12;
+    const uint FILE_TYPE_DISK = 0x0001, FILE_TYPE_PIPE = 0x0003;
+
+    // Vrai seulement si le flux standard pointe vers un vrai tube ou fichier
+    // (redirection voulue par l'appelant : « ... > sortie.txt », capture par un
+    // script). Un handle nul — cas d'un winexe lancé par le shim console — n'est
+    // PAS considéré comme redirigé : il faut alors rattacher une console.
+    static bool CliStdIsRealRedirect(int stdHandle)
+    {
+        IntPtr handle=GetStdHandle(stdHandle);
+        if(handle==IntPtr.Zero || handle==new IntPtr(-1))return false;
+        uint type=GetFileType(handle);
+        return type==FILE_TYPE_PIPE || type==FILE_TYPE_DISK;
+    }
 
     // Tout premier argument qui ressemble à une option (« -x », « --x », « /? »)
     // bascule en mode ligne de commande : RunCli affichera l'aide pour une
@@ -4401,17 +4417,28 @@ internal static class Bootstrap
     {
         try
         {
-            // Sortie déjà branchée sur un tube ou un fichier (ex. lancé par le
-            // shim OwlSetup.com, ou « OwlSetup.exe ... > sortie.txt ») : ne rien
-            // toucher, on écrirait sinon dans un tampon console invisible.
-            bool outRedirected=Console.IsOutputRedirected;
-            bool errRedirected=Console.IsErrorRedirected;
-            if(outRedirected && errRedirected)return;
-            if(!AttachConsole(ATTACH_PARENT_PROCESS))return;
-            if(!outRedirected)
-                Console.SetOut(new StreamWriter(Console.OpenStandardOutput()){AutoFlush=true});
-            if(!errRedirected)
-                Console.SetError(new StreamWriter(Console.OpenStandardError()){AutoFlush=true});
+            // On ne touche à rien seulement si les DEUX flux vont vers un vrai
+            // tube/fichier (redirection voulue). Sinon — console interactive, ou
+            // handles nuls d'un winexe lancé par le shim — on (re)branche.
+            bool outRealRedirect=CliStdIsRealRedirect(STD_OUTPUT_HANDLE);
+            bool errRealRedirect=CliStdIsRealRedirect(STD_ERROR_HANDLE);
+            if(outRealRedirect && errRealRedirect)return;
+
+            // AttachConsole rattache la console de l'appelant si on n'en a pas ;
+            // s'il échoue (console déjà héritée via le shim .com), on écrit quand
+            // même sur le périphérique console CONOUT$, fiable dès qu'un
+            // processus est attaché à une console, avec son encodage (accents).
+            AttachConsole(ATTACH_PARENT_PROCESS);
+            Encoding consoleEncoding;
+            try{consoleEncoding=Console.OutputEncoding;}catch{consoleEncoding=Encoding.UTF8;}
+            if(!outRealRedirect)
+            {
+                try{Console.SetOut(new StreamWriter(new FileStream("CONOUT$",FileMode.Open,FileAccess.Write,FileShare.ReadWrite),consoleEncoding){AutoFlush=true});}catch{}
+            }
+            if(!errRealRedirect)
+            {
+                try{Console.SetError(new StreamWriter(new FileStream("CONOUT$",FileMode.Open,FileAccess.Write,FileShare.ReadWrite),consoleEncoding){AutoFlush=true});}catch{}
+            }
         }
         catch{}
     }

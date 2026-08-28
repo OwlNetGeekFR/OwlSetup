@@ -1,5 +1,28 @@
 # Historique des versions
 
+## [4.0.0-beta.21] - 2026-08-28
+
+### CLI : la sortie s'affiche enfin dans une vraie console
+
+Correctif du mode ligne de commande signalé par un test réel : lancé via le shim
+`OwlSetup.com` **dans une invite de commandes ou PowerShell**, `--apply`,
+`--list`, etc. n'affichaient **rien du tout** (l'opération se déroulait, sans
+retour visible).
+
+- `CliAttachConsole` distinguait mal « sortie redirigée » et « aucun handle
+  standard ». Un `winexe` lancé par le shim n'hérite pas de handles utilisables :
+  il était traité comme redirigé et on n'écrivait nulle part.
+- Désormais on ne s'abstient **que** si les deux flux vont vers un vrai tube ou
+  fichier (`GetFileType` = `FILE_TYPE_PIPE` / `FILE_TYPE_DISK`). Sinon — console
+  interactive ou handle nul — on rattache la console (`AttachConsole`) et on
+  écrit sur le périphérique `CONOUT$` avec son encodage réel (accents corrects).
+- Les redirections voulues (`OwlSetup.com … > sortie.txt`, capture par un
+  script) restent intactes.
+- `tests/Test-CliMode.ps1` : marqueurs `CliStdIsRealRedirect` / `CONOUT$`.
+- Vérifié : sortie capturée par tube toujours OK, interface graphique OK sans
+  argument, intégrité des 5 ressources OK, `Test-ReleaseCandidateReadiness.ps1`
+  verte. L'affichage en console interactive est à confirmer côté testeur.
+
 ## [4.0.0-beta.20] - 2026-08-28
 
 ### CLI : `--apply` complet — simulation, nettoyage, journal
