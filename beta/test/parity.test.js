@@ -6,7 +6,7 @@
  * import, ce test echoue des qu'un des deux cotes change sans l'autre.
  */
 import { describe, it, expect } from "vitest";
-import { extractFunction, extractConst, rootSource } from "./helpers/extract-from-root.js";
+import { extractFunction, rootSource } from "./helpers/extract-from-root.js";
 
 import { escapeHtml } from "../src/modules/escape-html.js";
 import { isValidPackageId } from "../src/modules/package-id.js";
@@ -93,10 +93,29 @@ describe("escapeHtml — migré vers le module", () => {
   });
 });
 
-describe("parite isValidPackageId", () => {
-  const inline = extractConst("isValidPackageId");
-  it.each(ID_SAMPLES.map((v) => [v]))("isValidPackageId(%o)", (value) => {
-    expect(isValidPackageId(value)).toBe(inline(value));
+// `isValidPackageId` / `telemetrySafePackageId` MIGRÉS (lot 2, 4.0.0-beta.24) :
+// app.js utilise le module `package-id.js` inliné par build-js.mjs.
+describe("package-id — migré vers le module", () => {
+  it("app.js n'a plus de copie inline `const isValidPackageId =`", () => {
+    expect(rootSource).not.toMatch(/\bconst\s+isValidPackageId\s*=/);
+  });
+
+  it("app.js contient la fonction et le motif du module", () => {
+    expect(rootSource).toContain("function isValidPackageId(id) {");
+    expect(rootSource).toContain("const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/;");
+  });
+
+  it("app.js n'a plus le test regex inline de la télémétrie", () => {
+    expect(rootSource).not.toContain("[A-Za-z0-9.+_-]{0,95}$/.test(targetPackage)");
+    expect(rootSource).toContain("targetPackage = telemetrySafePackageId(targetPackage);");
+  });
+
+  it("le module couvre toujours les identifiants de référence", () => {
+    for (const value of ID_SAMPLES) {
+      expect(typeof isValidPackageId(value)).toBe("boolean");
+    }
+    expect(isValidPackageId("Google.Chrome")).toBe(true);
+    expect(isValidPackageId("-danger")).toBe(false);
   });
 });
 

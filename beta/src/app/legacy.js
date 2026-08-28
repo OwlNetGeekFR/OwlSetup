@@ -49,7 +49,8 @@ apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${a
 const builtInCatalogIds = new Set(apps.map(app => app.id.toLocaleLowerCase("en")));
 
 const customPackagesStorageKey = "owlsetup-custom-packages-v1";
-const isValidPackageId = id => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(id);
+// `isValidPackageId` / `sanitizePackageIds` / `telemetrySafePackageId` :
+// fournis par beta/src/modules/package-id.js, inlinés en tête de app.js.
 // L’ajout libre d’identifiants WinGet a été retiré : seules les applications
 // contrôlées du catalogue OwlSetup peuvent être proposées à l’utilisateur.
 localStorage.removeItem(customPackagesStorageKey);
@@ -273,7 +274,7 @@ function inferTelemetryContext(message = "", supplied = {}) {
   if (!targetPackage && category === "update" && selectedUpdates?.size === 1) targetPackage = [...selectedUpdates][0];
   if (!targetPackage && category === "uninstall") targetPackage = pendingUninstallId || pendingRepairId || "";
   if (!targetPackage && category === "installation" && lastFailedInstallPackages?.length === 1) targetPackage = lastFailedInstallPackages[0];
-  if (!/^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/.test(targetPackage)) targetPackage = "";
+  targetPackage = telemetrySafePackageId(targetPackage);
   const errorKind = supplied.errorKind || (stage === "network" ? "network" : stage === "permissions" ? "permission" : stage === "process-lock" ? "process-lock" : /winget/.test(text) ? "winget" : "application");
   return {operation:view,errorCategory:category,failureStage:stage,targetPackage,errorKind,resolutionStatus:supplied.resolutionStatus || "open"};
 }
