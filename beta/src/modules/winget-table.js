@@ -17,7 +17,12 @@ const ESC = String.fromCharCode(27);
 const BOM = String.fromCharCode(0xfeff);
 const ANSI = new RegExp(ESC + "\\[[0-9;?]*[ -/]*[@-~]", "g");
 const SEPARATOR = /^\s*[-–—]{3,}/;
-const HEADER_TOKEN = /\S+(?:\s\S+)*?(?=\s{2,}|$)/g;
+// Les en-tetes winget sont toujours des MOTS SIMPLES (Nom/Name, ID, Version,
+// Disponible/Available, Source, Correspondance/Match) : on decoupe sur tout
+// espace. Le decoupage des lignes de donnees se fait par POSITION et tolere les
+// espaces dans les valeurs. (Un motif tolerant un espace simple fusionnait
+// "Version Source" sur la sortie etroite de `winget list --id X --exact`.)
+const HEADER_TOKEN = /\S+/g;
 
 /** Etiquette d'en-tete (minuscule) -> cle normalisee. */
 const HEADER_ALIASES = {

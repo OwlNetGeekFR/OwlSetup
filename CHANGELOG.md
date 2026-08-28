@@ -1,5 +1,31 @@
 # Historique des versions
 
+## [4.0.0-beta.25] - 2026-08-28
+
+### Correctif : désinstallation bloquée pour certains logiciels (Docker, …)
+
+Régression introduite en 4.0.0-beta.12 avec l'analyseur de tableau winget
+unique. Symptôme : « Paquet non détecté par WinGet · par identifiant exact : 0 »
+à la désinstallation, alors que `winget list --id X --exact` trouve bien le
+logiciel.
+
+- Cause : sur la sortie **étroite** de `winget list --id X --exact` (version
+  courte), il n'y a qu'**un seul espace** entre les en-têtes `Version` et
+  `Source`. Le tokenizer d'en-tête tolérait un espace simple dans un « token »
+  (pour les valeurs type `< 1.2.3`) et fusionnait donc `Version Source` → la
+  colonne **ID** débordait jusqu'au bout de la ligne
+  (`Docker.DockerDesktop 4.88.1  winget`) et était rejetée.
+- Correctif : la ligne d'**en-tête** est désormais découpée sur **n'importe quel
+  espace** (les titres winget sont toujours des mots simples). Le découpage des
+  **lignes de données** reste par position et tolère toujours les espaces dans
+  les valeurs (`< 173.0.0.13316`, `Unknown`, ids `MSIX\ …`).
+- Corrigé côté C# (`WingetHeaderColumns`) **et** côté module JS
+  (`beta/src/modules/winget-table.js`).
+- Nouvelle capture `winget-list-narrow-fr.txt` + tests (module + réflexion sur
+  l'exécutable + `tests/Test-WingetParsing.ps1`). Vérifié : sur la machine de
+  test, `Docker.DockerDesktop` se résout maintenant correctement.
+- 160 tests beta + `Test-ReleaseCandidateReadiness.ps1` verts.
+
 ## [4.0.0-beta.23] - 2026-08-28
 
 ### Lot 2 — premier module branché : `escapeHtml`
