@@ -89,9 +89,7 @@ describe("escapeHtml — migré vers le module", () => {
     for (const value of HTML_SAMPLES) {
       expect(typeof escapeHtml(value)).toBe("string");
     }
-    expect(escapeHtml(`A & B < C > D " E ' F`)).toBe(
-      "A &amp; B &lt; C &gt; D &quot; E &#39; F"
-    );
+    expect(escapeHtml(`A & B < C > D " E ' F`)).toBe("A &amp; B &lt; C &gt; D &quot; E &#39; F");
   });
 });
 
