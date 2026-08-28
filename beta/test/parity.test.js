@@ -6,7 +6,7 @@
  * import, ce test echoue des qu'un des deux cotes change sans l'autre.
  */
 import { describe, it, expect } from "vitest";
-import { extractFunction, extractConst } from "./helpers/extract-from-root.js";
+import { extractFunction, extractConst, rootSource } from "./helpers/extract-from-root.js";
 
 import { escapeHtml } from "../src/modules/escape-html.js";
 import { isValidPackageId } from "../src/modules/package-id.js";
@@ -74,10 +74,24 @@ const FINGERPRINT_SAMPLES = [
   { errorCategory: "uninstall" },
 ];
 
-describe("parite escapeHtml", () => {
-  const inline = extractConst("escapeHtml");
-  it.each(HTML_SAMPLES.map((v) => [v]))("escapeHtml(%o)", (value) => {
-    expect(escapeHtml(value)).toBe(inline(value));
+// `escapeHtml` a été MIGRÉ (lot 2, 4.0.0-beta.23) : app.js ne contient plus de
+// copie inline, il utilise la fonction du module inlinée par build-js.mjs.
+describe("escapeHtml — migré vers le module", () => {
+  it("app.js n'a plus de copie inline `const escapeHtml =`", () => {
+    expect(rootSource).not.toMatch(/\bconst\s+escapeHtml\s*=/);
+  });
+
+  it("app.js contient bien la fonction du module", () => {
+    expect(rootSource).toContain("function escapeHtml(value) {");
+  });
+
+  it("le module couvre toujours les échantillons de référence", () => {
+    for (const value of HTML_SAMPLES) {
+      expect(typeof escapeHtml(value)).toBe("string");
+    }
+    expect(escapeHtml(`A & B < C > D " E ' F`)).toBe(
+      "A &amp; B &lt; C &gt; D &quot; E &#39; F"
+    );
   });
 });
 
