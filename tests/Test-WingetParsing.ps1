@@ -71,6 +71,26 @@ if ((Test-Path $exe) -and (Test-Path $upgradeFixture)) {
         throw "Nom long à espaces multiples tronqué : '$($dotnet["name"])'."
     }
 
+    # Tableau ETROIT : « winget list --id X --exact » avec version courte -> un
+    # seul espace entre « Version » et « Source ». L'en-tete doit quand meme etre
+    # decoupe en 4 colonnes (regression 4.1 corrigee en 4.x : Docker.DockerDesktop
+    # non resolu -> desinstallation bloquee).
+    $narrowFixture = Join-Path $fixtures "winget-list-narrow-fr.txt"
+    if (Test-Path $narrowFixture) {
+        $na = [object[]]::new(1); $na[0] = [IO.File]::ReadAllText($narrowFixture)
+        $narrowRows = $method.Invoke($null, $na)
+        if ($narrowRows.Count -ne 1) { throw "Tableau etroit : 1 ligne attendue, $($narrowRows.Count)." }
+        if ($narrowRows[0]["id"] -ne "Docker.DockerDesktop") {
+            throw "Tableau etroit : colonne ID debordante -> '$($narrowRows[0]["id"])'."
+        }
+        if ($narrowRows[0]["version"] -ne "4.88.1" -or $narrowRows[0]["source"] -ne "winget") {
+            throw "Tableau etroit : version/source mal decoupees."
+        }
+    }
+    if ($native -match 'Regex\.Matches\(headerLine,@"\\S\+\(\?:\\s\\S\+\)') {
+        throw "L'ancien tokenizer d'en-tete tolerant un espace simple est de retour (fusionne Version/Source)."
+    }
+
     $hasId = $asm.GetType("WebAppForm").GetMethod("WingetTableContainsId", [System.Reflection.BindingFlags]"NonPublic,Static")
     if (-not $hasId) { throw "WingetTableContainsId introuvable par réflexion." }
     $yes = [object[]]::new(2); $yes[0] = $content; $yes[1] = "Blizzard.BattleNet"

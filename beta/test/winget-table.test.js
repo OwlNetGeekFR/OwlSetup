@@ -90,6 +90,34 @@ describe("parseWingetTable — winget list (FR, ids non-winget)", () => {
   });
 });
 
+describe("parseWingetTable — tableau étroit (winget list --id X --exact)", () => {
+  // Sortie où « Version » et « Source » ne sont séparés que d'UN espace parce que
+  // la version est courte. L'ancien tokenizer d'en-tête fusionnait les deux et
+  // la colonne ID débordait -> régression sur la résolution de désinstallation
+  // (Docker.DockerDesktop, etc.).
+  const { columns, rows } = parseWingetTable(fixture("winget-list-narrow-fr.txt"));
+
+  it("sépare bien les 4 colonnes malgré l'espace unique", () => {
+    expect(columns).toEqual(["name", "id", "version", "source"]);
+  });
+
+  it("ne fait pas déborder la colonne ID sur version/source", () => {
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      name: "Docker Desktop",
+      id: "Docker.DockerDesktop",
+      version: "4.88.1",
+      source: "winget",
+    });
+  });
+
+  it("wingetTableHasId retrouve l'identifiant exact", () => {
+    const raw = fixture("winget-list-narrow-fr.txt");
+    expect(wingetTableHasId(raw, "Docker.DockerDesktop")).toBe(true);
+    expect(wingetTableHasId(raw, "docker.dockerdesktop")).toBe(true);
+  });
+});
+
 describe("wingetTableHasId", () => {
   const upgrade = fixture("winget-upgrade-fr.txt");
 

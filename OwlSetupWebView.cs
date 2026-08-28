@@ -1235,9 +1235,16 @@ internal sealed class WebAppForm : Form
 
     static List<WingetColumn> WingetHeaderColumns(string headerLine)
     {
+        // Les en-tetes winget sont toujours des MOTS SIMPLES (Nom/Name, ID,
+        // Version, Disponible/Available, Source, Correspondance/Match). On decoupe
+        // donc sur n'importe quel espace. (Le decoupage des LIGNES DE DONNEES,
+        // lui, se fait par position et tolere les espaces dans les valeurs :
+        // "< 1.2.3", "Unknown", ids "MSIX\ ...".) L'ancien motif tolerant un
+        // espace simple fusionnait "Version Source" quand la sortie etroite de
+        // `winget list --id X --exact` ne laissait qu'un espace entre les deux.
         var result=new List<WingetColumn>();
         var seen=new HashSet<string>(StringComparer.Ordinal);
-        foreach(Match token in Regex.Matches(headerLine,@"\S+(?:\s\S+)*?(?=\s{2,}|$)"))
+        foreach(Match token in Regex.Matches(headerLine,@"\S+"))
         {
             string key;
             if(!WingetHeaderAliases.TryGetValue(token.Value.Trim(),out key))continue;

@@ -1,0 +1,3 @@
+Nom            ID                   Version Source
+---------------------------------------------------
+Docker Desktop Docker.DockerDesktop 4.88.1  winget
