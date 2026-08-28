@@ -1,51 +1,11 @@
 // Catalogue des applications : fourni par catalog.generated.js (genere depuis
 // beta/catalog/apps.json), charge avant ce script et verifie par le controle
-// d integrite SHA-256 de l hote. Le tableau reste modifiable (logos, etc.).
+// d integrite SHA-256 de l hote. Chaque entree porte deja son `logo`
+// (`assets/logos/<fichier>`) : apps.json est la seule source de verite, il n'y
+// a plus de table `appLogos` a maintenir ici.
 const apps = Array.isArray(window.PC_SETUP_CATALOG)
   ? window.PC_SETUP_CATALOG.map(app => ({ ...app }))
   : [];
-const appLogos = {
-  "Google.Chrome":"googlechrome.svg", "Mozilla.Firefox":"firefox.svg", "Brave.Brave":"brave.svg",
-  "Vivaldi.Vivaldi":"vivaldi.svg", "Opera.Opera":"opera.svg", "Opera.OperaGX":"operagx-color.svg",
-  "LibreWolf.LibreWolf":"librewolf.svg", "Ablaze.Floorp":"floorp.svg",
-  "TorProject.TorBrowser":"torbrowser-color.svg", "Waterfox.Waterfox":"waterfox-color.svg",
-  "7zip.7zip":"sevenzip.svg", "VideoLAN.VLC":"vlc.png", "Notepad++.Notepad++":"notepadpp.svg",
-  "SumatraPDF.SumatraPDF":"sumatrapdf.ico", "TheDocumentFoundation.LibreOffice":"libreoffice.svg",
-  "voidtools.Everything":"everything.ico", "Microsoft.PowerToys":"powertoys.png", "Discord.Discord":"discord.svg",
-  "Valve.Steam":"steam.svg", "EpicGames.EpicGamesLauncher":"epicgames.svg", "GOG.Galaxy":"gog.svg",
-  "Ubisoft.Connect":"ubisoft.svg", "OBSProject.OBSStudio":"obs.svg",
-  "Microsoft.VisualStudioCode":"vscode.svg", "Git.Git":"git.svg", "OpenJS.NodeJS.LTS":"nodejs.svg",
-  "Python.Python.3.13":"python.svg", "Microsoft.DotNet.DesktopRuntime.8":"dotnet.svg",
-  "Microsoft.VCRedist.2015+.x64":"cplusplus-color.svg", "Docker.DockerDesktop":"docker.svg",
-  "Postman.Postman":"postman.svg", "Microsoft.WindowsTerminal":"terminal.svg", "Spotify.Spotify":"spotify.svg",
-  "Zoom.Zoom":"zoom.svg", "Bitwarden.Bitwarden":"bitwarden.svg", "Malwarebytes.Malwarebytes":"malwarebytes-color.svg",
-  "AnyDesk.AnyDesk":"anydesk.svg", "RARLab.WinRAR":"winrar.ico",
-  "qBittorrent.qBittorrent":"qbittorrent.svg", "Rufus.Rufus":"rufus.png",
-  "CrystalDewWorld.CrystalDiskInfo":"crystaldiskinfo.ico", "CrystalDewWorld.CrystalDiskMark":"crystaldiskmark.ico",
-  "ShareX.ShareX":"sharex.svg", "M2Team.NanaZip":"nanazip.png", "JAMSoftware.TreeSize.Free":"treesize.png",
-  "Klocman.BulkCrapUninstaller":"bcu.ico", "KeePassXCTeam.KeePassXC":"keepassxc.svg",
-  "GIMP.GIMP.3":"gimp.svg", "KDE.Krita":"krita.svg", "Audacity.Audacity":"audacity.svg",
-  "HandBrake.HandBrake":"handbrake.svg", "KDE.Kdenlive":"kdenlive.svg",
-  "BlenderFoundation.Blender":"blender.svg", "calibre.calibre":"calibre.svg",
-  "Mozilla.Thunderbird":"thunderbird.svg", "Nextcloud.NextcloudDesktop":"nextcloud.svg",
-  "Tailscale.Tailscale":"tailscale.svg", "WireGuard.WireGuard":"wireguard.svg",
-  "guided.RustDesk":"rustdesk.svg", "TeamViewer.TeamViewer":"teamviewer-color.svg",
-  "GitHub.GitHubDesktop":"githubdesktop.png", "DBeaver.DBeaver.Community":"dbeaver.png",
-  "JetBrains.Toolbox":"jetbrains.svg", "WinSCP.WinSCP":"winscp.png", "PuTTY.PuTTY":"putty.svg",
-  "guided.FileZillaClient":"filezilla.svg", "EclipseAdoptium.Temurin.21.JDK":"temurin.svg",
-  "GoLang.Go":"golang.svg", "Rustlang.Rustup":"rustup.svg", "ElectronicArts.EADesktop":"ea.svg",
-  "Blizzard.BattleNet":"battlenet.svg", "Playnite.Playnite":"playnite.svg",
-  "HeroicGamesLauncher.HeroicGamesLauncher":"heroic.svg", "Amazon.Games":"amazongames.png",
-  "Overwolf.CurseForge":"curseforge.svg", "Oracle.VirtualBox":"virtualbox.svg",
-  "VMware.WorkstationPro":"vmware.svg", "Microsoft.WSL":"wsl.svg",
-  "9NT1R1C2HH7J":"openai.svg", "Anthropic.Claude":"claude.svg",
-  "Ollama.Ollama":"ollama.svg", "ElementLabs.LMStudio":"lmstudio.svg", "Jan.Jan":"jan.svg",
-  "web.GoogleGemini":"gemini.svg", "web.MicrosoftCopilot":"copilot.png", "web.Perplexity":"perplexity.svg",
-  "web.MistralLeChat":"mistral.svg", "guided.AnythingLLM":"anythingllm.svg", "guided.GPT4All":"gpt4all.svg",
-  "guided.Pinokio":"pinokio.svg", "guided.NVIDIAChatRTX":"nvidia.svg",
-  "guided.StabilityMatrix":"stabilitymatrix.png", "Comfy.ComfyUI-Desktop":"comfyui.svg"
-};
-apps.forEach(app => app.logo = app.logo || (appLogos[app.id] ? `assets/logos/${appLogos[app.id]}` : ""));
 const builtInCatalogIds = new Set(apps.map(app => app.id.toLocaleLowerCase("en")));
 
 const customPackagesStorageKey = "owlsetup-custom-packages-v1";

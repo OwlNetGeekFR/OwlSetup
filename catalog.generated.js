@@ -8,6 +8,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CH",
     "color": "#4285f4",
     "site": "https://www.google.com/chrome/",
+    "logo": "assets/logos/googlechrome.svg",
     "tags": [
       "essentiel"
     ]
@@ -19,7 +20,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Navigateur libre et respectueux",
     "icon": "FF",
     "color": "#ff7139",
-    "site": "https://www.mozilla.org/firefox/new/"
+    "site": "https://www.mozilla.org/firefox/new/",
+    "logo": "assets/logos/firefox.svg"
   },
   {
     "id": "Brave.Brave",
@@ -28,7 +30,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Navigation privée avec bloqueur intégré",
     "icon": "BR",
     "color": "#fb542b",
-    "site": "https://brave.com/download/"
+    "site": "https://brave.com/download/",
+    "logo": "assets/logos/brave.svg"
   },
   {
     "id": "Vivaldi.Vivaldi",
@@ -38,6 +41,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "VI",
     "color": "#ef3939",
     "site": "https://vivaldi.com/download/",
+    "logo": "assets/logos/vivaldi.svg",
     "repairMode": "reinstall"
   },
   {
@@ -48,6 +52,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "OP",
     "color": "#e51d5f",
     "site": "https://www.opera.com/download",
+    "logo": "assets/logos/opera.svg",
     "repairMode": "reinstall"
   },
   {
@@ -58,6 +63,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GX",
     "color": "#c728f2",
     "site": "https://www.opera.com/gx",
+    "logo": "assets/logos/operagx-color.svg",
     "tags": [
       "gaming"
     ],
@@ -71,6 +77,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "LW",
     "color": "#546f91",
     "site": "https://librewolf.net/installation/windows/",
+    "logo": "assets/logos/librewolf.svg",
     "repairMode": "reinstall"
   },
   {
@@ -81,6 +88,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "FL",
     "color": "#4e7ce2",
     "site": "https://floorp.app/download/",
+    "logo": "assets/logos/floorp.svg",
     "repairMode": "reinstall"
   },
   {
@@ -91,6 +99,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "TOR",
     "color": "#7d4698",
     "site": "https://www.torproject.org/download/",
+    "logo": "assets/logos/torbrowser-color.svg",
     "repairMode": "reinstall"
   },
   {
@@ -101,6 +110,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "WF",
     "color": "#3d8fe7",
     "site": "https://www.waterfox.net/download/",
+    "logo": "assets/logos/waterfox-color.svg",
     "repairMode": "reinstall"
   },
   {
@@ -111,6 +121,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "7z",
     "color": "#596477",
     "site": "https://www.7-zip.org/download.html",
+    "logo": "assets/logos/sevenzip.svg",
     "tags": [
       "essentiel"
     ]
@@ -123,6 +134,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "▶",
     "color": "#f08a24",
     "site": "https://www.videolan.org/vlc/",
+    "logo": "assets/logos/vlc.png",
     "tags": [
       "essentiel"
     ]
@@ -135,6 +147,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "N+",
     "color": "#72a13e",
     "site": "https://notepad-plus-plus.org/downloads/",
+    "logo": "assets/logos/notepadpp.svg",
     "tags": [
       "essentiel"
     ]
@@ -147,6 +160,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PDF",
     "color": "#e8b536",
     "site": "https://www.sumatrapdfreader.org/download-free-pdf-viewer",
+    "logo": "assets/logos/sumatrapdf.ico",
     "tags": [
       "essentiel"
     ]
@@ -159,6 +173,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "LO",
     "color": "#18a05e",
     "site": "https://www.libreoffice.org/download/download-libreoffice/",
+    "logo": "assets/logos/libreoffice.svg",
     "tags": [
       "essentiel"
     ]
@@ -171,6 +186,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "E",
     "color": "#f2c94c",
     "site": "https://www.voidtools.com/downloads/",
+    "logo": "assets/logos/everything.ico",
     "tags": [
       "essentiel"
     ]
@@ -183,6 +199,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PT",
     "color": "#4b7bec",
     "site": "https://learn.microsoft.com/windows/powertoys/install",
+    "logo": "assets/logos/powertoys.png",
     "tags": [
       "essentiel",
       "dev"
@@ -196,6 +213,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "DC",
     "color": "#5865f2",
     "site": "https://discord.com/download",
+    "logo": "assets/logos/discord.svg",
     "tags": [
       "gaming"
     ]
@@ -208,6 +226,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "ST",
     "color": "#2775a8",
     "site": "https://store.steampowered.com/about/",
+    "logo": "assets/logos/steam.svg",
     "tags": [
       "gaming"
     ]
@@ -220,6 +239,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "EP",
     "color": "#3a3a3a",
     "site": "https://store.epicgames.com/download",
+    "logo": "assets/logos/epicgames.svg",
     "tags": [
       "gaming"
     ]
@@ -232,6 +252,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GG",
     "color": "#883edb",
     "site": "https://www.gog.com/galaxy",
+    "logo": "assets/logos/gog.svg",
     "tags": [
       "gaming"
     ]
@@ -244,6 +265,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "UC",
     "color": "#149dda",
     "site": "https://www.ubisoft.com/en-gb/ubisoft-connect/download",
+    "logo": "assets/logos/ubisoft.svg",
     "tags": [
       "gaming"
     ]
@@ -256,6 +278,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "OB",
     "color": "#7e6bf2",
     "site": "https://obsproject.com/download",
+    "logo": "assets/logos/obs.svg",
     "tags": [
       "gaming"
     ]
@@ -268,6 +291,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "VS",
     "color": "#168bd2",
     "site": "https://code.visualstudio.com/download",
+    "logo": "assets/logos/vscode.svg",
     "tags": [
       "dev"
     ]
@@ -280,6 +304,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "G",
     "color": "#f05032",
     "site": "https://git-scm.com/download/win",
+    "logo": "assets/logos/git.svg",
     "tags": [
       "dev"
     ]
@@ -292,6 +317,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "JS",
     "color": "#68a063",
     "site": "https://nodejs.org/en/download",
+    "logo": "assets/logos/nodejs.svg",
     "tags": [
       "dev"
     ]
@@ -304,6 +330,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PY",
     "color": "#3776ab",
     "site": "https://www.python.org/downloads/windows/",
+    "logo": "assets/logos/python.svg",
     "tags": [
       "dev"
     ]
@@ -316,6 +343,7 @@ window.PC_SETUP_CATALOG = [
     "icon": ".N",
     "color": "#6e4bc5",
     "site": "https://dotnet.microsoft.com/en-us/download/dotnet/8.0",
+    "logo": "assets/logos/dotnet.svg",
     "tags": [
       "dev"
     ]
@@ -328,6 +356,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "C+",
     "color": "#3675b5",
     "site": "https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist",
+    "logo": "assets/logos/cplusplus-color.svg",
     "tags": [
       "dev"
     ]
@@ -340,6 +369,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "DK",
     "color": "#2496ed",
     "site": "https://docs.docker.com/desktop/setup/install/windows-install/",
+    "logo": "assets/logos/docker.svg",
     "tags": [
       "dev"
     ]
@@ -352,6 +382,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PM",
     "color": "#ff6c37",
     "site": "https://www.postman.com/downloads/",
+    "logo": "assets/logos/postman.svg",
     "tags": [
       "dev"
     ]
@@ -364,6 +395,7 @@ window.PC_SETUP_CATALOG = [
     "icon": ">_",
     "color": "#454d55",
     "site": "https://learn.microsoft.com/windows/terminal/install",
+    "logo": "assets/logos/terminal.svg",
     "tags": [
       "dev"
     ]
@@ -375,7 +407,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Musique, podcasts et playlists",
     "icon": "SP",
     "color": "#1db954",
-    "site": "https://www.spotify.com/download/windows/"
+    "site": "https://www.spotify.com/download/windows/",
+    "logo": "assets/logos/spotify.svg"
   },
   {
     "id": "Zoom.Zoom",
@@ -384,7 +417,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Réunions et visioconférences",
     "icon": "ZM",
     "color": "#2d8cff",
-    "site": "https://zoom.us/download"
+    "site": "https://zoom.us/download",
+    "logo": "assets/logos/zoom.svg"
   },
   {
     "id": "Bitwarden.Bitwarden",
@@ -393,7 +427,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Gestionnaire de mots de passe",
     "icon": "BW",
     "color": "#175ddc",
-    "site": "https://bitwarden.com/download/"
+    "site": "https://bitwarden.com/download/",
+    "logo": "assets/logos/bitwarden.svg"
   },
   {
     "id": "Malwarebytes.Malwarebytes",
@@ -402,7 +437,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Analyse et suppression de menaces",
     "icon": "MW",
     "color": "#1675e0",
-    "site": "https://www.malwarebytes.com/mwb-download"
+    "site": "https://www.malwarebytes.com/mwb-download",
+    "logo": "assets/logos/malwarebytes-color.svg"
   },
   {
     "id": "AnyDesk.AnyDesk",
@@ -411,7 +447,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Accès à distance simple et sécurisé",
     "icon": "AD",
     "color": "#ef443b",
-    "site": "https://anydesk.com/en/downloads/windows"
+    "site": "https://anydesk.com/en/downloads/windows",
+    "logo": "assets/logos/anydesk.svg"
   },
   {
     "id": "RARLab.WinRAR",
@@ -420,7 +457,8 @@ window.PC_SETUP_CATALOG = [
     "desc": "Gestion d'archives compressées",
     "icon": "WR",
     "color": "#8a5db1",
-    "site": "https://www.win-rar.com/download.html"
+    "site": "https://www.win-rar.com/download.html",
+    "logo": "assets/logos/winrar.ico"
   },
   {
     "id": "qBittorrent.qBittorrent",
@@ -430,6 +468,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "qB",
     "color": "#2f72b8",
     "site": "https://www.qbittorrent.org/download",
+    "logo": "assets/logos/qbittorrent.svg",
     "repairMode": "reinstall"
   },
   {
@@ -440,6 +479,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "RF",
     "color": "#e2c152",
     "site": "https://rufus.ie/",
+    "logo": "assets/logos/rufus.png",
     "repairMode": "reinstall",
     "portable": true,
     "launchable": true
@@ -452,6 +492,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "DI",
     "color": "#447ed0",
     "site": "https://crystalmark.info/en/software/crystaldiskinfo/",
+    "logo": "assets/logos/crystaldiskinfo.ico",
     "repairMode": "reinstall"
   },
   {
@@ -462,6 +503,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "DM",
     "color": "#567bd4",
     "site": "https://crystalmark.info/en/software/crystaldiskmark/",
+    "logo": "assets/logos/crystaldiskmark.ico",
     "repairMode": "reinstall"
   },
   {
@@ -472,6 +514,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "SX",
     "color": "#2f9ca8",
     "site": "https://getsharex.com/",
+    "logo": "assets/logos/sharex.svg",
     "repairMode": "reinstall"
   },
   {
@@ -482,6 +525,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "NZ",
     "color": "#526fc4",
     "site": "https://github.com/M2Team/NanaZip",
+    "logo": "assets/logos/nanazip.png",
     "repairMode": "reinstall"
   },
   {
@@ -492,6 +536,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "TS",
     "color": "#50a05a",
     "site": "https://www.jam-software.com/treesize_free",
+    "logo": "assets/logos/treesize.png",
     "repairMode": "reinstall"
   },
   {
@@ -502,6 +547,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "BC",
     "color": "#8b68c9",
     "site": "https://www.bcuninstaller.com/",
+    "logo": "assets/logos/bcu.ico",
     "repairMode": "reinstall"
   },
   {
@@ -512,6 +558,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "KX",
     "color": "#6a9e3d",
     "site": "https://keepassxc.org/download/",
+    "logo": "assets/logos/keepassxc.svg",
     "repairMode": "reinstall"
   },
   {
@@ -522,6 +569,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GI",
     "color": "#786753",
     "site": "https://www.gimp.org/downloads/",
+    "logo": "assets/logos/gimp.svg",
     "repairMode": "reinstall"
   },
   {
@@ -532,6 +580,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "KR",
     "color": "#8d56c7",
     "site": "https://krita.org/en/download/",
+    "logo": "assets/logos/krita.svg",
     "repairMode": "reinstall"
   },
   {
@@ -542,6 +591,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "AU",
     "color": "#3158c7",
     "site": "https://www.audacityteam.org/download/windows/",
+    "logo": "assets/logos/audacity.svg",
     "repairMode": "reinstall"
   },
   {
@@ -552,6 +602,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "HB",
     "color": "#67a33f",
     "site": "https://handbrake.fr/downloads.php",
+    "logo": "assets/logos/handbrake.svg",
     "repairMode": "reinstall"
   },
   {
@@ -562,6 +613,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "KD",
     "color": "#4e83b8",
     "site": "https://kdenlive.org/download/",
+    "logo": "assets/logos/kdenlive.svg",
     "repairMode": "reinstall"
   },
   {
@@ -572,6 +624,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "BL",
     "color": "#e57932",
     "site": "https://www.blender.org/download/",
+    "logo": "assets/logos/blender.svg",
     "repairMode": "reinstall"
   },
   {
@@ -582,6 +635,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CA",
     "color": "#66a950",
     "site": "https://calibre-ebook.com/download_windows",
+    "logo": "assets/logos/calibre.svg",
     "repairMode": "reinstall"
   },
   {
@@ -592,6 +646,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "TB",
     "color": "#4b73d0",
     "site": "https://www.thunderbird.net/",
+    "logo": "assets/logos/thunderbird.svg",
     "repairMode": "reinstall"
   },
   {
@@ -602,6 +657,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "NC",
     "color": "#0082c9",
     "site": "https://nextcloud.com/install/#install-clients",
+    "logo": "assets/logos/nextcloud.svg",
     "repairMode": "reinstall"
   },
   {
@@ -612,6 +668,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "TL",
     "color": "#626b78",
     "site": "https://tailscale.com/download/windows",
+    "logo": "assets/logos/tailscale.svg",
     "repairMode": "reinstall"
   },
   {
@@ -622,6 +679,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "WG",
     "color": "#a43b42",
     "site": "https://www.wireguard.com/install/",
+    "logo": "assets/logos/wireguard.svg",
     "repairMode": "reinstall"
   },
   {
@@ -632,6 +690,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "RD",
     "color": "#e34a50",
     "site": "https://rustdesk.com/",
+    "logo": "assets/logos/rustdesk.svg",
     "repairMode": "reinstall",
     "manualInstall": true,
     "manualInstallUrl": "https://github.com/rustdesk/rustdesk/releases/latest"
@@ -644,6 +703,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "TV",
     "color": "#1677d2",
     "site": "https://www.teamviewer.com/download/windows/",
+    "logo": "assets/logos/teamviewer-color.svg",
     "repairMode": "reinstall"
   },
   {
@@ -654,6 +714,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GH",
     "color": "#6d5ac5",
     "site": "https://desktop.github.com/download/",
+    "logo": "assets/logos/githubdesktop.png",
     "tags": [
       "dev"
     ],
@@ -667,6 +728,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "DB",
     "color": "#70533e",
     "site": "https://dbeaver.io/download/",
+    "logo": "assets/logos/dbeaver.png",
     "tags": [
       "dev"
     ],
@@ -680,6 +742,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "JB",
     "color": "#e34d80",
     "site": "https://www.jetbrains.com/toolbox-app/",
+    "logo": "assets/logos/jetbrains.svg",
     "tags": [
       "dev"
     ],
@@ -693,6 +756,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "WS",
     "color": "#61a841",
     "site": "https://winscp.net/eng/download.php",
+    "logo": "assets/logos/winscp.png",
     "tags": [
       "dev"
     ],
@@ -706,6 +770,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PT",
     "color": "#4d8bc3",
     "site": "https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html",
+    "logo": "assets/logos/putty.svg",
     "tags": [
       "dev"
     ],
@@ -719,6 +784,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "FZ",
     "color": "#b93434",
     "site": "https://filezilla-project.org/download.php",
+    "logo": "assets/logos/filezilla.svg",
     "repairMode": "reinstall",
     "manualInstall": true,
     "manualInstallUrl": "https://filezilla-project.org/download.php?type=client"
@@ -731,6 +797,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "JV",
     "color": "#e07235",
     "site": "https://adoptium.net/temurin/releases/",
+    "logo": "assets/logos/temurin.svg",
     "tags": [
       "dev"
     ],
@@ -744,6 +811,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GO",
     "color": "#18a8c5",
     "site": "https://go.dev/dl/",
+    "logo": "assets/logos/golang.svg",
     "tags": [
       "dev"
     ],
@@ -757,6 +825,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "RS",
     "color": "#b35f38",
     "site": "https://rustup.rs/",
+    "logo": "assets/logos/rustup.svg",
     "tags": [
       "dev"
     ],
@@ -770,6 +839,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "EA",
     "color": "#db3939",
     "site": "https://www.ea.com/ea-app",
+    "logo": "assets/logos/ea.svg",
     "tags": [
       "gaming"
     ],
@@ -783,6 +853,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "BN",
     "color": "#228bd2",
     "site": "https://download.battle.net/",
+    "logo": "assets/logos/battlenet.svg",
     "tags": [
       "gaming"
     ],
@@ -796,6 +867,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PN",
     "color": "#36a0d5",
     "site": "https://playnite.link/download.html",
+    "logo": "assets/logos/playnite.svg",
     "tags": [
       "gaming"
     ],
@@ -809,6 +881,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "HG",
     "color": "#7757d8",
     "site": "https://heroicgameslauncher.com/",
+    "logo": "assets/logos/heroic.svg",
     "tags": [
       "gaming"
     ],
@@ -822,6 +895,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "AG",
     "color": "#4b83c3",
     "site": "https://www.amazongames.com/en-us/support/prime-gaming/articles/download-and-install-the-amazon-games-app",
+    "logo": "assets/logos/amazongames.png",
     "tags": [
       "gaming"
     ],
@@ -835,6 +909,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CF",
     "color": "#ef6c35",
     "site": "https://www.curseforge.com/download/app",
+    "logo": "assets/logos/curseforge.svg",
     "tags": [
       "gaming"
     ],
@@ -848,6 +923,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "VB",
     "color": "#3276a8",
     "site": "https://www.virtualbox.org/wiki/Downloads",
+    "logo": "assets/logos/virtualbox.svg",
     "repairMode": "reinstall"
   },
   {
@@ -858,6 +934,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "VM",
     "color": "#e38b35",
     "site": "https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html",
+    "logo": "assets/logos/vmware.svg",
     "repairMode": "reinstall",
     "manualInstall": true,
     "manualInstallUrl": "https://support.broadcom.com/group/ecx/productdownloads?subfamily=VMware%20Workstation%20Pro&freeDownloads=true"
@@ -870,6 +947,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "WSL",
     "color": "#5c7894",
     "site": "https://learn.microsoft.com/windows/wsl/install",
+    "logo": "assets/logos/wsl.svg",
     "repairMode": "reinstall"
   },
   {
@@ -880,6 +958,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "AI",
     "color": "#10a37f",
     "site": "https://openai.com/chatgpt/desktop/",
+    "logo": "assets/logos/openai.svg",
     "source": "msstore",
     "repairMode": "reinstall"
   },
@@ -891,6 +970,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CL",
     "color": "#d97757",
     "site": "https://claude.ai/download",
+    "logo": "assets/logos/claude.svg",
     "repairMode": "reinstall"
   },
   {
@@ -901,6 +981,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "OL",
     "color": "#4d5562",
     "site": "https://ollama.com/download/windows",
+    "logo": "assets/logos/ollama.svg",
     "repairMode": "reinstall"
   },
   {
@@ -911,6 +992,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "LM",
     "color": "#6c63ff",
     "site": "https://lmstudio.ai/download",
+    "logo": "assets/logos/lmstudio.svg",
     "repairMode": "reinstall"
   },
   {
@@ -921,6 +1003,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "JN",
     "color": "#4f8cff",
     "site": "https://jan.ai/",
+    "logo": "assets/logos/jan.svg",
     "repairMode": "reinstall"
   },
   {
@@ -931,6 +1014,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "GE",
     "color": "#4f7df3",
     "site": "https://gemini.google.com/",
+    "logo": "assets/logos/gemini.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://gemini.google.com/",
     "webService": true
@@ -943,6 +1027,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CO",
     "color": "#27a8a5",
     "site": "https://copilot.microsoft.com/",
+    "logo": "assets/logos/copilot.png",
     "manualInstall": true,
     "manualInstallUrl": "https://copilot.microsoft.com/",
     "webService": true
@@ -955,6 +1040,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PX",
     "color": "#218f8c",
     "site": "https://www.perplexity.ai/",
+    "logo": "assets/logos/perplexity.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://www.perplexity.ai/",
     "webService": true
@@ -967,6 +1053,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "MI",
     "color": "#ff7b22",
     "site": "https://chat.mistral.ai/",
+    "logo": "assets/logos/mistral.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://chat.mistral.ai/",
     "webService": true
@@ -979,6 +1066,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "AL",
     "color": "#2f6fed",
     "site": "https://anythingllm.com/desktop",
+    "logo": "assets/logos/anythingllm.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://anythingllm.com/desktop"
   },
@@ -990,6 +1078,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "G4",
     "color": "#6e5bd5",
     "site": "https://www.nomic.ai/gpt4all",
+    "logo": "assets/logos/gpt4all.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://www.nomic.ai/gpt4all"
   },
@@ -1001,6 +1090,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "PI",
     "color": "#e34b51",
     "site": "https://pinokio.computer/",
+    "logo": "assets/logos/pinokio.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://pinokio.computer/"
   },
@@ -1012,6 +1102,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "NV",
     "color": "#76b900",
     "site": "https://www.nvidia.com/en-us/ai-on-rtx/chatrtx/",
+    "logo": "assets/logos/nvidia.svg",
     "manualInstall": true,
     "manualInstallUrl": "https://www.nvidia.com/en-us/ai-on-rtx/chatrtx/"
   },
@@ -1023,6 +1114,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "SM",
     "color": "#8547d6",
     "site": "https://lykos.ai/",
+    "logo": "assets/logos/stabilitymatrix.png",
     "manualInstall": true,
     "manualInstallUrl": "https://github.com/LykosAI/StabilityMatrix/releases/latest"
   },
@@ -1034,6 +1126,7 @@ window.PC_SETUP_CATALOG = [
     "icon": "CU",
     "color": "#2672d9",
     "site": "https://www.comfy.org/download",
+    "logo": "assets/logos/comfyui.svg",
     "repairMode": "reinstall"
   }
 ];

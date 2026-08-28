@@ -2,6 +2,8 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $css = Get-Content -LiteralPath (Join-Path $root "styles.css") -Raw -Encoding UTF8
 $js = Get-Content -LiteralPath (Join-Path $root "app.js") -Raw -Encoding UTF8
+# Depuis 4.0.0-beta.32 les logos sont dans le catalogue (champ `logo`), plus dans app.js.
+$catalog = Get-Content -LiteralPath (Join-Path $root "catalog.generated.js") -Raw -Encoding UTF8
 
 if (-not $css.Contains('conic-gradient(from 0deg,var(--ring-color) calc(var(--score)*1%)')) {
     throw "The maintenance gauge is not proportional to its score."
@@ -45,7 +47,7 @@ $vlcBytes = [System.IO.File]::ReadAllBytes($vlcPath)
 if ($vlcBytes.Length -lt 8 -or $vlcBytes[0] -ne 0x89 -or $vlcBytes[1] -ne 0x50 -or $vlcBytes[2] -ne 0x4E -or $vlcBytes[3] -ne 0x47) {
     throw "The VLC logo is not a valid color PNG file."
 }
-if (-not $js.Contains('"GitHub.GitHubDesktop":"githubdesktop.png"') -or -not $js.Contains('"DBeaver.DBeaver.Community":"dbeaver.png"')) {
+if (-not $catalog.Contains('"logo": "assets/logos/githubdesktop.png"') -or -not $catalog.Contains('"logo": "assets/logos/dbeaver.png"')) {
     throw "GitHub Desktop and DBeaver do not use their official application icons."
 }
 if (-not $js.Contains('const logosRequiringLightSurface = new Set([') -or -not $css.Contains('.app-icon.app-icon-light')) {

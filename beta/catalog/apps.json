@@ -1,7 +1,6 @@
 {
   "$schema": "./catalog.schema.json",
-  "generatedFrom": "app.js (migration unique)",
-  "note": "apps.json est desormais la source de verite du catalogue. Editez-le directement (validé par catalog.schema.json). L'ordre est celui de l'affichage.",
+  "note": "Source de verite du catalogue. Editez-le directement : valide par catalog.schema.json + beta/scripts/build-catalog.mjs (id uniques, categorie, fichier logo present). L'ordre est celui de l'affichage.",
   "count": 93,
   "applications": [
     {

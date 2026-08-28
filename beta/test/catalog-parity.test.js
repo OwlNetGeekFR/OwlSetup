@@ -37,13 +37,13 @@ describe("parité catalog/apps.json <-> catalog.generated.js", () => {
     expect(runtime.map((x) => x.id)).toEqual(catalog.applications.map((x) => x.id));
   });
 
-  it("mêmes champs par application (hors logo, réappliqué par app.js)", () => {
+  it("mêmes champs par application, `logo` compris", () => {
     const byId = new Map(runtime.map((x) => [x.id, x]));
     for (const app of catalog.applications) {
       const rt = byId.get(app.id);
       expect(rt, app.id).toBeTruthy();
-      const { logo: _logo, ...expected } = app;
-      expect(rt, app.id).toEqual(expected);
+      expect(rt, app.id).toEqual(app);
+      expect(rt.logo, app.id).toMatch(/^assets\/logos\/[^/]+\.(svg|png|ico)$/);
     }
   });
 });
