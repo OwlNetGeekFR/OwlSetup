@@ -1255,7 +1255,7 @@ internal sealed class WebAppForm : Form
         return result;
     }
 
-    static List<Dictionary<string,string>> ParseWingetTable(string output)
+    internal static List<Dictionary<string,string>> ParseWingetTable(string output)
     {
         var rows=new List<Dictionary<string,string>>();
         string[] lines=(output ?? "").Split(new[]{"\r\n","\r","\n"},StringSplitOptions.None)
@@ -4656,6 +4656,9 @@ internal static class Bootstrap
         Console.Out.WriteLine("  OwlSetup.exe --install <id>[,<id>...]    Installe / met à jour des logiciels via WinGet");
         Console.Out.WriteLine("  OwlSetup.exe --uninstall <id>[,<id>...]  Désinstalle des logiciels");
         Console.Out.WriteLine("  OwlSetup.exe --apply <config.pcsetup.json>  Rejoue une configuration exportée par l'interface");
+        Console.Out.WriteLine("  OwlSetup.exe --update [<id>,...]          Met a jour (tout si aucun identifiant)");
+        Console.Out.WriteLine("  OwlSetup.exe --check-updates [--json]     Liste les mises a jour disponibles");
+        Console.Out.WriteLine("  OwlSetup.exe --export-profile <fichier>   Ecrit un profil rejouable par --apply");
         Console.Out.WriteLine("  OwlSetup.exe --list [filtre] [--json]    Liste le catalogue intégré");
         Console.Out.WriteLine("  OwlSetup.exe --search <terme>            Recherche dans la source WinGet");
         Console.Out.WriteLine("  OwlSetup.exe --version                   Version d'OwlSetup");
@@ -4667,9 +4670,12 @@ internal static class Bootstrap
         Console.Out.WriteLine();
         Console.Out.WriteLine("Exemple : OwlSetup.exe --install VideoLAN.VLC,7zip.7zip,Mozilla.Firefox");
         Console.Out.WriteLine("Exemple : OwlSetup.exe --apply parc.pcsetup.json --silent");
+        Console.Out.WriteLine("Exemple : OwlSetup.exe --export-profile modele.pcsetup.json");
+        Console.Out.WriteLine("Exemple : OwlSetup.exe --check-updates --json");
         Console.Out.WriteLine("Sans argument, OwlSetup démarre son interface graphique.");
         Console.Out.WriteLine();
         Console.Out.WriteLine("Codes de sortie : 0 = succès, 1 = un échec au moins, 2 = usage, 3 = WinGet absent.");
+        Console.Out.WriteLine("--check-updates renvoie 1 quand au moins une mise a jour est disponible (0 sinon).");
         Console.Out.WriteLine("Depuis PowerShell, pour attendre la fin et lire le code :");
         Console.Out.WriteLine("  Start-Process OwlSetup.exe -ArgumentList '--install VideoLAN.VLC' -Wait -NoNewWindow -PassThru");
     }
@@ -4727,6 +4733,7 @@ internal static class Bootstrap
         {
             CliOut("[simulation] "+(remove?"Désinstallerait":"Installerait ou mettrait à jour")+" "+ids.Length+" application(s) :");
             foreach(string id in ids)CliOut("  - "+id);
+            CliOut("[simulation] Mettrait ensuite a jour ceux que WinGet signale ameliorables.");
             CliOut("[simulation] Aucune modification effectuée.");
             return 0;
         }
@@ -4811,6 +4818,27 @@ internal static class Bootstrap
 
         int code=CliRunInstallLoop(ids,false,false,silent);
 
+        // Passe de mise a jour : l installation laisse les paquets deja presents
+        // dans leur version actuelle. --apply doit amener la machine a l etat
+        // decrit par la configuration, on met donc a jour ceux que WinGet
+        // signale comme ameliorables (et eux seuls, pour rester rapide).
+        string applyWinget=CliResolveWinget();
+        if(applyWinget!=null)
+        {
+            int probe;
+            var wanted=new HashSet<string>(ids,StringComparer.OrdinalIgnoreCase);
+            string[] upgradable=CliAvailableUpdates(applyWinget,out probe)
+                .Select(row=>row["id"].Trim())
+                .Where(id=>wanted.Contains(id))
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            if(upgradable.Length>0)
+            {
+                CliOut("");
+                CliOut("Mise a jour de "+upgradable.Length+" paquet(s) deja present(s) ...");
+                if(CliUpgradeLoop(applyWinget,upgradable,false,silent)!=0)code=1;
+            }
+        }
+
         if(cleanup.Length>0)
         {
             CliOut("");
@@ -4863,6 +4891,203 @@ internal static class Bootstrap
             .ToArray();
     }
 
+
+    // Execute winget en capturant les lignes (sans les afficher) : utilise par
+    // --check-updates et --export-profile qui doivent analyser la sortie.
+    static int CliCaptureWinget(string winget,string arguments,out List<string> lines)
+    {
+        var captured=new List<string>();
+        lines=captured;
+        try
+        {
+            var info=new ProcessStartInfo
+            {
+                FileName=winget,Arguments=arguments,UseShellExecute=false,CreateNoWindow=true,
+                RedirectStandardOutput=true,RedirectStandardError=true,
+                StandardOutputEncoding=Encoding.UTF8,StandardErrorEncoding=Encoding.UTF8
+            };
+            object sync=new object();
+            using(var process=new Process{StartInfo=info})
+            {
+                process.OutputDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null){lock(sync)captured.Add(e.Data);} };
+                process.ErrorDataReceived+=delegate(object s,DataReceivedEventArgs e){ if(e.Data!=null){lock(sync)captured.Add(e.Data);} };
+                process.Start();process.BeginOutputReadLine();process.BeginErrorReadLine();process.WaitForExit();
+                foreach(string line in captured)CliTranscript.AppendLine("  "+line);
+                return process.ExitCode;
+            }
+        }
+        catch(Exception ex)
+        {
+            CliErr("  "+ex.Message);
+            return -1;
+        }
+    }
+
+    // Identifiants installes, via `winget export` (JSON) : plus fiable que
+    // l'analyse du tableau de `winget list`, et identique a ce que fait
+    // ExportConfiguration cote interface.
+    static string[] CliInstalledIds(string winget)
+    {
+        string temp=Path.Combine(Path.GetTempPath(),"PCSetup","cli-export-"+Guid.NewGuid().ToString("N")+".json");
+        var ids=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(temp));
+            List<string> ignored;
+            CliCaptureWinget(winget,"export -o \""+temp+"\" --accept-source-agreements --disable-interactivity",out ignored);
+            if(File.Exists(temp))
+                foreach(Match match in Regex.Matches(File.ReadAllText(temp,Encoding.UTF8),"\"PackageIdentifier\"\\s*:\\s*\"([^\"]+)\"",RegexOptions.IgnoreCase))
+                {
+                    string id=match.Groups[1].Value;
+                    if(Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))ids.Add(id);
+                }
+        }
+        catch{}
+        finally{try{if(File.Exists(temp))File.Delete(temp);}catch{}}
+        return ids.OrderBy(x=>x,StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
+    // Mises a jour proposees par WinGet, via l'analyseur tabulaire commun.
+    static List<Dictionary<string,string>> CliAvailableUpdates(string winget,out int code)
+    {
+        List<string> lines;
+        code=CliCaptureWinget(winget,"upgrade --include-unknown --accept-source-agreements --disable-interactivity",out lines);
+        var rows=new List<Dictionary<string,string>>();
+        foreach(var row in WebAppForm.ParseWingetTable(String.Join("\r\n",lines)))
+        {
+            string id=row.ContainsKey("id")?row["id"].Trim():"";
+            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))continue;
+            // Une vraie ligne de mise a jour porte une version disponible ; sans
+            // elle, c est une ligne de resume de winget decoupee par les colonnes.
+            string available=row.ContainsKey("available")?row["available"].Trim():"";
+            if(available.Length==0)continue;
+            rows.Add(row);
+        }
+        return rows;
+    }
+
+    static int CliCheckUpdates(bool asJson)
+    {
+        string winget=CliResolveWinget();
+        if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez App Installer depuis le Microsoft Store.");return 3;}
+        int code;
+        var rows=CliAvailableUpdates(winget,out code);
+        var catalog=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+        try{foreach(var entry in CliCatalog())catalog[CliField(entry,"id")]=CliField(entry,"name");}catch{}
+
+        var payload=new List<Dictionary<string,object>>();
+        foreach(var row in rows)
+        {
+            string id=row["id"].Trim();
+            string name=row.ContainsKey("name")?row["name"].Trim():"";
+            payload.Add(new Dictionary<string,object>{
+                {"id",id},
+                {"name",catalog.ContainsKey(id)&&catalog[id].Length>0?catalog[id]:name},
+                {"current",row.ContainsKey("version")?row["version"].Trim():""},
+                {"available",row.ContainsKey("available")?row["available"].Trim():""},
+                {"inCatalog",catalog.ContainsKey(id)}
+            });
+        }
+
+        if(asJson)
+        {
+            Console.Out.WriteLine(new JavaScriptSerializer().Serialize(new Dictionary<string,object>{
+                {"checkedAt",DateTime.UtcNow.ToString("o")},
+                {"count",payload.Count},
+                {"updates",payload}
+            }));
+            return payload.Count>0?1:0;
+        }
+
+        if(payload.Count==0)
+        {
+            Console.Out.WriteLine("Aucune mise a jour proposee par WinGet.");
+            return 0;
+        }
+        foreach(var item in payload)
+        {
+            string id=Convert.ToString(item["id"]);
+            Console.Out.WriteLine((id.Length<40?id.PadRight(40):id+" ")+Convert.ToString(item["current"])+" -> "+Convert.ToString(item["available"]));
+        }
+        Console.Out.WriteLine();
+        Console.Out.WriteLine(payload.Count+" mise(s) a jour. Appliquer : OwlSetup.exe --update");
+        return 1;
+    }
+
+    static int CliExportProfile(string[] rest)
+    {
+        string path=String.Join(" ",rest).Trim().Trim('"');
+        if(path.Length==0){Console.Error.WriteLine("Usage : OwlSetup.exe --export-profile <fichier.pcsetup.json>");return 2;}
+        string winget=CliResolveWinget();
+        if(winget==null){Console.Error.WriteLine("WinGet est introuvable. Installez App Installer depuis le Microsoft Store.");return 3;}
+
+        string[] installed=CliInstalledIds(winget);
+        if(installed.Length==0){Console.Error.WriteLine("Aucun logiciel detecte par WinGet : profil non ecrit.");return 1;}
+        var known=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try{foreach(var entry in CliCatalog())known.Add(CliField(entry,"id"));}catch{}
+        string[] selected=installed.Where(id=>known.Contains(id)).ToArray();
+
+        // Meme format que l'export de l'interface : le fichier est relisible par
+        // --apply et par la restauration de configuration de l'application.
+        var configuration=new Dictionary<string,object>{
+            {"format","pc-setup-configuration"},{"formatVersion",1},
+            {"createdAt",DateTime.UtcNow.ToString("o")},{"appVersion",BuildInfo.DisplayVersion},
+            {"installedPackages",installed},{"selectedPackages",selected},
+            {"cleanupChoices",new string[0]},{"preferences",""}
+        };
+        try
+        {
+            string folder=Path.GetDirectoryName(Path.GetFullPath(path));
+            if(!String.IsNullOrEmpty(folder))Directory.CreateDirectory(folder);
+            File.WriteAllText(path,new JavaScriptSerializer().Serialize(configuration),new UTF8Encoding(false));
+        }
+        catch(Exception ex){Console.Error.WriteLine("Ecriture impossible : "+ex.Message);return 1;}
+
+        Console.Out.WriteLine("Profil ecrit : "+Path.GetFullPath(path));
+        Console.Out.WriteLine("  "+installed.Length+" logiciel(s) detecte(s), dont "+selected.Length+" du catalogue OwlSetup.");
+        Console.Out.WriteLine("Rejouer sur un autre PC : OwlSetup.exe --apply \""+Path.GetFileName(path)+"\"");
+        return 0;
+    }
+
+    // Met a jour les identifiants demandes ; sans argument, tout ce que WinGet propose.
+    static int CliUpdate(string[] rest,bool dryRun,bool silent)
+    {
+        string winget=CliResolveWinget();
+        if(winget==null){CliErr("WinGet est introuvable. Installez App Installer depuis le Microsoft Store.");return 3;}
+        string[] ids=CliParseIds(rest);
+        if(ids.Length==0)
+        {
+            int probe;
+            ids=CliAvailableUpdates(winget,out probe).Select(row=>row["id"].Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            if(ids.Length==0){CliOut("Aucune mise a jour proposee par WinGet.");return 0;}
+            CliOut(ids.Length+" mise(s) a jour proposee(s) par WinGet.");
+        }
+        return CliUpgradeLoop(winget,ids,dryRun,silent);
+    }
+
+    static int CliUpgradeLoop(string winget,string[] ids,bool dryRun,bool silent)
+    {
+        if(dryRun)
+        {
+            CliOut("[simulation] Mettrait a jour :");
+            foreach(string id in ids)CliOut("  - "+id);
+            return 0;
+        }
+        int failures=0;
+        foreach(string id in ids)
+        {
+            CliOut("Mise a jour : "+id+" ...");
+            int code=CliRunWinget(winget,"upgrade --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity",silent);
+            // -1978335189 (0x8A15002B) : aucune mise a jour applicable pour ce paquet.
+            if(code==0)CliOut("  OK");
+            else if(code==-1978335189)CliOut("  Deja a jour");
+            else{CliErr("  Echec (code "+code+")");failures++;}
+        }
+        CliOut("");
+        CliOut(ids.Length+" paquet(s) traite(s), "+failures+" echec(s).");
+        return failures>0?1:0;
+    }
+
     static int RunCli(string[] commandLine)
     {
         CliAttachConsole();
@@ -4883,6 +5108,9 @@ internal static class Bootstrap
             case "--install": return CliInstallOrRemove(rest,false,dryRun,silent);
             case "--uninstall": return CliInstallOrRemove(rest,true,dryRun,silent);
             case "--apply": return CliApply(rest,dryRun,silent);
+            case "--update": return CliUpdate(rest,dryRun,silent);
+            case "--check-updates": return CliCheckUpdates(asJson);
+            case "--export-profile": return CliExportProfile(rest);
             default:
                 Console.Error.WriteLine("Option inconnue : "+verb);
                 CliHelp();

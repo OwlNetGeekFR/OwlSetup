@@ -281,12 +281,16 @@ Garde-fou `tests/Test-CliMode.ps1`.
 
 **Reste à faire :**
 
-1. `--apply` : gérer aussi màj + nettoyage (aujourd'hui : installation seule) ;
-   `--silent` / `--dry-run` ; journal fichier.
-2. `--export-profile`, `--check-updates` (sortie JSON).
+1. [x] _(beta.20 / beta.41)_ `--apply` gère l'installation, la **mise à jour** des
+       paquets déjà présents et le nettoyage ; `--silent` / `--dry-run` ; journal
+       fichier dans `%LOCALAPPDATA%\PCSetup\Logs`.
+2. [x] _(beta.41)_ `--export-profile <fichier>` (profil rejouable par `--apply`,
+       même format que l'export de l'interface), `--check-updates [--json]` (code de
+       sortie 1 s'il existe des mises à jour) et `--update [<id>,...]`.
 3. Auto-élévation propre (relais de sortie vers l'appelant) pour les
    installations machine.
-4. Documenté dans `README` + page dédiée du site.
+4. [x] _(beta.41)_ Documenté dans le `README` (section « Command line »). Page
+       dédiée du site : à faire.
 
 **Acceptation :** un profil s'applique de bout en bout sans interface, codes de
 sortie documentés, réutilisé par la planification du lot 6.

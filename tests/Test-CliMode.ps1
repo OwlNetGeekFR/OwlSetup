@@ -43,6 +43,18 @@ Assert-Has $native 'CliConfigIds(root,"selectedPackages")' "--apply ne lit plus 
 Assert-Has $native 'CliStdIsRealRedirect(STD_OUTPUT_HANDLE)' "CliAttachConsole ne distingue plus une vraie redirection d'un handle nul."
 Assert-Has $native 'FileStream("CONOUT$"' "Le repli d'ecriture console CONOUT$ a disparu."
 
+# --- Lot 7 (4.0.0-beta.41) : --update / --check-updates / --export-profile ---
+Assert-Has $native 'case "--update": return CliUpdate(rest,dryRun,silent);' "Le verbe --update a disparu du dispatch CLI."
+Assert-Has $native 'case "--check-updates": return CliCheckUpdates(asJson);' "Le verbe --check-updates a disparu du dispatch CLI."
+Assert-Has $native 'case "--export-profile": return CliExportProfile(rest);' "Le verbe --export-profile a disparu du dispatch CLI."
+Assert-Has $native 'static int CliCaptureWinget(string winget,string arguments,out List<string> lines)' "La capture de sortie winget du CLI a disparu."
+Assert-Has $native 'WebAppForm.ParseWingetTable(' "--check-updates n'utilise plus l'analyseur winget centralise."
+Assert-Has $native 'internal static List<Dictionary<string,string>> ParseWingetTable' "ParseWingetTable n'est plus accessible au mode CLI."
+Assert-Has $native 'PackageIdentifier' "--export-profile ne lit plus l'export JSON de winget."
+Assert-Has $native '{"format","pc-setup-configuration"},{"formatVersion",1}' "--export-profile n'ecrit plus le format de configuration OwlSetup."
+Assert-Has $native 'if(available.Length==0)continue;' "--check-updates ne filtre plus les lignes de resume de winget."
+Assert-Has $native 'CliUpgradeLoop(applyWinget,upgradable,false,silent)' "--apply ne met plus a jour les paquets deja presents."
+
 # 1b) Shim console OwlSetup.com (4.5 / beta.19)
 $shimSource = Join-Path $root "OwlSetupCli.cs"
 Assert-Has (Get-Content -LiteralPath $shimSource -Raw -Encoding UTF8) 'Path.ChangeExtension(self, ".exe")' "Le shim .com ne relaie plus vers l'exe voisin."
@@ -116,6 +128,49 @@ if (Test-Path $exe) {
         if ($dryA.Text -match 'Installation de 7zip\.7zr \.\.\.') { throw "--apply --dry-run : ne doit rien installer." }
     }
     finally { Remove-Item -LiteralPath $goodCfg -Force -ErrorAction SilentlyContinue }
+
+# Verbes lot 7 (beta.41) : lecture seule / simulation, aucun effet de bord.
+    $cu = Invoke-Cli @('--check-updates', '--json')
+    if ($cu.Code -notin @(0, 1, 3)) { throw "--check-updates --json : code inattendu $($cu.Code)." }
+    if ($cu.Code -ne 3) {
+        $payload = $null
+        try { $payload = $cu.Text.Trim() | ConvertFrom-Json } catch { throw "--check-updates --json : sortie JSON invalide." }
+        if ($null -eq $payload.count) { throw "--check-updates --json : champ 'count' absent." }
+        if ($payload.count -gt 0 -and $cu.Code -ne 1) { throw "--check-updates : doit renvoyer 1 quand des mises a jour existent." }
+        if ($payload.count -eq 0 -and $cu.Code -ne 0) { throw "--check-updates : doit renvoyer 0 sans mise a jour." }
+        foreach ($item in @($payload.updates)) {
+            if ([string]::IsNullOrWhiteSpace($item.available)) { throw "--check-updates : ligne sans version disponible (resume winget non filtre)." }
+            if ($item.id -notmatch '^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$') { throw "--check-updates : identifiant invalide '$($item.id)'." }
+        }
+    }
+
+    $dryU = Invoke-Cli @('--update', 'VideoLAN.VLC', '--dry-run')
+    if ($dryU.Code -ne 0) { throw "--update --dry-run : code attendu 0 (obtenu $($dryU.Code))." }
+    if ($dryU.Text -notmatch '\[simulation\]' -or $dryU.Text -notmatch 'VideoLAN\.VLC') { throw "--update --dry-run : plan absent." }
+    if ($dryU.Text -match 'Mise a jour : VideoLAN\.VLC \.\.\.') { throw "--update --dry-run : ne doit rien mettre a jour." }
+
+    $noArg = Invoke-Cli @('--export-profile')
+    if ($noArg.Code -ne 2) { throw "--export-profile sans argument : code 2 attendu (obtenu $($noArg.Code))." }
+
+    $profile = Join-Path ([IO.Path]::GetTempPath()) ("owlsetup-profil-" + [guid]::NewGuid().ToString('N') + ".pcsetup.json")
+    try {
+        $exp = Invoke-Cli @('--export-profile', $profile)
+        if ($exp.Code -notin @(0, 1, 3)) { throw "--export-profile : code inattendu $($exp.Code)." }
+        if ($exp.Code -eq 0) {
+            if (-not (Test-Path -LiteralPath $profile)) { throw "--export-profile : fichier non ecrit." }
+            $cfg = Get-Content -LiteralPath $profile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($cfg.format -ne 'pc-setup-configuration') { throw "--export-profile : format de configuration incorrect." }
+            if ($cfg.formatVersion -ne 1) { throw "--export-profile : formatVersion incorrect." }
+            foreach ($id in @($cfg.installedPackages)) {
+                if ($id -notmatch '^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$') { throw "--export-profile : identifiant invalide '$id'." }
+            }
+            # Le profil doit etre relisible par --apply (boucle export -> apply).
+            $back = Invoke-Cli @('--apply', $profile, '--dry-run')
+            if ($back.Code -ne 0) { throw "--apply du profil exporte : code attendu 0 (obtenu $($back.Code))." }
+            if ($back.Text -notmatch '\[simulation\]') { throw "--apply du profil exporte : plan absent." }
+        }
+    }
+    finally { Remove-Item -LiteralPath $profile -Force -ErrorAction SilentlyContinue }
 
     # Shim console : compile a cote de l'exe, doit relayer et attendre.
     $shim = [IO.Path]::ChangeExtension($exe, ".com")
