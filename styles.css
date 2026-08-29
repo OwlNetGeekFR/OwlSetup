@@ -1029,3 +1029,92 @@ label.windows-update-row{cursor:pointer}
 :root[data-theme="light"] .top-nav-menu .nav-item.active .nav-menu-icon{background:#dbe7f7;color:#22447a}
 :root[data-theme="light"] .text-button:hover{color:#22344f}
 :root[data-theme="light"] .dialog-glow{background:#7ea9df;opacity:.1}
+
+/* --- Passe 4 : reliquats signales (bandeau confiance accueil, sous-menu nav,
+       notice signature, pastilles a faible contraste) --- 4.0.0-beta.36 --- */
+
+/* Bandeau "confiance" de l'accueil (.home-trust : grille a gap 1px, cellules sombres) */
+:root[data-theme="light"] .home-trust{background:#d8dfe8;border-color:#d8dfe8}
+:root[data-theme="light"] .home-trust>div{background:#f6f8fb}
+:root[data-theme="light"] .home-trust>div>span{border-color:#bcdccd;background:#e0f0e8;color:#2b7a5b}
+:root[data-theme="light"] .home-trust small{color:#69758a}
+
+/* Sous-menu de navigation (panneau clair, mais textes restes tres pales) */
+:root[data-theme="light"] .top-nav-menu .nav-menu-copy strong{color:#22344f}
+:root[data-theme="light"] .top-nav-menu .nav-menu-copy small{color:#66758b}
+:root[data-theme="light"] .top-nav-menu .nav-item:hover{background:#eef3fa}
+:root[data-theme="light"] .top-nav-menu-title{color:#5a6b82}
+
+/* Notice "executable non signe" de la modale mise a jour */
+:root[data-theme="light"] .update-signing-notice{border-color:#e6cfa0;background:#f7f0dd}
+:root[data-theme="light"] .update-signing-notice>span{background:#f0e2c0;color:#8a6524}
+:root[data-theme="light"] .update-signing-notice strong{color:#6b5827}
+:root[data-theme="light"] .update-signing-notice small{color:#7a6a4a}
+
+/* Pastilles a texte quasi invisible (texte de meme teinte que le fond) */
+:root[data-theme="light"] .local-pill,
+:root[data-theme="light"] .included{color:#1f7a5b}
+:root[data-theme="light"] .cleanup-recommended{color:#1f7a5b}
+:root[data-theme="light"] .cleanup-review{color:#8a6524}
+:root[data-theme="light"] .official-link{color:#3161ad}
+:root[data-theme="light"] .alpha-chip{border-color:#cdbdea;color:#5b3fa6}
+
+/* Pastilles d'icone manquantes (cyan / vert / orange sur cartes accueil, MAJ, nettoyage) */
+:root[data-theme="light"] .health-metric-icon.cyan,
+:root[data-theme="light"] .update-card-icon.cyan,
+:root[data-theme="light"] .cleanup-icon.cyan{border-color:#b7dbe0;background:#e0f0f2;color:#1f7c8c}
+:root[data-theme="light"] .update-card-icon.green,
+:root[data-theme="light"] .preset-icon.green{border-color:#bcdccd;background:#e0f0e8;color:#2b7a5b}
+:root[data-theme="light"] .cleanup-icon.orange,
+:root[data-theme="light"] .update-card-icon.orange{border-color:#e6cfa0;background:#f7ecd5;color:#8a6524}
+
+/* --- Passe 5 : textes trop pales sur fond clair (titres quasi blancs,
+       accents cyan/vert vifs, libelles) --- 4.0.0-beta.36 --- */
+
+/* Barre laterale : carte systeme + pastille d'etat */
+:root[data-theme="light"] .system-row b{color:#3a4a60}
+:root[data-theme="light"] .status-pill{color:#1f7a5b}
+:root[data-theme="light"] .status-pill.warning{color:#8a6524}
+
+/* Etats vides */
+:root[data-theme="light"] .empty h3,
+:root[data-theme="light"] .queue-empty h3,
+:root[data-theme="light"] .no-updates h3,
+:root[data-theme="light"] .tool-empty h3{color:var(--text)}
+
+/* Onglets de portee du catalogue + decouverte WinGet */
+:root[data-theme="light"] .catalog-scope strong{color:var(--text)}
+:root[data-theme="light"] .catalog-scope>b{background:#dbe2ec;color:#3a4a60}
+:root[data-theme="light"] .winget-discovery strong{color:var(--text)}
+:root[data-theme="light"] .winget-discovery em{color:#66758a}
+
+/* Liens */
+:root[data-theme="light"] .settings-about a{color:#3161ad}
+
+/* Libelles de champ (LANGUE / THEME) */
+:root[data-theme="light"] .appearance-settings label,
+:root[data-theme="light"] .language-settings label{color:#5a6b82}
+
+/* Ecran Alpha */
+:root[data-theme="light"] .alpha-eyebrow{color:#3a67b5}
+
+/* Nettoyage des navigateurs : nombres et libelles d'accent trop vifs */
+:root[data-theme="light"] .browser-analysis-actions>strong,
+:root[data-theme="light"] .browser-overview-stat strong,
+:root[data-theme="light"] .browser-analysis-breakdown strong,
+:root[data-theme="light"] .browser-data-details-grid b{color:#1f7c8c}
+:root[data-theme="light"] .browser-protected-data strong,
+:root[data-theme="light"] .browser-analysis-protection .protected b{color:#2b7a5b}
+:root[data-theme="light"] .browser-analysis-protection span{border-color:#bfdccd;background:#e9f4ee;color:#2f6d55}
+:root[data-theme="light"] .browser-category em{color:#2b7a5b}
+:root[data-theme="light"] .browser-data-details-grid b[class],
+:root[data-theme="light"] .browser-data-details-grid .sensitive b{color:#8a6524}
+
+/* --- Passe 6 : textes limites (contraste < 3) sur fond clair --- 4.0.0-beta.36 --- */
+:root[data-theme="light"] .results-line span:first-child{color:#5a6b82}
+:root[data-theme="light"] .catalog-advanced>summary>b{border-color:#bcccdf;color:#3a67b5}
+:root[data-theme="light"] .browser-category small,
+:root[data-theme="light"] .browser-category p{color:#5a6b82}
+:root[data-theme="light"] .alpha-command-copy>p,
+:root[data-theme="light"] .alpha-restore-choice strong,
+:root[data-theme="light"] .alpha-restore-choice small{color:#41597a}

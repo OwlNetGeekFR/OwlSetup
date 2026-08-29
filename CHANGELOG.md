@@ -1,5 +1,35 @@
 # Historique des versions
 
+## [4.0.0-beta.36] - 2026-08-29
+
+### Thème clair — 2ᵉ passe (contraste)
+
+Suite des retours après la bêta 35 : ~30 correctifs supplémentaires, cette fois
+axés **contraste du texte** (pas seulement les fonds).
+
+- **Sous-menu de navigation** : les titres (« Centre de sécurité »,
+  « Quarantaine »…) restaient en texte quasi blanc sur le panneau clair —
+  passés en `#22344f` ; petits textes et survol ajustés.
+- **Bandeau « confiance » de l'accueil** (`.home-trust`) : les 4 cellules
+  étaient encore noires (grille à `gap:1px`, seule la grille avait été traitée)
+  — cellules en `#f6f8fb`, pastilles vertes pastel.
+- **Notice « exécutable non signé »** de la modale de mise à jour : fond et
+  texte ambre sombres → version claire.
+- **Pastilles à texte invisible** (« 100 % local », « INCLUS »,
+  « Recommandé », « À vérifier ») : texte de la même teinte que le fond →
+  teintes foncées lisibles.
+- **Titres quasi blancs** : onglets de portée du catalogue, découverte WinGet,
+  états vides (« Aucun logiciel trouvé »), carte système de la barre latérale,
+  pastille d'état.
+- **Accents cyan/vert vifs** du nettoyage des navigateurs (nombres, libellés)
+  et **liens** (`Site officiel`, `Voir le projet GitHub`) → teintes foncées.
+- **Pastilles d'icône manquantes** (cyan / vert / orange sur l'accueil, les
+  mises à jour, le nettoyage) → versions pastel.
+- Méthode : audit de contraste automatisé (ratio texte/fond) sur toutes les
+  vues + modales, à l'écran.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'application démarre.
+
 ## [4.0.0-beta.35] - 2026-08-29
 
 ### Thème clair — passe complète des surfaces
