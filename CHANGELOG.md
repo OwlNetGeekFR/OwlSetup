@@ -14,10 +14,15 @@
   `CompareAppVersions` (les `X.Y.Z-beta.N` sont donc éligibles).
 - `Test-SelfUpdate.ps1` étendu (option, clé de stockage, surcharge,
   transmission du drapeau). 138 tests beta.
-- **Plumbing sans effet visible tant que les bêtas ne sont pas publiées** comme
-  _prereleases_ GitHub : `build-beta.ps1` reste « sans publication » et
-  `release.yml` n'accepte que les tags stables `X.Y.Z`. Adapter `release.yml`
-  est la prochaine étape (décision de distribution).
+- **`release.yml` publie désormais les préversions.** Un tag
+  `vX.Y.Z-(alpha|beta|rc).N` est accepté, compilé sur le bon canal
+  (`-Channel beta`/`alpha` + `-PrereleaseLabel`), publié en **prerelease
+  GitHub** (`gh release create --prerelease --latest=false`) ; le contrôle
+  final « ni brouillon ni préversion » distingue maintenant les deux cas. Les
+  tags `X.Y.Z` restent des Releases stables « latest », inchangées.
+- **Pratique retenue :** on ne tague que les _release candidates_ (`rc.N`)
+  avant une stable, pas chaque bêta. `build-beta.ps1` reste local (« sans
+  publication »).
 - Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
   des 5 ressources OK, l'application démarre.
 

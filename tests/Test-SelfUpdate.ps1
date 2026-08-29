@@ -53,6 +53,13 @@ Assert-Has $native 'releases?per_page=' "The prerelease path no longer lists /re
 Assert-Has $native 'void CheckAppUpdate(Dictionary<string,object> payload)' "CheckAppUpdate no longer receives the payload (prerelease flag)."
 Assert-Has $native 'GetLatestRelease(includePrerelease)' "CheckAppUpdate/InstallAppUpdate no longer honor the prerelease flag."
 
+# 5b) release.yml publishes prereleases for X.Y.Z-(alpha|beta|rc).N tags.
+$workflow = Get-Content -LiteralPath (Join-Path $root ".github\workflows\release.yml") -Raw -Encoding UTF8
+Assert-Has $workflow '(alpha|beta|rc)\.\d+' "release.yml no longer accepts prerelease tags."
+Assert-Has $workflow '-Channel $env:RELEASE_CHANNEL -PrereleaseLabel $env:RELEASE_PRERELEASE_LABEL' "release.yml no longer builds the derived channel/prerelease label."
+Assert-Has $workflow '--prerelease' "release.yml no longer marks prereleases on GitHub."
+Assert-Has $workflow 'RELEASE_IS_PRERELEASE' "release.yml no longer distinguishes stable from prerelease in the final check."
+
 # 6) Real comparator via reflection (when the compiled exe is present).
 $exe = Join-Path $root "OwlSetup.exe"
 if (Test-Path $exe) {
