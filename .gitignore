@@ -48,3 +48,7 @@ OwlSetup-Dashboard/
 
 # Sorties locales des tests
 tests/results/
+
+# Local preview / tooling (not part of the build)
+.claude/
+.vite/
