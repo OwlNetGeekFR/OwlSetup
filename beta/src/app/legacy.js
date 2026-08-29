@@ -2436,7 +2436,7 @@ function renderScheduleState(message) {
     status.textContent = "Aucune tâche planifiée pour le moment.";
     return;
   }
-  const what = message.action === "update" ? "Installation des mises à jour" : "Vérification des mises à jour";
+  const what = message.action === "update" ? "Installation des mises à jour" : "Ouverture d’OwlSetup pour vérifier";
   const when = message.frequency === "monthly" ? "toutes les 4 semaines" : "chaque semaine";
   const day = scheduleDayNames[Number(message.day)] || "";
   status.textContent = `${what} — ${when} le ${day} à ${message.time}.`

@@ -31,7 +31,10 @@ Assert-Missing $native '-RunLevel Highest' "Une tache planifiee elevee est appar
 Assert-Missing $native '-Password' "Un mot de passe est passe au planificateur de taches."
 
 # 2) La tache rappelle bien le mode CLI (lot 7), pas un chemin parallele.
-Assert-Has $native 'action=="update" ? "--update --silent" : "--check-updates"' "La tache planifiee n'appelle plus les verbes CLI."
+Assert-Has $native 'action=="update" ? "--update --silent" : ""' "L action planifiee ne correspond plus aux deux modes attendus."
+# Une verification planifiee doit ouvrir l interface : sans fenetre elle n apprend
+# rien, et --check-updates renvoie 1 (Windows afficherait un echec).
+Assert-Missing $native '-Argument ''--check-updates''' "La tache planifiee relance --check-updates sans fenetre."
 Assert-Has $native 'New-ScheduledTaskAction -Execute $exe' "La tache planifiee ne lance plus l'executable OwlSetup."
 
 # 3) Validation stricte de ce qui vient de l'interface (injection PowerShell).

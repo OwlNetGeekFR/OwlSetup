@@ -3878,7 +3878,10 @@ internal sealed class WebAppForm : Form
     // Argument CLI reellement lance par la tache, selon l'action demandee.
     static string ScheduleArguments(string action)
     {
-        return action=="update" ? "--update --silent" : "--check-updates";
+        // "check" ouvre l interface : une verification planifiee sans fenetre
+        // n apprendrait rien a l utilisateur, et --check-updates renvoie 1 quand
+        // des mises a jour existent, ce que Windows afficherait comme un echec.
+        return action=="update" ? "--update --silent" : "";
     }
 
     int RunScheduleScript(string script,StringBuilder report)
@@ -3962,7 +3965,11 @@ internal sealed class WebAppForm : Form
                     "try{"+
                     "$exe="+PsQuote(Application.ExecutablePath)+";"+
                     trigger+
-                    "$act=New-ScheduledTaskAction -Execute $exe -Argument "+PsQuote(ScheduleArguments(action))+";"+
+                    // -Argument refuse une chaine vide : on omet le parametre quand
+                    // la tache doit simplement ouvrir l interface.
+                    (ScheduleArguments(action).Length>0
+                        ? "$act=New-ScheduledTaskAction -Execute $exe -Argument "+PsQuote(ScheduleArguments(action))+";"
+                        : "$act=New-ScheduledTaskAction -Execute $exe;")+
                     // Compte courant, interactif, sans elevation ni mot de passe.
                     "$principal=New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited;"+
                     "$settings=New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 2);"+

@@ -1,5 +1,37 @@
 # Historique des versions
 
+## [4.0.0-beta.43] - 2026-08-29
+
+### Entretien planifié : la vérification hebdomadaire ne servait à rien
+
+Défaut trouvé en inspectant une tâche réellement créée par la bêta 42 :
+`Dernière exécution : résultat = 1`.
+
+- L'action « Vérifier les mises à jour » lançait `--check-updates` **sans
+  fenêtre** : la tâche s'exécutait, écrivait dans son journal, et
+  l'utilisateur n'en savait jamais rien.
+- Pire, `--check-updates` renvoie **1 quand des mises à jour existent** (c'est
+  voulu, pour piloter un script). Le Planificateur Windows affichait donc la
+  tâche comme **ayant échoué**, alors que tout allait bien.
+
+Corrigé : l'action de vérification **ouvre OwlSetup**. Le résultat est visible
+et actionnable, et le code de sortie redevient 0. Les libellés disent
+maintenant ce qui se passe vraiment : « Ouvrir OwlSetup pour vérifier » et
+« Installer les mises à jour en silence ».
+
+Le mode CLI n'est pas modifié : `--check-updates` garde son code de sortie 1,
+utile en script.
+
+### Détail technique
+
+`New-ScheduledTaskAction -Argument ''` est **refusé** par PowerShell (« L'argument
+est Null ou vide »). La tâche d'ouverture omet donc le paramètre `-Argument`
+plutôt que de le passer vide — sans ce correctif, l'enregistrement échouait.
+La relecture continue de déduire l'action des arguments (vides = ouverture).
+
+`tests/Test-ScheduledMaintenance.ps1` interdit désormais qu'une tâche planifiée
+relance `--check-updates` sans fenêtre.
+
 ## [4.0.0-beta.42] - 2026-08-29
 
 ### Lot 6 — entretien planifié (vraie tâche Windows)
