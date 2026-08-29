@@ -227,15 +227,14 @@ manuelle = friction que tous les concurrents ont réglée.
        comparateur `CompareAppVersions` (module `app-version`, miroir C#) gère les
        préversions `X.Y.Z-beta.N` — `System.Version` en était incapable.
        `tests/Test-SelfUpdate.ps1` garde les contrôles d'intégrité.
-3. **Canal bêta in-app** — _côté application fait (4.0.0-beta.34)_ : case
-   « Recevoir les préversions » dans Paramètres (`owlsetup-prerelease-v1`),
-   drapeau transmis à `check-app-update` / `install-app-update`, surcharge
+3. [x] _(4.0.0-beta.34)_ **Canal bêta in-app.** Case « Recevoir les
+   préversions » dans Paramètres (`owlsetup-prerelease-v1`), drapeau transmis à
+   `check-app-update` / `install-app-update`, surcharge
    `GetLatestRelease(bool includePrerelease)` qui liste `/releases` et retient
-   le tag le plus récent via `CompareAppVersions`.
-   **Reste (décision de distribution) :** adapter `release.yml` pour publier les
-   bêtas comme _prereleases_ GitHub sur tag `vX.Y.Z-beta.N` (`-Channel beta`,
-   `gh release ... --prerelease`, assouplir le contrôle « ni brouillon ni
-   préversion »). `build-beta.ps1` reste local.
+   le tag le plus récent via `CompareAppVersions`. `release.yml` accepte les
+   tags `vX.Y.Z-(alpha|beta|rc).N` et les publie en _prerelease_ GitHub.
+   **Pratique retenue :** on ne tague que les `rc.N` avant une stable, pas
+   chaque bêta ; `build-beta.ps1` reste local.
 4. **Delta / silencieux** : `OwlSetup-Setup.exe /VERYSILENT` documenté pour le
    déploiement en parc.
 
