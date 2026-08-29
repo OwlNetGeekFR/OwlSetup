@@ -1,5 +1,33 @@
 # Historique des versions
 
+## [4.0.0-beta.35] - 2026-08-29
+
+### Thème clair — passe complète des surfaces
+
+- **Audit visuel réel de toutes les vues et fenêtres** en thème clair (le
+  problème « trop flash » / zones sombres résiduelles signalé après la bêta 30
+  n'avait jamais été vérifié à l'écran). ~150 éléments rendus sombres sur fond
+  clair recensés.
+- **~110 nouvelles règles `:root[data-theme="light"]`** dans `styles.css`,
+  regroupées par famille : toutes les fenêtres modales (`.install-dialog` et
+  ses variantes : mise à jour, installation guidée, nettoyage, désinstallation
+  groupée, rapport, journal, aperçu télémétrie, détail du score…), les
+  panneaux « teinte bleue/verte/ambre/rouge » (préflight, sécurité, opérations,
+  résidus…), les grands panneaux opaques (outils, recommandations sécurité,
+  guide, options avancées du catalogue, profils), le centre de notifications,
+  les opérations en arrière-plan, les toasts, l'onboarding, les cartes de
+  profil de l'accueil (`.preset`), le widget de santé, l'entretien du disque,
+  les bascules, le sous-menu de navigation, et les pastilles d'icône colorées
+  (bleu / vert / violet / cyan / ambre) déclinées en versions pastel.
+- Palette inchangée depuis la bêta 30 (« bleu ardoise atténué ») ; cette passe
+  applique cette palette **partout** au lieu de la couche partielle
+  précédente.
+- Aucun changement en thème sombre (couche purement additive, `:root[data-theme
+  ="light"] X` l'emporte sur `X` par spécificité).
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert (dont
+  `Test-ThemePreference`, `Test-TypographyConsistency`), intégrité SHA-256 des
+  5 ressources OK, l'application démarre.
+
 ## [4.0.0-beta.34] - 2026-08-29
 
 ### Lot 5 — canal « préversions » de la mise à jour in-app

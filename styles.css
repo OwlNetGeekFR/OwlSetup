@@ -764,3 +764,268 @@ label.windows-update-row{cursor:pointer}
 :root[data-theme="light"] .alpha-safety-pills span{border-color:#ccd7e3;background:#eef1f6;color:#41597a}
 :root[data-theme="light"] .alpha-mode-actions button{border-color:#bcccdf;background:#e3ebf6;color:#2b4f8f}
 :root[data-theme="light"] .alpha-one-click-status,:root[data-theme="light"] .alpha-schedule-status{color:#69758a}
+
+/* =========================================================================
+   Theme clair - passe complete des surfaces restees sombres - 4.0.0-beta.35
+   Couche d'ajustement au-dessus du style sombre par defaut. Une regle
+   `:root[data-theme="light"] X` l'emporte toujours sur `X` (specificite).
+   ========================================================================= */
+
+/* --- Voiles de fenetres modales --- */
+:root[data-theme="light"] .install-modal,
+:root[data-theme="light"] .history-clear-overlay{background:rgba(30,42,58,.42)}
+
+/* --- Fenetres modales (toutes variantes .install-dialog + apparentees) --- */
+:root[data-theme="light"] .install-dialog,
+:root[data-theme="light"] .history-clear-dialog,
+:root[data-theme="light"] .context-help-popover{
+  border-color:#bec9d8;
+  background:linear-gradient(150deg,#f8fafc,#eef2f7);
+  box-shadow:0 28px 80px rgba(34,52,74,.22);
+  color:var(--text)
+}
+:root[data-theme="light"] .dialog-confirm,
+:root[data-theme="light"] .dialog-progress,
+:root[data-theme="light"] .progress-status,
+:root[data-theme="light"] .progress-summary,
+:root[data-theme="light"] .install-result-actions,
+:root[data-theme="light"] .report-section-head,
+:root[data-theme="light"] .report-summary-grid,
+:root[data-theme="light"] .log-summary-grid,
+:root[data-theme="light"] .report-items,
+:root[data-theme="light"] .log-entries,
+:root[data-theme="light"] .log-suggestions,
+:root[data-theme="light"] .report-body,
+:root[data-theme="light"] .log-body,
+:root[data-theme="light"] .feedback-preview-body,
+:root[data-theme="light"] .health-details-body,
+:root[data-theme="light"] .health-details-list,
+:root[data-theme="light"] .cleanup-analysis-list,
+:root[data-theme="light"] .browser-cleanup-review,
+:root[data-theme="light"] .batch-uninstall-list,
+:root[data-theme="light"] .batch-uninstall-result,
+:root[data-theme="light"] .uninstall-preview,
+:root[data-theme="light"] .update-confirm-list,
+:root[data-theme="light"] .update-progress-steps,
+:root[data-theme="light"] .self-update-state,
+:root[data-theme="light"] .install-preferences,
+:root[data-theme="light"] .install-location-picker,
+:root[data-theme="light"] .launch-after,
+:root[data-theme="light"] .privacy-confirm,
+:root[data-theme="light"] .guided-install-steps{border-color:#cfd8e4;background:#eef1f6;color:var(--text)}
+:root[data-theme="light"] .self-update-versions,
+:root[data-theme="light"] .report-meta,
+:root[data-theme="light"] .current-package,
+:root[data-theme="light"] .cleanup-current-zone{border-color:#cfd8e4;background:#e8ecf3;color:var(--text)}
+:root[data-theme="light"] .expert-command-preview,
+:root[data-theme="light"] .feedback-preview-body pre,
+:root[data-theme="light"] .report-body pre{border-color:#c6d1e0;background:#eef1f6;color:#2f5a9e}
+:root[data-theme="light"] .dialog-close{border-color:#c9d3e1;background:#eef1f6;color:#53637a}
+:root[data-theme="light"] .dialog-close:hover{border-color:#9db1cc;color:#22344f}
+:root[data-theme="light"] .progress-track{background:#dde3ec}
+:root[data-theme="light"] .dialog-checks{border-color:#c3d3e2;background:#eef3f8}
+
+/* --- Panneaux teinte bleue (fonds translucides bleutes) --- */
+:root[data-theme="light"] .install-preflight,
+:root[data-theme="light"] .preflight-heading,
+:root[data-theme="light"] .preflight-grid,
+:root[data-theme="light"] .security-overview,
+:root[data-theme="light"] .security-score,
+:root[data-theme="light"] .security-mode,
+:root[data-theme="light"] .security-detail-panel,
+:root[data-theme="light"] .update-action-panel,
+:root[data-theme="light"] .update-action-copy,
+:root[data-theme="light"] .config-toolbar,
+:root[data-theme="light"] .installed-manager-actions,
+:root[data-theme="light"] .installed-overview,
+:root[data-theme="light"] .installed-selection-panel,
+:root[data-theme="light"] .winget-discovery,
+:root[data-theme="light"] .winget-discovery-copy{border-color:#c6d3e6;background:#eaeff7;color:var(--text)}
+:root[data-theme="light"] .security-detail-panel h2,
+:root[data-theme="light"] .config-toolbar .label,
+:root[data-theme="light"] .preflight-heading{color:#3a4a60}
+
+/* --- Grands panneaux opaques (outils, securite, catalogue, guide) --- */
+:root[data-theme="light"] .tool-panel,
+:root[data-theme="light"] .security-recommendations,
+:root[data-theme="light"] .security-log-panel,
+:root[data-theme="light"] .security-log-actions,
+:root[data-theme="light"] .guide-help,
+:root[data-theme="light"] .guide-help-grid,
+:root[data-theme="light"] .catalog-advanced,
+:root[data-theme="light"] .catalog-advanced-body,
+:root[data-theme="light"] .custom-tools,
+:root[data-theme="light"] .profile-panel,
+:root[data-theme="light"] .profile-tools,
+:root[data-theme="light"] .winget-search-state,
+:root[data-theme="light"] .tool-progress,
+:root[data-theme="light"] .tool-actions,
+:root[data-theme="light"] .tool-help,
+:root[data-theme="light"] .section-heading,
+:root[data-theme="light"] .security-recommendation-list,
+:root[data-theme="light"] .security-recommendation-count{border-color:#cfd8e4;background:#f6f8fb;color:var(--text)}
+:root[data-theme="light"] .catalog-scope,
+:root[data-theme="light"] .home-secondary,
+:root[data-theme="light"] .onboarding-secondary,
+:root[data-theme="light"] .security-recommendation-list button,
+:root[data-theme="light"] .profile-tools input,
+:root[data-theme="light"] .profile-tools select{border-color:#c4d0e0;background:#eef1f6;color:#3a4a60}
+:root[data-theme="light"] .catalog-scope.active{border-color:#3a67b5;background:#e6edf8;color:#22344f}
+:root[data-theme="light"] .home-secondary.app-update-button{border-color:#bcd6c9;background:#e9f4ee;color:#2f6d55}
+
+/* --- Panneaux succes (vert) --- */
+:root[data-theme="light"] .report-hero,
+:root[data-theme="light"] .guided-install-note,
+:root[data-theme="light"] .simulation-badge,
+:root[data-theme="light"] .language-privacy,
+:root[data-theme="light"] .first-run-privacy,
+:root[data-theme="light"] .cleanup-confirm-card,
+:root[data-theme="light"] .cleanup-result-card,
+:root[data-theme="light"] .protected-folders{border-color:#bfdccd;background:#e9f4ee;color:#2f6d55}
+
+/* --- Panneaux attention (ambre) --- */
+:root[data-theme="light"] .update-advice,
+:root[data-theme="light"] .operation-recovery,
+:root[data-theme="light"] .operation-fix,
+:root[data-theme="light"] .operation-fix-summary,
+:root[data-theme="light"] .operation-process-panel,
+:root[data-theme="light"] .operation-process-heading,
+:root[data-theme="light"] .operation-process-list,
+:root[data-theme="light"] .operation-process-actions,
+:root[data-theme="light"] .browser-sync-warning,
+:root[data-theme="light"] .beta-support-badge,
+:root[data-theme="light"] .manual-install-badge,
+:root[data-theme="light"] .alpha-review-warning,
+:root[data-theme="light"] .system-restart-reason{border-color:#e6cfa0;background:#f7f0dd;color:#7a5c22}
+:root[data-theme="light"] .help-hint{border-color:#e6cfa0;background:#f3e7cf;color:#7a5c22}
+:root[data-theme="light"] .operation-process-panel .text-button{color:#7a5c22}
+
+/* --- Panneaux danger (rouge) --- */
+:root[data-theme="light"] .danger-note,
+:root[data-theme="light"] .uninstall-residue-panel,
+:root[data-theme="light"] .uninstall-residue-list,
+:root[data-theme="light"] .uninstall-residue-choice,
+:root[data-theme="light"] .batch-uninstall-current,
+:root[data-theme="light"] .native-error-card,
+:root[data-theme="light"] .native-error-copy,
+:root[data-theme="light"] .native-error-actions,
+:root[data-theme="light"] .operation-process-warning,
+:root[data-theme="light"] .update-blocker-warning,
+:root[data-theme="light"] .installed-manager,
+:root[data-theme="light"] .simulation-badge.danger-simulation{border-color:#e6c4cc;background:#fbeef1;color:#8a3b4c}
+:root[data-theme="light"] .native-error-card code{background:#f3dfe4;color:#8a3b4c}
+:root[data-theme="light"] .danger-outline-button{border-color:#dca9b3;background:#fbeef1;color:#a3384b}
+
+/* --- Barre de selection / actions groupees --- */
+:root[data-theme="light"] .preset{border-color:#cfd8e4;background:linear-gradient(130deg,#f4f6fa,#e9edf3);color:var(--text)}
+:root[data-theme="light"] .preset:hover{border-color:#9db1cc}
+
+/* --- Centre de notifications / operations en arriere-plan / toasts --- */
+:root[data-theme="light"] .notification-center,
+:root[data-theme="light"] .notification-center-head,
+:root[data-theme="light"] .notification-head-actions,
+:root[data-theme="light"] .notification-list,
+:root[data-theme="light"] .notification-empty{border-color:#cfd8e4;background:#f6f8fb;color:var(--text)}
+:root[data-theme="light"] .background-operation,
+:root[data-theme="light"] .background-operation-copy{border-color:#c6d3e6;background:#eef2f8;color:var(--text)}
+:root[data-theme="light"] .background-operation.background-update,
+:root[data-theme="light"] .background-operation.background-update .background-operation-copy{border-color:#bcd8cc;background:#e9f4ee}
+:root[data-theme="light"] .background-operation.background-uninstall,
+:root[data-theme="light"] .background-operation.background-uninstall .background-operation-copy{border-color:#e6c4cc;background:#fbeef1}
+:root[data-theme="light"] .toast{border-color:#bfdccd;background:#e9f4ee;color:#2f6d55}
+:root[data-theme="light"] .toast.toast-error{border-color:#e6c4cc;background:#fbeef1}
+:root[data-theme="light"] .toast.toast-warning{border-color:#e6cfa0;background:#f7f0dd}
+
+/* --- Onboarding / premier demarrage --- */
+:root[data-theme="light"] .onboarding-overlay,
+:root[data-theme="light"] .first-run-overlay,
+:root[data-theme="light"] .language-overlay{background:rgba(30,42,58,.42)}
+:root[data-theme="light"] .onboarding-progress{background:#dde3ec}
+:root[data-theme="light"] .onboarding-visual{border-color:#c6d3e6;background:#e9eef7}
+:root[data-theme="light"] .onboarding-visual.installed{background:#e6f2ec}
+:root[data-theme="light"] .onboarding-visual.maintenance{background:#efe9fb}
+:root[data-theme="light"] .onboarding-visual.security{background:#e6f0ec}
+
+/* --- Pastilles d'icone colorees (petits carres d'accent) --- */
+:root[data-theme="light"] .settings-heading-icon,
+:root[data-theme="light"] .health-metric-icon.blue,
+:root[data-theme="light"] .update-card-icon.blue,
+:root[data-theme="light"] .feature-icon,
+:root[data-theme="light"] .cleanup-icon.blue,
+:root[data-theme="light"] .preset-icon.blue,
+:root[data-theme="light"] .security-icon.blue,
+:root[data-theme="light"] .tool-icon.blue,
+:root[data-theme="light"] .first-run-option-icon,
+:root[data-theme="light"] .nav-menu-icon,
+:root[data-theme="light"] .update-shield,
+:root[data-theme="light"] .quarantine-shield,
+:root[data-theme="light"] .background-operation-icon,
+:root[data-theme="light"] .package-icon,
+:root[data-theme="light"] .scan-spinner,
+:root[data-theme="light"] .winget-discovery-icon,
+:root[data-theme="light"] .dialog-logo{border-color:#bcd0ec;background:#e7effb;color:#2f5aa8}
+:root[data-theme="light"] .settings-heading-icon.safe,
+:root[data-theme="light"] .health-metric-icon.green,
+:root[data-theme="light"] .cleanup-icon.green,
+:root[data-theme="light"] .security-icon.green,
+:root[data-theme="light"] .tool-icon.green,
+:root[data-theme="light"] .installed-overview-icon,
+:root[data-theme="light"] .cleanup-drive,
+:root[data-theme="light"] .update-dialog-logo,
+:root[data-theme="light"] .cleanup-dialog-logo,
+:root[data-theme="light"] .self-update-logo{border-color:#bcdccd;background:#e0f0e8;color:#2b7a5b}
+:root[data-theme="light"] .settings-heading-icon.theme,
+:root[data-theme="light"] .settings-heading-icon.expert,
+:root[data-theme="light"] .health-metric-icon.violet,
+:root[data-theme="light"] .update-card-icon.violet,
+:root[data-theme="light"] .cleanup-icon.violet,
+:root[data-theme="light"] .preset-icon.violet,
+:root[data-theme="light"] .security-icon.violet,
+:root[data-theme="light"] .tool-icon.violet,
+:root[data-theme="light"] .cleanup-advanced{border-color:#cdbdea;background:#efe9fb;color:#5b3fa6}
+:root[data-theme="light"] .settings-heading-icon.alpha-clock,
+:root[data-theme="light"] .security-icon.cyan,
+:root[data-theme="light"] .browser-dialog-logo,
+:root[data-theme="light"] .browser-hero-icon{border-color:#b7dbe0;background:#e0f0f2;color:#1f7c8c}
+:root[data-theme="light"] .security-icon.orange,
+:root[data-theme="light"] .tool-icon.orange,
+:root[data-theme="light"] .guided-install-logo,
+:root[data-theme="light"] .history-clear-icon,
+:root[data-theme="light"] .native-error-symbol,
+:root[data-theme="light"] .uninstall-logo{border-color:#e6cfa0;background:#f7ecd5;color:#8a6524}
+:root[data-theme="light"] .batch-uninstall-glow,
+:root[data-theme="light"] .dialog-glow{background:#c34d63}
+:root[data-theme="light"] .check-ui{background:#3a67b5}
+
+/* --- Divers --- */
+:root[data-theme="light"] .update-notification{border-color:#c9d3e1;background:#eef1f6;color:#53637a}
+:root[data-theme="light"] .update-notification b{background:#c34d63}
+:root[data-theme="light"] .nav-item b{background:#dbe2ec;color:#3a4a60}
+:root[data-theme="light"] .top-menu-alert{background:#c0894a}
+
+/* --- Passe 2 : reliquats (badges Parametres, icones d'en-tete, jauge securite) --- */
+:root[data-theme="light"] .settings-overview>span{border-color:#cfd8e4;background:#eef1f6}
+:root[data-theme="light"] .settings-overview b{color:#2b7a5b}
+:root[data-theme="light"] .settings-overview small{color:#69758a}
+:root[data-theme="light"] .settings-panel-heading>span{background:#e7effb;color:#2f5aa8}
+:root[data-theme="light"] .settings-panel-heading>span.safe{background:#e0f0e8;color:#2b7a5b}
+:root[data-theme="light"] .settings-panel-heading>span.expert,
+:root[data-theme="light"] .settings-panel-heading>span.theme,
+:root[data-theme="light"] .appearance-settings>div>span{background:#efe9fb;color:#5b3fa6}
+:root[data-theme="light"] .security-gauge{color:var(--text);background:radial-gradient(circle at center,#eef1f6 59%,transparent 61%),conic-gradient(from 0deg,var(--ring-color,#3a67b5) calc(var(--score)*1%),#d7dde6 0)}
+:root[data-theme="light"] .security-gauge small{color:#69758a}
+:root[data-theme="light"] .security-gauge em{background:#e7effb;color:#2f5aa8}
+:root[data-theme="light"] .security-gauge:focus-visible em{background:#dbe7f7;color:#22447a}
+
+/* --- Passe 3 : widget sante accueil, entretien disque, bascules, sous-menu nav --- */
+:root[data-theme="light"] .health-widget{border-color:#cfd8e4;background:linear-gradient(145deg,#f2f5fa,#e8ecf3);color:var(--text)}
+:root[data-theme="light"] .health-refresh{border-color:#c9d3e1;background:#eef1f6;color:#53637a}
+:root[data-theme="light"] .cleanup-summary{border-color:#c8d8d4;background:linear-gradient(145deg,#eef3f2,#e6ecec);color:var(--text)}
+:root[data-theme="light"] .safe-list{border-top-color:#cdd9d5;color:#3f6d5a}
+:root[data-theme="light"] .disk-ring{border-color:#dbe4e2}
+:root[data-theme="light"] .settings-toggle{border-color:#cfd8e4;background:#eef1f6;color:var(--text)}
+:root[data-theme="light"] .language-settings>div>span{background:#e7effb;color:#2f5aa8}
+:root[data-theme="light"] .top-nav-menu .nav-menu-icon{background:#e7effb;color:#2f5aa8}
+:root[data-theme="light"] .top-nav-menu .nav-item.active .nav-menu-icon{background:#dbe7f7;color:#22447a}
+:root[data-theme="light"] .text-button:hover{color:#22344f}
+:root[data-theme="light"] .dialog-glow{background:#7ea9df;opacity:.1}
