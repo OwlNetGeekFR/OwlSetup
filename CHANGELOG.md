@@ -1,5 +1,56 @@
 # Historique des versions
 
+## [4.0.0-beta.42] - 2026-08-29
+
+### Lot 6 — entretien planifié (vraie tâche Windows)
+
+Nouveau panneau **Paramètres → « Entretien planifié »**. Il crée une véritable
+tâche dans le planificateur Windows, qui rappelle le mode CLI livré au lot 7 —
+pas une simple préférence locale.
+
+- **Deux actions** : « Vérifier les mises à jour » (`--check-updates`) ou
+  « Installer les mises à jour » (`--update --silent`).
+- **Deux rythmes** : chaque semaine, ou toutes les 4 semaines — avec le jour et
+  l'heure de votre choix.
+- La ligne d'état affiche ce qui est planifié **et la prochaine exécution**
+  calculée par Windows.
+
+### Sécurité : aucune tâche privilégiée silencieuse
+
+La tâche s'exécute **sous votre compte Windows, sans mot de passe enregistré et
+sans élévation** (`-LogonType Interactive -RunLevel Limited`). OwlSetup ne crée
+donc jamais de tâche capable d'agir en administrateur sans vous. Le panneau
+l'indique explicitement : les logiciels installés pour toute la machine peuvent
+demander une intervention manuelle. Tout ce qui vient de l'interface (action,
+fréquence, jour, heure) est **validé côté hôte** avant d'entrer dans le script
+PowerShell.
+
+### L'état affiché vient de Windows, pas d'une préférence
+
+À l'ouverture des Paramètres, OwlSetup interroge le planificateur. Si vous
+supprimez la tâche depuis Windows, l'interface le reflète — il n'y a pas deux
+sources de vérité.
+
+### Détails techniques
+
+- La lecture du jour utilise le **masque de bits `DaysOfWeek`** du déclencheur.
+  Une première version lisait `StartBoundary.Day`, c'est-à-dire le jour du
+  **mois** : une tâche du vendredi se relisait « jour 29 ». Corrigé et couvert
+  par le test.
+- « Toutes les 4 semaines » est un déclencheur hebdomadaire d'intervalle 4 sur
+  le jour choisi — le module PowerShell n'expose pas de déclencheur mensuel, et
+  cette forme reste prévisible pour l'utilisateur.
+- Nouveau `tests/Test-ScheduledMaintenance.ps1` : marqueurs (actions, validation
+  des entrées, **absence** de `-RunLevel Highest` et de `-Password`) **et cycle
+  réel** création → relecture → suppression sur une tâche de test dédiée, jamais
+  celle de l'utilisateur.
+- L'ébauche « Automatisation One-Click » du canal Alpha, qui n'écrivait aucune
+  tâche, reste en place et sans effet.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'application démarre, panneau contrôlé dans les thèmes clair et sombre.
+  Cycle réel testé sur cette machine (mise à jour, toutes les 4 semaines, le
+  mercredi à 07:30 → prochaine exécution calculée par Windows au 2026-09-02).
+
 ## [4.0.0-beta.41] - 2026-08-29
 
 ### Lot 7 — mode CLI : mises à jour, inventaire et profils

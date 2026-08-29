@@ -1027,6 +1027,7 @@ function showView(id) {
   document.body.classList.remove("menu-open");
   if (id === "updates" && !updatesLoaded) requestUpdateScan();
   if (id === "quarantine") requestQuarantine();
+  if (id === "settings") requestScheduleState();
   if (id === "tools") { requestHistory(); diagnoseWinget(); }
   if (id === "operations") { requestHistory(); reconcileMaintenanceOperations(); renderOperations(); readInterruptedOperation(); }
   if (id === "security") requestSecurityStatus();
@@ -2400,6 +2401,66 @@ function requestHealth() {
   window.chrome.webview.postMessage({action:"scan-health", payload:{}});
 }
 
+
+// Entretien planifié (lot 6) : pilote une vraie tâche planifiée Windows.
+// L'état affiché vient toujours du planificateur Windows, jamais d'une
+// préférence locale — si l'utilisateur supprime la tâche depuis Windows,
+// l'interface le reflète au prochain affichage des Paramètres.
+const scheduleDayNames = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+function requestScheduleState() {
+  if (!window.chrome?.webview) return;
+  window.chrome.webview.postMessage({action:"schedule-state", payload:{}});
+}
+
+function setScheduleBusy(busy) {
+  const save = $("#saveSchedule"), remove = $("#removeSchedule");
+  if (save) { save.disabled = busy; save.textContent = busy ? "Enregistrement…" : "Enregistrer la planification"; }
+  if (remove) remove.disabled = busy;
+}
+
+function renderScheduleState(message) {
+  setScheduleBusy(false);
+  const enabled = $("#scheduleEnabled"), remove = $("#removeSchedule"), status = $("#scheduleStatus");
+  if (!enabled) return;
+  enabled.checked = !!message.exists;
+  if (message.exists) {
+    if ($("#scheduleAction")) $("#scheduleAction").value = message.action === "update" ? "update" : "check";
+    if ($("#scheduleFrequency")) $("#scheduleFrequency").value = message.frequency === "monthly" ? "monthly" : "weekly";
+    if ($("#scheduleDay")) $("#scheduleDay").value = String(message.day ?? 5);
+    if ($("#scheduleTime")) $("#scheduleTime").value = message.time || "20:00";
+  }
+  remove?.classList.toggle("hidden", !message.exists);
+  if (!status) return;
+  if (!message.exists) {
+    status.textContent = "Aucune tâche planifiée pour le moment.";
+    return;
+  }
+  const what = message.action === "update" ? "Installation des mises à jour" : "Vérification des mises à jour";
+  const when = message.frequency === "monthly" ? "toutes les 4 semaines" : "chaque semaine";
+  const day = scheduleDayNames[Number(message.day)] || "";
+  status.textContent = `${what} — ${when} le ${day} à ${message.time}.`
+    + (message.nextRun ? ` Prochaine exécution : ${message.nextRun}.` : "");
+}
+
+function saveSchedule() {
+  if (!window.chrome?.webview) return;
+  if (!$("#scheduleEnabled").checked) { removeSchedule(); return; }
+  setScheduleBusy(true);
+  window.chrome.webview.postMessage({action:"schedule-configure", payload:{
+    action: $("#scheduleAction").value,
+    frequency: $("#scheduleFrequency").value,
+    day: Number($("#scheduleDay").value),
+    time: $("#scheduleTime").value
+  }});
+}
+
+function removeSchedule() {
+  if (!window.chrome?.webview) return;
+  setScheduleBusy(true);
+  window.chrome.webview.postMessage({action:"schedule-remove", payload:{}});
+}
+
 function requestQuarantine() {
   if (!window.chrome?.webview) return;
   $("#quarantineList").innerHTML = `<div class="quarantine-loading"><span>↻</span> Analyse de la quarantaine...</div>`;
@@ -3475,6 +3536,11 @@ function handleInstallMessage(message) {
     $("#refreshHealth").classList.add("scanning");
     return;
   }
+  if (message.type === "schedule-state") { renderScheduleState(message); return; }
+  if (message.type === "schedule-busy") { setScheduleBusy(true); return; }
+  if (message.type === "schedule-saved") { notify("Entretien planifié", message.nextRun ? `Tâche enregistrée. Prochaine exécution : ${message.nextRun}.` : "Tâche enregistrée dans le planificateur Windows."); return; }
+  if (message.type === "schedule-removed") { notify("Entretien planifié", "La tâche planifiée a été supprimée."); return; }
+  if (message.type === "schedule-error") { setScheduleBusy(false); notify("Entretien planifié", message.message || "Le planificateur Windows a refusé la demande.", "error"); return; }
   if (message.type === "health-state") {
     renderHealth(message);
     return;
@@ -4128,6 +4194,8 @@ $("#completeFirstRunConfiguration").addEventListener("click",completeFirstRunCon
 $("#previousOnboarding").addEventListener("click", () => moveOnboarding(-1));
 $("#nextOnboarding").addEventListener("click", () => moveOnboarding(1));
 $("#replayOnboarding").addEventListener("click", () => openOnboarding(true));
+$("#saveSchedule")?.addEventListener("click", saveSchedule);
+$("#removeSchedule")?.addEventListener("click", removeSchedule);
 $("#onboardingDots").addEventListener("click", event => { const dot=event.target.closest("[data-onboarding-dot]"); if(!dot)return; onboardingStep=Number(dot.dataset.onboardingDot); renderOnboarding(); });
 $("#exportConfig").addEventListener("click", exportConfiguration);
 $("#importConfig").addEventListener("click", importConfiguration);

@@ -242,6 +242,9 @@ internal sealed class WebAppForm : Form
             else if (action == "scan-windows-updates") ScanWindowsUpdates();
             else if (action == "install-windows-updates") InstallWindowsUpdates(payload);
             else if (action == "open-windows-update") OpenWindowsUpdateSettings();
+            else if (action == "schedule-state") SendScheduleState();
+            else if (action == "schedule-configure") ConfigureSchedule(payload);
+            else if (action == "schedule-remove") RemoveSchedule();
             else if (action == "install") RunInstall(payload);
             else if (action == "preflight-install") RunInstallPreflight(payload);
             else if (action == "choose-install-location") ChooseInstallLocation(payload);
@@ -3855,6 +3858,158 @@ internal sealed class WebAppForm : Form
             File.WriteAllText(dialog.FileName,json.Serialize(snapshot),new UTF8Encoding(false));
             SendToWeb(new{type="security-exported",name=Path.GetFileName(dialog.FileName)});
         }
+    }
+
+
+    // ---------------------------------------------------------------------
+    // Entretien planifie (lot 6) : une vraie tache planifiee Windows qui
+    // rappelle le mode CLI (lot 7). La tache s'execute sous le compte de
+    // l'utilisateur courant, sans mot de passe stocke et SANS elevation :
+    // OwlSetup ne cree jamais de tache privilegiee silencieuse.
+    // ---------------------------------------------------------------------
+    const string ScheduleTaskName = "OwlSetup-Entretien";
+    bool scheduleBusy;
+
+    static string PsQuote(string value)
+    {
+        return "'"+(value ?? "").Replace("'","''")+"'";
+    }
+
+    // Argument CLI reellement lance par la tache, selon l'action demandee.
+    static string ScheduleArguments(string action)
+    {
+        return action=="update" ? "--update --silent" : "--check-updates";
+    }
+
+    int RunScheduleScript(string script,StringBuilder report)
+    {
+        string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+        return RunHiddenProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
+    }
+
+    // Lit l'etat de la tache et le renvoie a l'interface. Marqueurs :
+    // PCSETUP_SCHED|<exists>|<action>|<frequency>|<day>|<time>|<next>
+    void SendScheduleState()
+    {
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            string script=
+                "$ErrorActionPreference='SilentlyContinue';"+
+                "$t=Get-ScheduledTask -TaskName "+PsQuote(ScheduleTaskName)+" -ErrorAction SilentlyContinue;"+
+                "if($null -eq $t){Write-Output 'PCSETUP_SCHED|0|||||'}else{"+
+                "$a=($t.Actions | Select-Object -First 1).Arguments;"+
+                "$act=if($a -match '--update'){'update'}else{'check'};"+
+                "$tr=$t.Triggers | Select-Object -First 1;"+
+                "$freq=if($tr.WeeksInterval -ge 4){'monthly'}else{'weekly'};"+
+                "$start=[datetime]$tr.StartBoundary;"+
+                // DaysOfWeek est un masque de bits (dimanche=1, lundi=2, ... samedi=64).
+                "$mask=[int]$tr.DaysOfWeek; $wd=if($mask -gt 0){[int][Math]::Round([Math]::Log($mask,2))}else{[int]$start.DayOfWeek};"+
+                "$info=Get-ScheduledTaskInfo -TaskName "+PsQuote(ScheduleTaskName)+" -ErrorAction SilentlyContinue;"+
+                "$next=if($info -and $info.NextRunTime){$info.NextRunTime.ToString('yyyy-MM-dd HH:mm')}else{''};"+
+                "Write-Output ('PCSETUP_SCHED|1|'+$act+'|'+$freq+'|'+$wd+'|'+$start.ToString('HH:mm')+'|'+$next)}";
+            RunScheduleScript(script,report);
+
+            bool exists=false;string action="check",frequency="weekly",time="20:00",next="";int day=5;
+            var match=Regex.Match(report.ToString(),@"PCSETUP_SCHED\|(\d)\|([a-z]*)\|([a-z]*)\|(\d*)\|([0-9:]*)\|([^\r\n]*)");
+            if(match.Success)
+            {
+                exists=match.Groups[1].Value=="1";
+                if(exists)
+                {
+                    action=match.Groups[2].Value.Length>0?match.Groups[2].Value:"check";
+                    frequency=match.Groups[3].Value.Length>0?match.Groups[3].Value:"weekly";
+                    int parsedDay;if(int.TryParse(match.Groups[4].Value,out parsedDay))day=parsedDay;
+                    if(match.Groups[5].Value.Length>0)time=match.Groups[5].Value;
+                    next=match.Groups[6].Value.Trim();
+                }
+            }
+            SendToWeb(new { type="schedule-state", exists=exists, action=action, frequency=frequency, day=day, time=time, nextRun=next });
+        });
+    }
+
+    void ConfigureSchedule(Dictionary<string,object> payload)
+    {
+        if(scheduleBusy)return;
+        string action=payload!=null&&payload.ContainsKey("action")?Convert.ToString(payload["action"]):"check";
+        string frequency=payload!=null&&payload.ContainsKey("frequency")?Convert.ToString(payload["frequency"]):"weekly";
+        string time=payload!=null&&payload.ContainsKey("time")?Convert.ToString(payload["time"]):"20:00";
+        int day=1;
+        try{if(payload!=null&&payload.ContainsKey("day"))day=Convert.ToInt32(payload["day"]);}catch{}
+
+        // Validation stricte : rien de ce qui vient de l'interface n'entre tel
+        // quel dans le script PowerShell.
+        if(action!="check" && action!="update")action="check";
+        if(frequency!="weekly" && frequency!="monthly")frequency="weekly";
+        if(!Regex.IsMatch(time,@"^([01][0-9]|2[0-3]):[0-5][0-9]$"))time="20:00";
+        if(day<0||day>6)day=5; // jour de semaine (0 = dimanche) dans les deux frequences
+
+        scheduleBusy=true;
+        SendToWeb(new { type="schedule-busy" });
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            try
+            {
+                string[] weekDays={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+                string trigger=frequency=="weekly"
+                    ? "$trigger=New-ScheduledTaskTrigger -Weekly -DaysOfWeek "+weekDays[day]+" -At "+PsQuote(time)+";"
+                    // « Mensuel » = toutes les 4 semaines, le meme jour : le module
+                    // n'expose pas de declencheur mensuel, et cela reste previsible
+                    // pour l'utilisateur (le jour choisi est respecte).
+                    : "$trigger=New-ScheduledTaskTrigger -Weekly -WeeksInterval 4 -DaysOfWeek "+weekDays[day]+" -At "+PsQuote(time)+";";
+
+                string script=
+                    "$ErrorActionPreference='Stop';"+
+                    "try{"+
+                    "$exe="+PsQuote(Application.ExecutablePath)+";"+
+                    trigger+
+                    "$act=New-ScheduledTaskAction -Execute $exe -Argument "+PsQuote(ScheduleArguments(action))+";"+
+                    // Compte courant, interactif, sans elevation ni mot de passe.
+                    "$principal=New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited;"+
+                    "$settings=New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 2);"+
+                    "Unregister-ScheduledTask -TaskName "+PsQuote(ScheduleTaskName)+" -Confirm:$false -ErrorAction SilentlyContinue;"+
+                    "Register-ScheduledTask -TaskName "+PsQuote(ScheduleTaskName)+" -Action $act -Trigger $trigger -Principal $principal -Settings $settings -Description 'Entretien planifie OwlSetup' | Out-Null;"+
+                    "$info=Get-ScheduledTaskInfo -TaskName "+PsQuote(ScheduleTaskName)+";"+
+                    "$next=if($info -and $info.NextRunTime){$info.NextRunTime.ToString('yyyy-MM-dd HH:mm')}else{''};"+
+                    "Write-Output ('PCSETUP_SCHED_OK|'+$next)"+
+                    "}catch{Write-Output ('PCSETUP_SCHED_ERR|'+$_.Exception.Message)}";
+
+                RunScheduleScript(script,report);
+                string output=report.ToString();
+                var ok=Regex.Match(output,@"PCSETUP_SCHED_OK\|([^\r\n]*)");
+                if(ok.Success)
+                {
+                    scheduleBusy=false;
+                    SendToWeb(new { type="schedule-saved", nextRun=ok.Groups[1].Value.Trim() });
+                    SendScheduleState();
+                    return;
+                }
+                var err=Regex.Match(output,@"PCSETUP_SCHED_ERR\|([^\r\n]*)");
+                throw new InvalidOperationException(err.Success?err.Groups[1].Value.Trim():"Le planificateur de tâches Windows a refusé la demande.");
+            }
+            catch(Exception ex)
+            {
+                scheduleBusy=false;
+                SendToWeb(new { type="schedule-error", message=ex.Message });
+            }
+        });
+    }
+
+    void RemoveSchedule()
+    {
+        if(scheduleBusy)return;
+        scheduleBusy=true;
+        SendToWeb(new { type="schedule-busy" });
+        Task.Run(delegate {
+            var report=new StringBuilder();
+            string script=
+                "$ErrorActionPreference='SilentlyContinue';"+
+                "Unregister-ScheduledTask -TaskName "+PsQuote(ScheduleTaskName)+" -Confirm:$false;"+
+                "Write-Output 'PCSETUP_SCHED_REMOVED'";
+            RunScheduleScript(script,report);
+            scheduleBusy=false;
+            SendToWeb(new { type="schedule-removed" });
+            SendScheduleState();
+        });
     }
 
     void OpenWindowsSecurity(Dictionary<string,object> payload)
