@@ -1,5 +1,58 @@
 # Historique des versions
 
+## [4.0.0-beta.41] - 2026-08-29
+
+### Lot 7 — mode CLI : mises à jour, inventaire et profils
+
+Trois nouvelles commandes, pensées pour les techniciens et le déploiement en
+parc — le créneau tenu par Ninite et Patch My PC.
+
+- **`--check-updates [--json]`** — liste les mises à jour proposées par WinGet,
+  enrichies du nom du catalogue OwlSetup et d'un indicateur `inCatalog`. Le
+  **code de sortie vaut `1` s'il existe au moins une mise à jour**, `0` sinon :
+  de quoi piloter une tâche planifiée sans analyser la sortie.
+- **`--update [<id>,...]`** — met à jour les identifiants demandés ; sans
+  argument, tout ce que WinGet propose. Respecte `--dry-run` et `--silent`.
+- **`--export-profile <fichier>`** — écrit un profil `.pcsetup.json` **au même
+  format que l'export de l'interface**, donc relisible par `--apply` et par la
+  restauration de configuration de l'application. L'inventaire vient de
+  `winget export` (JSON), plus fiable que l'analyse d'un tableau. Le profil
+  distingue les logiciels détectés (`installedPackages`) de ceux présents au
+  catalogue OwlSetup (`selectedPackages`).
+
+### `--apply` amène réellement la machine à l'état décrit
+
+`--apply` installait les paquets manquants mais laissait les paquets déjà
+présents dans leur version d'origine. Il exécute désormais, entre l'installation
+et le nettoyage, une **passe de mise à jour** limitée aux paquets de la
+configuration que WinGet signale comme améliorables (donc rapide).
+
+### Détails techniques
+
+- Nouveau `CliCaptureWinget` : exécute WinGet en **capturant** sa sortie pour
+  l'analyser, là où `CliRunWinget` ne fait que l'afficher.
+- ``--check-updates`` réutilise l'**analyseur tabulaire unique**
+  `ParseWingetTable` (passé `internal` pour être accessible depuis le mode CLI)
+  — pas de second analyseur maison. Les lignes de résumé de WinGet, découpées
+  par les positions de colonnes, sont écartées via l'absence de version
+  disponible.
+- `tests/Test-CliMode.ps1` étendu : marqueurs des trois verbes **et** exécution
+  réelle sans effet de bord — validité du JSON, cohérence du code de sortie
+  avec le nombre de mises à jour, identifiants conformes, et **boucle complète
+  `--export-profile` → `--apply --dry-run`**.
+- `README.md` : nouvelle section « Command line (no interface) » avec les codes
+  de sortie et un exemple de clonage d'un poste vers un autre.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'interface démarre. Testé sur cette machine : `--check-updates` (2 mises
+  à jour réelles), `--check-updates --json`, `--update --dry-run`,
+  `--export-profile` (61 logiciels détectés, 20 du catalogue) puis relecture
+  par `--apply`.
+
+### Reste au lot 7
+
+Auto-élévation propre (relais du code de sortie vers l'appelant) pour les
+installations machine, et page dédiée du site.
+
 ## [4.0.0-beta.40] - 2026-08-29
 
 ### Thème clair + « Contraste renforcé » : les cartes restaient noires

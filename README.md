@@ -48,6 +48,51 @@ OwlSetup is a free, open-source and ad-free Windows maintenance application. It 
 
 Logs and working data stay on the computer in `%LOCALAPPDATA%\PCSetup`. OwlSetup contains no advertising. Optional minimal diagnostic reporting is disabled by default and controlled by the user in Settings.
 
+## Command line (no interface)
+
+Launched with any argument starting with `-`, OwlSetup runs headless — useful for
+technicians, scripted setups and fleet deployment. Without arguments it starts the
+graphical interface as usual.
+
+```text
+OwlSetup.exe --install <id>[,<id>...]      Install / update software through WinGet
+OwlSetup.exe --uninstall <id>[,<id>...]    Uninstall software
+OwlSetup.exe --update [<id>,...]           Update (everything WinGet offers if no id)
+OwlSetup.exe --check-updates [--json]      List available updates
+OwlSetup.exe --export-profile <file>       Write a profile replayable by --apply
+OwlSetup.exe --apply <config.pcsetup.json> Replay a configuration
+OwlSetup.exe --list [filter] [--json]      List the built-in catalog
+OwlSetup.exe --search <term>               Search the WinGet source
+OwlSetup.exe --version | --help
+```
+
+Options: `--dry-run` (plan only, changes nothing), `--silent` (minimal output),
+`--json` (machine-readable output for `--list` and `--check-updates`).
+
+Exit codes: `0` success, `1` at least one failure, `2` usage error, `3` WinGet
+missing. `--check-updates` returns `1` when at least one update is available, so
+it can drive a scheduled task. Every run also writes a transcript to
+`%LOCALAPPDATA%\PCSetup\Logs`.
+
+`OwlSetup.com` ships next to the executable: it is a console shim, so
+`& OwlSetup --version` from PowerShell waits for completion and fills
+`$LASTEXITCODE`.
+
+Clone one machine onto another:
+
+```powershell
+# On the reference machine
+OwlSetup.exe --export-profile modele.pcsetup.json
+
+# On the target machine (elevated for machine-wide packages)
+OwlSetup.exe --apply modele.pcsetup.json --silent
+```
+
+`--apply` installs the packages listed in the configuration, then updates those
+WinGet reports as upgradable, then runs the configuration's cleanup zones when the
+session is elevated.
+
+
 ## Requirements
 
 - Windows 10 version 1809 or later, or Windows 11;
