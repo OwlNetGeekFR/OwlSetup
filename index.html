@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src https://owlsetup-dashboard-owlnetgeekfr.onrender.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';" />
   <title>OwlSetup — Installateur Windows</title>
   <link rel="icon" href="assets/branding/owlsetup-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=4.0.0-beta.41" />
+  <link rel="stylesheet" href="styles.css?v=4.0.0-beta.42" />
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -626,6 +626,24 @@
           <div class="settings-panel-heading"><span class="settings-heading-icon expert"><svg aria-hidden="true"><use href="#nav-tools"/></svg></span><div><strong>Mode expert <button class="help-hint" type="button" data-help-title="Mode expert" data-help-text="Affiche les commandes et détails techniques en lecture seule. Ce mode n’ajoute aucun droit administrateur et n’enregistre aucun mot de passe.">?</button></strong><small>Affichez les commandes WinGet et les détails techniques avant exécution.</small></div></div>
           <div class="protection-setting"><label class="settings-toggle"><input id="expertMode" type="checkbox"><span></span><b>Afficher les détails techniques</b></label><p>Les commandes sont affichées en lecture seule. Aucun mot de passe n’est enregistré.</p></div>
         </article>
+        <article class="settings-panel schedule-panel">
+          <div class="settings-panel-heading"><span class="settings-heading-icon alpha-clock"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span><div><strong>Entretien planifié</strong><small>Laissez Windows lancer OwlSetup à votre rythme, sans y penser.</small></div></div>
+          <div class="alpha-schedule-settings">
+            <label class="settings-toggle"><input id="scheduleEnabled" type="checkbox"><span></span><b>Créer une tâche planifiée Windows</b></label>
+            <div class="alpha-schedule-grid">
+              <label for="scheduleAction">Action<select id="scheduleAction"><option value="check">Vérifier les mises à jour</option><option value="update">Installer les mises à jour</option></select></label>
+              <label for="scheduleFrequency">Fréquence<select id="scheduleFrequency"><option value="weekly">Chaque semaine</option><option value="monthly">Toutes les 4 semaines</option></select></label>
+              <label for="scheduleDay">Jour<select id="scheduleDay"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5" selected>Vendredi</option><option value="6">Samedi</option><option value="0">Dimanche</option></select></label>
+              <label for="scheduleTime">Heure<input id="scheduleTime" type="time" value="20:00"></label>
+            </div>
+            <div class="schedule-note" role="note"><span aria-hidden="true">i</span><div><strong>Sans droits administrateur</strong><small>La tâche s’exécute sous votre compte Windows, sans mot de passe enregistré et sans élévation. Les logiciels installés pour toute la machine peuvent donc demander une intervention manuelle.</small></div></div>
+            <div class="schedule-actions">
+              <button class="primary-dialog-button" id="saveSchedule" type="button">Enregistrer la planification</button>
+              <button class="secondary-dialog-button hidden" id="removeSchedule" type="button">Supprimer la tâche</button>
+            </div>
+            <p class="alpha-schedule-status" id="scheduleStatus">Aucune tâche planifiée pour le moment.</p>
+          </div>
+        </article>
         <article class="settings-panel alpha-schedule-panel alpha-only hidden">
           <div class="settings-panel-heading"><span class="settings-heading-icon alpha-clock"><svg aria-hidden="true"><use href="#nav-maintenance"/></svg></span><div><strong>Automatisation One-Click <span class="alpha-chip">ALPHA</span></strong><small>Préparez votre rythme d’entretien. Alpha 1 enregistre uniquement votre préférence locale.</small></div></div>
           <div class="alpha-schedule-settings">
@@ -1009,8 +1027,8 @@
   <div class="context-help-popover hidden" id="contextHelpPopover" role="dialog" aria-modal="false" aria-labelledby="contextHelpTitle"><button type="button" id="closeContextHelp" aria-label="Fermer">×</button><span aria-hidden="true">i</span><div><strong id="contextHelpTitle">Aide</strong><p id="contextHelpText"></p></div></div>
   <div class="history-clear-overlay hidden" id="historyClearOverlay" role="dialog" aria-modal="true" aria-labelledby="historyClearTitle"><div class="history-clear-dialog"><span class="history-clear-icon" aria-hidden="true">!</span><div><span class="label">HISTORIQUE LOCAL</span><h2 id="historyClearTitle">Effacer tout l’historique ?</h2><p>Les journaux et rapports OwlSetup seront supprimés définitivement de ce PC. Vos applications, documents et réglages ne seront pas modifiés.</p></div><div class="dialog-actions"><button class="secondary-dialog-button" id="cancelClearHistory" type="button">Annuler</button><button class="danger-dialog-button" id="confirmClearHistory" type="button">Effacer définitivement</button></div></div></div>
   <div class="restore-protection-overlay hidden" id="restoreProtectionOverlay" role="dialog" aria-modal="true" aria-labelledby="restoreProtectionTitle"><div class="restore-protection-dialog"><button class="dialog-close" id="closeRestoreProtection" type="button" aria-label="Fermer">×</button><span class="restore-protection-icon" aria-hidden="true"><svg><use href="#nav-shield"/></svg></span><div><span class="label">PROTECTION AVANT MAINTENANCE</span><h2 id="restoreProtectionTitle">Le point de restauration n’a pas été créé</h2><p id="restoreProtectionReason">La protection du système Windows semble désactivée sur le lecteur système.</p><ol><li>Ouvrez la protection du système Windows.</li><li>Sélectionnez le lecteur C:, puis cliquez sur « Configurer ».</li><li>Activez la protection du système et réessayez.</li></ol><p class="restore-protection-note">Vous pouvez aussi désactiver cette automatisation. OwlSetup ne modifiera jamais ce réglage Windows sans votre accord.</p></div><div class="dialog-actions restore-protection-actions"><button class="secondary-dialog-button" id="disableAutomaticRestore" type="button">Désactiver l’automatisation</button><button class="primary-dialog-button" id="openSystemProtection" type="button">Ouvrir la protection Windows</button></div></div></div>
-  <script src="i18n.js?v=4.0.0-beta.41"></script>
-  <script src="catalog.generated.js?v=4.0.0-beta.41"></script>
-  <script src="app.js?v=4.0.0-beta.41"></script>
+  <script src="i18n.js?v=4.0.0-beta.42"></script>
+  <script src="catalog.generated.js?v=4.0.0-beta.42"></script>
+  <script src="app.js?v=4.0.0-beta.42"></script>
 </body>
 </html>

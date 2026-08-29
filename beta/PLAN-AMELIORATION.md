@@ -258,9 +258,12 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
 3. **Accessibilité** : audit clavier (pièges de focus dans les `dialog`),
    rôles ARIA, contrastes AA dans les 3 thèmes, `prefers-reduced-motion`.
    Ajouter un test axe-core dans l'e2e.
-4. **Planification** (fonctionnalité produit) : depuis Paramètres, créer une
-   tâche planifiée Windows « mises à jour hebdo » / « nettoyage mensuel »
-   pilotée par le mode CLI du lot 7.
+4. [x] _(4.0.0-beta.42)_ **Planification** : panneau « Entretien planifié » dans
+       Paramètres — crée une **vraie tâche planifiée Windows** qui rappelle le mode
+       CLI du lot 7 (`--check-updates` ou `--update --silent`), chaque semaine ou
+       toutes les 4 semaines, jour et heure au choix. Tâche **non élevée**, sous le
+       compte courant, sans mot de passe stocké. L état affiché vient toujours du
+       planificateur Windows. Garde : `tests/Test-ScheduledMaintenance.ps1`.
 
 **Effort :** 8–12 j. **Acceptation :** `styles.css` généré, 0 chaîne FR en dur
 hors `i18n`, EN complet, audit a11y sans violation bloquante.
