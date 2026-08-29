@@ -712,7 +712,7 @@
     "✓ Rapport rangé dans OwlSetup": "✓ Report stored in OwlSetup",
     "✓ Téléchargement automatique": "✓ Automatic download",
     "✓ Tout classer résolu": "✓ Mark all as resolved",
-    "1. J'ai ouvert...&#10;2. J'ai cliqué sur...&#10;3. Le message suivant est apparu...": "1. I opened...&#10;2. I clicked on...&#10;3. The following message appeared...",
+    "1. J'ai ouvert...\n2. J'ai cliqué sur...\n3. Le message suivant est apparu...": "1. I opened...\n2. I clicked on...\n3. The following message appeared...",
     "À confirmer avant exécution": "To confirm before running",
     "Acceptez uniquement la demande OwlSetup": "Only accept the OwlSetup prompt",
     "ACTION À VÉRIFIER": "ACTION TO REVIEW",
