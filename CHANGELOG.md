@@ -1,5 +1,37 @@
 # Historique des versions
 
+## [4.0.0-beta.37] - 2026-08-29
+
+### Thème clair — 3ᵉ passe : balayage exhaustif + logos recolorés
+
+Les deux premières passes corrigeaient ce que je voyais à l'écran ; il restait
+des composants jamais rendus pendant l'audit (listes construites en JavaScript,
+états d'erreur, dialogues rarement ouverts). Cette passe s'appuie sur un
+**audit du CSS lui-même**, pas du rendu.
+
+- **Audit `styles.css` automatisé** : chaque règle qui peint un fond sombre ou
+  un texte très clair est comparée à l'existence d'une contrepartie
+  `:root[data-theme="light"]`. Résultat initial : **236 règles sombres sans
+  équivalent clair**.
+- **Couche claire générée** (~150 règles) : la teinte de chaque règle est
+  dérivée de la couleur d'origine (neutre / bleu / cyan / vert / ambre / rouge
+  / violet) et traduite dans la palette pastel du thème clair. Sont exclus les
+  accents volontaires (boutons d'action pleins, halos, états cochés).
+  Couverture : listes d'analyse, résultats WinGet, étapes guidées, préflight,
+  journaux, rapports, notifications, opérations en arrière-plan, quarantaine,
+  page « Installées », onboarding, aide contextuelle, écran Alpha, nettoyage
+  des navigateurs, disque…
+- **Après la passe : 236 → 7 éléments sombres restants**, dont 6 sont des
+  boutons d'action pleins volontaires. Le 7ᵉ
+  (`.troubleshooting-help .text-button`) a été corrigé à la main.
+- **Logos sans couleur** : `notepadpp.svg`, `gog.svg` et `ubisoft.svg` étaient
+  des tracés **blancs** (prévus pour un fond sombre) — donc invisibles sur le
+  cadre clair. Recolorés avec leur couleur de marque (`#72a13e`, `#883edb`,
+  `#149dda`), lisibles sur les deux thèmes.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert (dont
+  `Test-AppLogoCoverage`, `Test-HealthGaugeAndAppIcons`), intégrité SHA-256 OK,
+  l'application démarre.
+
 ## [4.0.0-beta.36] - 2026-08-29
 
 ### Thème clair — 2ᵉ passe (contraste)
