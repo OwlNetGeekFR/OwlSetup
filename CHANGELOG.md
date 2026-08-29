@@ -1,5 +1,40 @@
 # Historique des versions
 
+## [4.0.0-beta.38] - 2026-08-29
+
+### Correction de fond : l'interface restait en cache (cause des « thèmes qui ne changent pas »)
+
+- **`index.html` référençait ses ressources avec un jeton figé**
+  (`styles.css?v=3.7.0-beta.57`), identique depuis la bêta 1 et jamais réécrit
+  par `build.ps1`. WebView2 sert l'interface via `https://pcsetup.local/` et
+  met en cache **par URL** : après une mise à jour, l'ancienne feuille de style
+  (et potentiellement l'ancien `app.js`) pouvait continuer d'être affichée.
+  C'est ce qui expliquait les zones sombres persistantes signalées après les
+  bêtas 35/36/37 alors que le CSS livré était correct.
+- `build.ps1` réécrit désormais ce jeton avec la version compilée pour
+  `styles.css`, `app.js`, `i18n.js` et `catalog.generated.js`. Chaque build
+  produit donc des URL neuves : plus aucune ressource d'interface périmée après
+  une mise à jour.
+
+### Logos invisibles sur fond clair
+
+- `gpt4all.svg`, `lmstudio.svg`, `pinokio.svg` et `sevenzip.svg` étaient des
+  tracés **blancs** (prévus pour un fond sombre) : recolorés avec leur couleur
+  de marque (`#6e5bd5`, `#6c63ff`, `#e34b51`, `#596477`), après les trois de la
+  bêta 37.
+- Contrôle exhaustif : les **93 logos du catalogue** sont rendus puis mesurés
+  en luminance réelle — plus aucun n'est trop pâle pour être lisible.
+  `jan.svg` est un faux positif de l'analyse statique (son blanc est un masque
+  de luminance, pas une couleur visible) et reste inchangé.
+
+### Thème clair
+
+- Balayage final : **5 éléments sombres subsistent**, tous volontaires (boutons
+  d'action pleins, texte dégradé du titre d'accueil, anneau du score de
+  sécurité).
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'application démarre.
+
 ## [4.0.0-beta.37] - 2026-08-29
 
 ### Thème clair — 3ᵉ passe : balayage exhaustif + logos recolorés

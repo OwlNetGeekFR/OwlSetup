@@ -85,6 +85,18 @@ if (-not (Test-Path $jsOutput)) {
     throw "app.js introuvable et Node absent : impossible de generer l'interface."
 }
 
+# Anti-cache : WebView2 sert l'interface via https://pcsetup.local/ et met en
+# cache les ressources par URL. Le jeton "?v=" doit donc changer a chaque
+# version, sinon une ancienne feuille de style ou un ancien app.js peut rester
+# affiche apres une mise a jour.
+$indexPath = Join-Path $root "index.html"
+$indexHtml = [IO.File]::ReadAllText($indexPath)
+$stampedHtml = [regex]::Replace($indexHtml, '(?<file>(?:styles\.css|app\.js|i18n\.js|catalog\.generated\.js))\?v=[^"]*', ('${file}?v=' + $displayVersion))
+if ($stampedHtml -ne $indexHtml) {
+    [IO.File]::WriteAllText($indexPath, $stampedHtml)
+    Write-Host "index.html : jeton anti-cache mis a jour (?v=$displayVersion)"
+}
+
 $arguments = @(
     "/nologo", "/target:winexe", "/optimize+", "/platform:x64",
     "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
