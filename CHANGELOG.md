@@ -1,5 +1,48 @@
 # Historique des versions
 
+## [4.0.0-beta.45] - 2026-08-29
+
+### CodeQL : 5 alertes « high » dans l'outil d'audit de la bêta 44
+
+L'analyse de sécurité a signalé cinq alertes de gravité haute, toutes dans le
+nouveau `beta/scripts/audit-i18n.mjs` : j'y découpais du HTML à coups
+d'expressions régulières.
+
+- `js/bad-tag-filter` : `/<script[\s\S]*?<\/script>/` ne reconnaît pas une
+  balise fermante écrite `</script >`.
+- `js/incomplete-multi-character-sanitization` (×3) : la chaîne de `replace()`
+  pouvait laisser passer `<script`, `<style` et `<!--`.
+- `js/double-escaping` : décoder `&amp;` puis `&lt;` **double-déséchappe** —
+  `&amp;lt;` devenait `<` au lieu de `&lt;`.
+
+Aucune surface d'attaque ici (script de construction, sur notre propre fichier),
+mais les deux derniers points sont de véritables défauts de correction. Plutôt
+que de neutraliser les alertes, le script utilise désormais un **petit
+analyseur HTML à un seul passage** : il suit les guillemets d'attributs, saute
+les commentaires et le contenu de `script` / `style` / `svg` en cherchant leur
+vraie fin, et décode les entités **en une passe** via une table.
+
+### Deux bugs révélés par ce remplacement
+
+Le nouvel analyseur, plus fidèle, a mis au jour deux défauts de la bêta 44 :
+
+- La traduction du texte d'exemple du formulaire d'aide avait pour clé
+  `…&#10;…`, la forme **encodée**. Le navigateur décode cette entité en saut de
+  ligne : l'entrée n'aurait donc **jamais** correspondu. Clé corrigée.
+- L'audit lisait les clés du dictionnaire sans interpréter les échappements
+  JavaScript, si bien qu'un `\n` restait littéral. Il utilise maintenant
+  `JSON.parse`, qui les traite tous.
+
+Les valeurs d'attributs sont également extraites sans écraser les sauts de
+ligne, puisque `i18n.js` les compare telles quelles.
+
+### Vérifié
+
+`node beta/scripts/audit-i18n.mjs --check` → couverture complète d'`index.html`,
+et la garde échoue toujours si une entrée disparaît (revérifié).
+`tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256 OK,
+l'application démarre.
+
 ## [4.0.0-beta.44] - 2026-08-29
 
 ### Lot 6 — la traduction anglaise était très incomplète
