@@ -1,5 +1,49 @@
 # Historique des versions
 
+## [4.0.0-beta.44] - 2026-08-29
+
+### Lot 6 — la traduction anglaise était très incomplète
+
+`tests/Test-EnglishTranslation.ps1` passait, mais il ne vérifiait que la
+présence du moteur de traduction — jamais sa **couverture**. En basculant
+l'application en anglais et en relevant le texte réellement affiché :
+**316 chaînes restaient en français**, dont des pages entières (accueil,
+catalogue, sécurité, aide) et toutes les fenêtres modales.
+
+- **343 traductions ajoutées** à `i18n.js` : la totalité des chaînes
+  affichables d'`index.html` — titres, descriptions, boutons, libellés,
+  info-bulles, textes d'aide, messages de confidentialité, étapes guidées.
+- **Résultat mesuré à l'écran : 0 chaîne française restante** en anglais, sur
+  les 14 vues et toutes les fenêtres modales.
+
+### Une traduction partielle corrigée
+
+Le bouton « Désinstaller la sélection » s'affichait « **Uninstall la
+sélection** » : le motif dynamique `/^Désinstaller (.+)$/` s'appliquait faute
+d'entrée exacte. Une correspondance exacte étant prioritaire, l'entrée a été
+ajoutée — comme pour les autres libellés commençant par un verbe couvert par un
+motif.
+
+### Un outil d'audit, pour que ça ne se reproduise pas
+
+Nouveau `beta/scripts/audit-i18n.mjs` :
+
+- extrait les chaînes françaises affichables d'`index.html` (texte + attributs
+  `placeholder`, `title`, `aria-label`, aide contextuelle) et les littéraux
+  d'`app.js` ;
+- tient compte des **motifs dynamiques** (`3 éléments`, `Réparer X`…), qui ne
+  sont pas des entrées de dictionnaire ;
+- ignore ce qui ne doit pas être traduit : marques, et les endonymes du
+  sélecteur de langue (« Français », « Português », « Demnächst »…).
+
+`tests/Test-EnglishTranslation.ps1` appelle désormais cet audit et **échoue** si
+une chaîne d'`index.html` perd sa traduction (vérifié en retirant une entrée).
+
+La porte ne couvre volontairement qu'`index.html` : l'extraction des littéraux
+d'`app.js` ramène aussi des chaînes qui n'atteignent jamais le DOM (journaux,
+fragments PowerShell), ce qui la rendrait inutilisable. Ces chaînes restent
+listées à titre indicatif — c'est le prochain incrément.
+
 ## [4.0.0-beta.43] - 2026-08-29
 
 ### Entretien planifié : la vérification hebdomadaire ne servait à rien
