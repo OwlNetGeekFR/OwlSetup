@@ -1,5 +1,26 @@
 # Historique des versions
 
+## [4.0.0-beta.34] - 2026-08-29
+
+### Lot 5 — canal « préversions » de la mise à jour in-app
+
+- **Nouvelle option Paramètres → « Recevoir les préversions » (`#prereleaseOptIn`).**
+  Stockée localement (`owlsetup-prerelease-v1`), incluse dans la sauvegarde
+  complète des préférences. Décochée par défaut.
+- `check-app-update` / `install-app-update` transmettent maintenant le drapeau
+  `prerelease`. Côté hôte : surcharge `GetLatestRelease(bool includePrerelease)`
+  — à `false`, `/releases/latest` (stables uniquement, inchangé) ; à `true`, on
+  liste `/releases` et on retient le tag le plus récent selon
+  `CompareAppVersions` (les `X.Y.Z-beta.N` sont donc éligibles).
+- `Test-SelfUpdate.ps1` étendu (option, clé de stockage, surcharge,
+  transmission du drapeau). 138 tests beta.
+- **Plumbing sans effet visible tant que les bêtas ne sont pas publiées** comme
+  _prereleases_ GitHub : `build-beta.ps1` reste « sans publication » et
+  `release.yml` n'accepte que les tags stables `X.Y.Z`. Adapter `release.yml`
+  est la prochaine étape (décision de distribution).
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  des 5 ressources OK, l'application démarre.
+
 ## [4.0.0-beta.33] - 2026-08-28
 
 ### Lot 5 — mise à jour in-app activée (sans signature de code)

@@ -43,7 +43,17 @@ Assert-Missing $native 'Version latest=ReadReleaseVersion(release)' "The old Sys
 Assert-Has $app 'action: "install-app-update"' "The 'Install' button no longer posts the install-app-update action."
 Assert-Has $html 'Installer la mise' "The update install button label changed."
 
-# 5) Real comparator via reflection (when the compiled exe is present).
+# 5) Prerelease channel ("Recevoir les preversions").
+Assert-Has $html 'id="prereleaseOptIn"' "The prerelease opt-in checkbox is missing from Settings."
+Assert-Has $app 'owlsetup-prerelease-v1' "The prerelease opt-in storage key changed without migration."
+Assert-Has $app 'function prereleaseOptIn()' "The prereleaseOptIn() helper is gone."
+Assert-Has $app 'prerelease:prereleaseOptIn()' "check-app-update no longer forwards the prerelease preference."
+Assert-Has $native 'Dictionary<string,object> GetLatestRelease(bool includePrerelease)' "The prerelease-aware GetLatestRelease overload is gone."
+Assert-Has $native 'releases?per_page=' "The prerelease path no longer lists /releases."
+Assert-Has $native 'void CheckAppUpdate(Dictionary<string,object> payload)' "CheckAppUpdate no longer receives the payload (prerelease flag)."
+Assert-Has $native 'GetLatestRelease(includePrerelease)' "CheckAppUpdate/InstallAppUpdate no longer honor the prerelease flag."
+
+# 6) Real comparator via reflection (when the compiled exe is present).
 $exe = Join-Path $root "OwlSetup.exe"
 if (Test-Path $exe) {
     $asm = [System.Reflection.Assembly]::LoadFrom($exe)
