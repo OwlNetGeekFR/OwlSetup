@@ -1,5 +1,34 @@
 # Historique des versions
 
+## [4.0.0-beta.39] - 2026-08-29
+
+### Thème clair — audit des contenus construits en JavaScript
+
+Les audits précédents ne voyaient que le HTML statique. Cette passe injecte des
+**données de test** (opérations terminées, échouées, interrompues, résolues)
+pour faire réellement rendre les listes construites en JavaScript, puis mesure
+le contraste texte/fond sur **les 14 vues**.
+
+- **Centre des opérations** : le libellé vert « Résultat confirmé après
+  contrôle » (`.operation-row em`) était illisible sur fond clair (contraste
+  1,6) — passé en vert foncé. Même correctif pour `.app-health-item.healthy`.
+- **Guide / Aide** : les libellés de champ du formulaire de signalement
+  (`.feedback-fields label>span`) étaient trop pâles.
+- **Applications installées** : aucun défaut restant.
+- **Autres vues** : ~25 textes d'accent corrigés — carte de sécurité
+  (« Vérification… » en blanc), progression des outils, intro du catalogue,
+  découverte WinGet, anneau du score, garanties des Paramètres, résumé de la
+  file, et l'ensemble du nettoyage des navigateurs (statistiques, préréglages,
+  catégories, données protégées, bandeau de sécurité).
+- **Correction de spécificité** : certaines règles de base sont portées par un
+  identifiant (`#catalog .catalog-search-intro small`) et l'emportaient sur la
+  couche claire ; ces cas sont désormais surchargés à spécificité égale.
+- **Résultat final : 0 texte à faible contraste** sur les 14 vues, et
+  6 fonds sombres restants, tous volontaires (boutons d'action pleins, texte
+  dégradé du titre, anneau du score de sécurité).
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'application démarre.
+
 ## [4.0.0-beta.38] - 2026-08-29
 
 ### Correction de fond : l'interface restait en cache (cause des « thèmes qui ne changent pas »)

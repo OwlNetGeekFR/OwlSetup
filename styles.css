@@ -1270,3 +1270,50 @@ label.windows-update-row{cursor:pointer}
 :root[data-theme="light"] .alpha-result-metrics .recommended>span{color:#8a6524}
 :root[data-theme="light"] .troubleshooting-help .text-button{border-color:#bcccdf;background:#e7effb;color:#2f5aa8}
 :root[data-theme="light"] .troubleshooting-help .text-button:focus-visible{border-color:#7c9fd0;background:#dbe7f7;color:#22344f}
+
+/* --- Passe 8 : textes d'accent restants (centre des operations, formulaire
+       d'aide) --- 4.0.0-beta.39 --- */
+:root[data-theme="light"] .operation-row em{color:#1f7a5b}
+:root[data-theme="light"] .app-health-item.healthy>span{color:#1f7a5b}
+:root[data-theme="light"] .feedback-fields label>span{color:#3a4a60}
+/* Textes d'accent restants, vues restantes (contraste < 3 sur fond clair) */
+:root[data-theme="light"] .tool-progress b{color:#2f5aa8}
+:root[data-theme="light"] .security-mode strong{color:#1f7a5b}
+:root[data-theme="light"] .hero p,
+:root[data-theme="light"] .catalog-search-intro small{color:#5a6b82}
+:root[data-theme="light"] .catalog-advanced>summary>b{color:#2b4f8f}
+:root[data-theme="light"] .health-ring small{color:#5a6b82}
+:root[data-theme="light"] .home-footnote strong,
+:root[data-theme="light"] footer p strong{color:#2b4f8f}
+:root[data-theme="light"] .language-settings small,
+:root[data-theme="light"] .appearance-settings small{color:#5a6b82}
+:root[data-theme="light"] .settings-safe-list span{color:#1f7a5b}
+:root[data-theme="light"] .browser-safety-banner b{color:#1f7a5b}
+:root[data-theme="light"] .browser-presets button.active strong,
+:root[data-theme="light"] .browser-presets button.active small{color:#1f6f7c}
+:root[data-theme="light"] .summary-row b{color:#3a4a60}
+/* Regles de base portees par un ID (#catalog ...) : il faut la meme
+   specificite pour les surcharger en theme clair. */
+:root[data-theme="light"] #catalog .catalog-search-intro small{color:#5a6b82}
+:root[data-theme="light"] .security-card strong{color:var(--text)}
+:root[data-theme="light"] .browser-overview-stat small,
+:root[data-theme="light"] .browser-selection-toolbar,
+:root[data-theme="light"] .browser-selection-toolbar span,
+:root[data-theme="light"] .browser-presets button strong,
+:root[data-theme="light"] .browser-presets button small,
+:root[data-theme="light"] .browser-category small,
+:root[data-theme="light"] .browser-category p,
+:root[data-theme="light"] .browser-card-copy small,
+:root[data-theme="light"] .browser-empty small,
+:root[data-theme="light"] .browser-analysis-panel p,
+:root[data-theme="light"] .browser-action-row small,
+:root[data-theme="light"] .browser-analysis-breakdown small,
+:root[data-theme="light"] .browser-data-details summary small,
+:root[data-theme="light"] .browser-data-details-grid p,
+:root[data-theme="light"] .browser-cleanup-review small,
+:root[data-theme="light"] .browser-close-choice small{color:#5a6b82}
+:root[data-theme="light"] .profile-panel summary>b{color:#2b4f8f}
+:root[data-theme="light"] .winget-discovery-copy small{color:#2f5aa8}
+:root[data-theme="light"] .browser-safety-banner small{color:#5a6b82}
+:root[data-theme="light"] .browser-sync-warning small{color:#7a5c22}
+:root[data-theme="light"] .browser-protected-data span{color:#1f7a5b}
