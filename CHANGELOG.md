@@ -1,5 +1,54 @@
 # Historique des versions
 
+## [4.0.0-beta.46] - 2026-08-29
+
+### Lot 6 — accessibilité au clavier
+
+Les 19 fenêtres de l'application déclaraient `aria-modal="true"`, mais **seules
+deux piégeaient le focus** : dans les 17 autres, la tabulation sortait derrière
+la fenêtre et continuait dans la page masquée. Au clavier, on perdait le fil
+sans pouvoir revenir.
+
+Un **mécanisme unique** remplace les deux pièges écrits à la main. Il observe
+l'affichage des boîtes (classe `hidden`) et se charge de tout :
+
+- à l'ouverture, il mémorise l'élément déclencheur et place le focus sur le
+  premier contrôle utile — pas sur la croix de fermeture ;
+- pendant, il retient <kbd>Tab</kbd> et <kbd>Maj</kbd>+<kbd>Tab</kbd>, et
+  ramène le focus dans la boîte s'il en est sorti ;
+- **Échap** ferme la boîte, mais **uniquement si elle expose un bouton de
+  fermeture** : les trois boîtes obligatoires (langue, premier démarrage,
+  guide) n'en ont pas et restent non annulables ;
+- à la fermeture, il **rend le focus à l'élément déclencheur**.
+
+Vérifié à l'écran sur les **19 boîtes** : focus déplacé dedans, tabulation
+bouclée dans les deux sens, retour dans la boîte depuis l'extérieur — aucun
+échec. Le cycle complet déclencheur → boîte → Échap → déclencheur a été
+contrôlé de bout en bout.
+
+### Animations réduites
+
+`prefers-reduced-motion` n'était honoré que par le parcours d'accueil :
+**21 animations et 39 transitions** restaient actives. La règle couvre
+désormais toute l'interface, défilement doux compris.
+
+### Anneau de focus visible
+
+Plusieurs contrôles s'appuyaient sur l'anneau par défaut du navigateur,
+invisible sur les fonds sombres de l'application. Un `:focus-visible` explicite
+est appliqué partout, décliné pour le thème clair.
+
+### Tests
+
+Nouveau `tests/Test-Accessibility.ps1` : mécanisme générique, règle de
+fermeture par Échap, neutralisation des animations, anneau de focus, et
+étiquette accessible sur chacune des 19 boîtes. Il vérifie aussi que les boîtes
+obligatoires **ne gagnent pas** de bouton de fermeture — sinon Échap se
+mettrait à les fermer sans que personne ne le remarque.
+
+Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+OK, l'application démarre.
+
 ## [4.0.0-beta.45] - 2026-08-29
 
 ### CodeQL : 5 alertes « high » dans l'outil d'audit de la bêta 44
