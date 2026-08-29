@@ -4536,6 +4536,104 @@ document.addEventListener("keydown", event => {
   } else toggleApp(card.dataset.app);
 });
 
+// --- Accessibilité des fenêtres modales (lot 6) ---------------------------
+// Les 19 boîtes de l'interface déclarent `aria-modal="true"`, mais seules deux
+// piégeaient le focus : dans les autres, la tabulation partait derrière la
+// fenêtre, ce qui rend l'application inutilisable au clavier. Un mécanisme
+// unique observe leur affichage (classe `hidden`) pour, à l'ouverture :
+// mémoriser l'élément déclencheur et placer le focus dans la boîte ; pendant :
+// retenir Tab / Maj+Tab ; à la fermeture : rendre le focus à l'élément
+// d'origine. Échap ne ferme que les boîtes qui exposent un bouton de
+// fermeture — les trois boîtes obligatoires (langue, premier démarrage, guide)
+// n'en ont pas, et restent donc non annulables.
+const modalFocusableSelector =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+// Ces deux boîtes ont déjà leur propre gestion (flèches du guide, Échap bloqué
+// sur la configuration initiale) : on les laisse à leur gestionnaire dédié.
+const modalsWithOwnKeyboard = new Set(["firstRunConfiguration", "onboardingOverlay"]);
+let modalReturnFocus = null;
+
+function isModalVisible(dialog) {
+  if (dialog.classList.contains("hidden")) return false;
+  const rect = dialog.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+function openModals() {
+  return [...document.querySelectorAll('[aria-modal="true"]')].filter(isModalVisible);
+}
+
+function topModal() {
+  const open = openModals();
+  return open.length ? open[open.length - 1] : null;
+}
+
+function modalFocusable(dialog) {
+  return [...dialog.querySelectorAll(modalFocusableSelector)].filter(
+    element => !element.closest(".hidden") && element.offsetWidth + element.offsetHeight > 0
+  );
+}
+
+function focusInsideModal(dialog) {
+  const targets = modalFocusable(dialog);
+  // On évite de démarrer sur la croix de fermeture : le premier contrôle utile
+  // est plus proche de ce que l'utilisateur veut faire.
+  const first = targets.find(element => !element.classList.contains("dialog-close")) || targets[0];
+  if (first) { first.focus(); return; }
+  dialog.setAttribute("tabindex", "-1");
+  dialog.focus();
+}
+
+function modalDismissControl(dialog) {
+  return dialog.querySelector(".dialog-close,[id^='cancel'],[id^='close']");
+}
+
+document.addEventListener("keydown", event => {
+  const dialog = topModal();
+  if (!dialog || modalsWithOwnKeyboard.has(dialog.id)) return;
+  if (event.key === "Escape") {
+    const dismiss = modalDismissControl(dialog);
+    if (dismiss && !dismiss.disabled) { event.preventDefault(); dismiss.click(); }
+    return;
+  }
+  if (event.key !== "Tab") return;
+  const targets = modalFocusable(dialog);
+  if (!targets.length) return;
+  const first = targets[0], last = targets[targets.length - 1];
+  if (!dialog.contains(document.activeElement)) { event.preventDefault(); first.focus(); return; }
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+}, true);
+
+// L'ouverture et la fermeture passent toutes par la classe `hidden` : on
+// observe donc l'attribut `class` de chaque boîte plutôt que d'instrumenter les
+// dizaines d'endroits qui les affichent.
+(() => {
+  const dialogs = [...document.querySelectorAll('[aria-modal="true"]')];
+  if (!dialogs.length) return;
+  const wasVisible = new WeakMap();
+  dialogs.forEach(dialog => wasVisible.set(dialog, isModalVisible(dialog)));
+
+  const observer = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      const dialog = mutation.target;
+      const visible = isModalVisible(dialog);
+      if (visible === wasVisible.get(dialog)) continue;
+      wasVisible.set(dialog, visible);
+      if (visible) {
+        if (!openModals().some(other => other !== dialog && wasVisible.get(other))) {
+          modalReturnFocus = document.activeElement;
+        }
+        window.setTimeout(() => { if (isModalVisible(dialog)) focusInsideModal(dialog); }, 30);
+      } else if (!openModals().length && modalReturnFocus?.isConnected) {
+        modalReturnFocus.focus();
+        modalReturnFocus = null;
+      }
+    }
+  });
+  dialogs.forEach(dialog => observer.observe(dialog, { attributes: true, attributeFilter: ["class"] }));
+})();
+
 document.addEventListener("keydown", event => {
   const configuration=$("#firstRunConfiguration");
   if(configuration&&!configuration.classList.contains("hidden")){

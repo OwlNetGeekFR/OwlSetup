@@ -1339,3 +1339,27 @@ label.windows-update-row{cursor:pointer}
 :root[data-theme="light"] .schedule-note strong{color:#6b5827}
 :root[data-theme="light"] .schedule-note small{color:#7a6a4a}
 @media(max-width:920px){.schedule-panel .alpha-schedule-grid{grid-template-columns:1fr}}
+
+/* Accessibilite (lot 6) — 4.0.0-beta.46 -----------------------------------
+   Le systeme ne couvrait que le parcours d'accueil : 21 animations et 39
+   transitions restaient actives. On neutralise l'ensemble d'un coup, y compris
+   le defilement doux, quand l'utilisateur demande moins d'animations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html { scroll-behavior: auto }
+}
+
+/* Le focus clavier doit rester visible partout : sans cette regle, plusieurs
+   controles reposaient sur l'anneau par defaut du navigateur, invisible sur les
+   fonds sombres de l'application. */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:root[data-theme="light"] :focus-visible { outline-color: #2b4f8f }

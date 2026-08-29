@@ -256,9 +256,10 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
    `beta/scripts/audit-i18n.mjs` + garde dans `tests/Test-EnglishTranslation.ps1`.
    **Reste** : les chaînes rendues par `app.js` et celles d'`OwlSetupWebView.cs`,
    puis préparer l'ajout de langues par la communauté.
-3. **Accessibilité** : audit clavier (pièges de focus dans les `dialog`),
-   rôles ARIA, contrastes AA dans les 3 thèmes, `prefers-reduced-motion`.
-   Ajouter un test axe-core dans l'e2e.
+3. [~] _(4.0.0-beta.46)_ **Accessibilité** : piège de focus générique sur les
+   19 boîtes, Échap, retour du focus, `prefers-reduced-motion` global et anneau
+   de focus visible. Garde : `tests/Test-Accessibility.ps1`. **Reste** :
+   contrastes AA à auditer et test axe-core dans l e2e.
 4. [x] _(4.0.0-beta.42)_ **Planification** : panneau « Entretien planifié » dans
        Paramètres — crée une **vraie tâche planifiée Windows** qui rappelle le mode
        CLI du lot 7 (`--check-updates` ou `--update --silent`), chaque semaine ou
