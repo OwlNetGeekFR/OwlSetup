@@ -251,10 +251,11 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
 1. **CSS** : `styles.css` (208 Ko, lignes très denses) → découpe en partiels +
    `build:css` (esbuild/lightningcss) → un seul `styles.css` minifié
    déterministe. Purge des règles mortes.
-2. **i18n complet** : extraire 100 % des chaînes de `app.js` **et**
-   `OwlSetupWebView.cs` vers `i18n.js` (ou fichiers `locales/*.json`). Compléter
-   l'anglais (`tests/Test-EnglishTranslation.ps1` signale déjà des trous).
-   Préparer l'ajout de langues par la communauté (fichier + PR).
+2. [~] _(4.0.0-beta.44)_ **i18n** : 343 traductions ajoutées — `index.html` est
+   à **100 %** (0 chaîne française à l'écran en anglais). Outil
+   `beta/scripts/audit-i18n.mjs` + garde dans `tests/Test-EnglishTranslation.ps1`.
+   **Reste** : les chaînes rendues par `app.js` et celles d'`OwlSetupWebView.cs`,
+   puis préparer l'ajout de langues par la communauté.
 3. **Accessibilité** : audit clavier (pièges de focus dans les `dialog`),
    rôles ARIA, contrastes AA dans les 3 thèmes, `prefers-reduced-motion`.
    Ajouter un test axe-core dans l'e2e.
