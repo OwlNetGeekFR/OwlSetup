@@ -235,8 +235,8 @@ internal sealed class WebAppForm : Form
             var payload = message.ContainsKey("payload") ? message["payload"] as Dictionary<string, object> : null;
             if (action == "get-app-info") { SendAppInfo(); SendSystemSummary(); }
             else if (action == "update") RunUpdate(payload);
-            else if (action == "check-app-update") CheckAppUpdate();
-            else if (action == "install-app-update") InstallAppUpdate();
+            else if (action == "check-app-update") CheckAppUpdate(payload);
+            else if (action == "install-app-update") InstallAppUpdate(payload);
             else if (action == "scan-health") ScanHealth();
             else if (action == "scan-updates") ScanUpdates();
             else if (action == "scan-windows-updates") ScanWindowsUpdates();
@@ -3527,6 +3527,40 @@ internal sealed class WebAppForm : Form
         }
     }
 
+    // Canal de mise a jour. includePrerelease=false : /releases/latest (stables
+    // uniquement, comportement historique). includePrerelease=true : on liste
+    // /releases et on retient le tag le plus recent selon CompareAppVersions
+    // (les preversions -beta.N sont donc prises en compte).
+    Dictionary<string,object> GetLatestRelease(bool includePrerelease)
+    {
+        if(!includePrerelease)return GetLatestRelease();
+        ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+        using(var client=new WebClient())
+        {
+            client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+Assembly.GetExecutingAssembly().GetName().Version;
+            client.Headers[HttpRequestHeader.Accept]="application/vnd.github+json";
+            string content=client.DownloadString("https://api.github.com/repos/OwlNetGeekFR/OwlSetup/releases?per_page=30");
+            var list=json.DeserializeObject(content) as object[];
+            Dictionary<string,object> best=null;
+            string bestTag=null;
+            if(list!=null)
+            {
+                foreach(var item in list)
+                {
+                    var rel=item as Dictionary<string,object>;
+                    if(rel==null)continue;
+                    if(rel.ContainsKey("draft") && Convert.ToBoolean(rel["draft"]))continue;
+                    string tag=rel.ContainsKey("tag_name")?Convert.ToString(rel["tag_name"]):"";
+                    if(tag!=null && tag.StartsWith("v",StringComparison.OrdinalIgnoreCase))tag=tag.Substring(1);
+                    if(ParseAppVersion(tag)==null)continue;
+                    if(bestTag==null || CompareAppVersions(bestTag,tag)<0){best=rel;bestTag=tag;}
+                }
+            }
+            if(best==null)throw new InvalidDataException("Aucune Release exploitable n'a été trouvée.");
+            return best;
+        }
+    }
+
     Dictionary<string,object> FindReleaseAsset(Dictionary<string,object> release,string name)
     {
         if(!release.ContainsKey("assets"))return null;
@@ -3830,7 +3864,12 @@ internal sealed class WebAppForm : Form
         Process.Start(new ProcessStartInfo(uri){UseShellExecute=true});
     }
 
-    void CheckAppUpdate()
+    static bool WantsPrerelease(Dictionary<string,object> payload)
+    {
+        try{return payload!=null && payload.ContainsKey("prerelease") && Convert.ToBoolean(payload["prerelease"]);}catch{return false;}
+    }
+
+    void CheckAppUpdate(Dictionary<string,object> payload)
     {
         if(selfUpdateRunning)return;
         // Build sans version comparable (dev local) : rien a proposer.
@@ -3839,11 +3878,12 @@ internal sealed class WebAppForm : Form
             SendToWeb(new { type="app-update-state", status="beta", current=CurrentVersionText(), latest="" });
             return;
         }
+        bool includePrerelease=WantsPrerelease(payload);
         SendToWeb(new { type="app-update-state", status="checking", current=CurrentVersionText() });
         Task.Run(delegate {
             try
             {
-                var release=GetLatestRelease();
+                var release=GetLatestRelease(includePrerelease);
                 string tag=ReadReleaseTag(release);
                 bool available=CompareAppVersions(BuildInfo.DisplayVersion,tag)<0;
                 SendToWeb(new { type="app-update-state", status=available?"available":"current", current=CurrentVersionText(), latest=tag, page=release.ContainsKey("html_url")?Convert.ToString(release["html_url"]):"" });
@@ -3852,7 +3892,7 @@ internal sealed class WebAppForm : Form
         });
     }
 
-    void InstallAppUpdate()
+    void InstallAppUpdate(Dictionary<string,object> payload)
     {
         // Mise a jour verifiee : l'executable telecharge est controle par son
         // empreinte SHA-256 (asset SHA256.txt de la Release), par le prefixe
@@ -3862,13 +3902,14 @@ internal sealed class WebAppForm : Form
         // redemarrage.
         if(selfUpdateRunning)throw new InvalidOperationException("La mise à jour de OwlSetup est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
+        bool includePrerelease=WantsPrerelease(payload);
         selfUpdateRunning=true;
         SendToWeb(new { type="app-update-state", status="downloading", current=CurrentVersionText() });
         Task.Run(delegate {
             string downloaded=null;
             try
             {
-                var release=GetLatestRelease();
+                var release=GetLatestRelease(includePrerelease);
                 string tag=ReadReleaseTag(release);
                 if(CompareAppVersions(BuildInfo.DisplayVersion,tag)>=0)throw new InvalidOperationException("OwlSetup est déjà à jour.");
                 var exeAsset=FindReleaseAsset(release,"OwlSetup.exe")??FindReleaseAsset(release,"PC-Setup.exe");

@@ -91,6 +91,7 @@ const errorTelemetryStorageKey = "owlsetup-error-telemetry-v1";
 const telemetryIncidentStorageKey = "owlsetup-telemetry-incidents-v2";
 const errorTelemetryEndpoint = "https://owlsetup-dashboard-owlnetgeekfr.onrender.com/api/telemetry/errors";
 const autoRestoreStorageKey = "owlsetup-auto-restore-v1";
+const prereleaseStorageKey = "owlsetup-prerelease-v1";
 const operationsStorageKey = "owlsetup-operations-v1";
 const activeOperationStorageKey = "owlsetup-active-operation-v1";
 const expertModeStorageKey = "owlsetup-expert-mode-v1";
@@ -1697,6 +1698,8 @@ function closeUpdateBlockingProcesses(force=false) {
 }
 
 function isExpertMode(){return localStorage.getItem(expertModeStorageKey)==="true";}
+// Canal de mise à jour : « true » = inclure les préversions (bêtas GitHub).
+function prereleaseOptIn(){return localStorage.getItem(prereleaseStorageKey)==="true";}
 function updateExpertPreviews(){
   const install=$("#installExpertPreview"),update=$("#updateExpertPreview");
   if(install){install.classList.toggle("hidden",!isExpertMode());install.textContent=[...selected].map(id=>`winget install --id "${id}" --exact --silent`).join("\n");}
@@ -1704,7 +1707,7 @@ function updateExpertPreviews(){
 }
 
 function collectPreferences(){
-  const keys=["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey];
+  const keys=["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,prereleaseStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey];
   const values={};keys.forEach(key=>{const value=localStorage.getItem(key);if(value!==null)values[key]=value;});
   return JSON.stringify(values);
 }
@@ -1712,10 +1715,10 @@ function collectPreferences(){
 function restorePreferences(serialized){
   if(!serialized)return;
   try {
-    const values=JSON.parse(serialized);const allowed=new Set(["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey]);
+    const values=JSON.parse(serialized);const allowed=new Set(["owlsetup-language-v1",themeStorageKey,accessibilityStorageKey,"pcsetup-profiles",onboardingStorageKey,firstRunConfigurationStorageKey,autoRestoreStorageKey,prereleaseStorageKey,expertModeStorageKey,errorTelemetryStorageKey,alphaPreferencesStorageKey]);
     Object.entries(values||{}).forEach(([key,value])=>{if(allowed.has(key)&&typeof value==="string"&&value.length<32768)localStorage.setItem(key,value);});
     applyThemePreference();applyAccessibilitySettings();refreshProfiles();
-    $("#expertMode").checked=isExpertMode();$("#autoRestorePoint").checked=localStorage.getItem(autoRestoreStorageKey)==="true";updateExpertPreviews();
+    $("#expertMode").checked=isExpertMode();$("#autoRestorePoint").checked=localStorage.getItem(autoRestoreStorageKey)==="true";if($("#prereleaseOptIn"))$("#prereleaseOptIn").checked=prereleaseOptIn();updateExpertPreviews();
   } catch { notify("Réglages ignorés","La sauvegarde contient des préférences non valides."); }
 }
 
@@ -3005,7 +3008,7 @@ function openAppUpdateModal() {
   $("#appUpdateStateDetail").textContent = "Connexion aux Releases GitHub officielles...";
   $("#appCurrentVersion").textContent = "—";
   $("#appLatestVersion").textContent = "—";
-  if (window.chrome?.webview) window.chrome.webview.postMessage({action:"check-app-update", payload:{}});
+  if (window.chrome?.webview) window.chrome.webview.postMessage({action:"check-app-update", payload:{prerelease:prereleaseOptIn()}});
   else {
     $("#appUpdateStateIcon").classList.remove("spinning");
     $("#appUpdateStateTitle").textContent = "Disponible dans l'application Windows";
@@ -3034,7 +3037,7 @@ function beginAppUpdate() {
   $("#appUpdateStateTitle").textContent = "Téléchargement sécurisé";
   $("#appUpdateStateDetail").textContent =
     "Téléchargement puis vérification de l'empreinte SHA-256…";
-  window.chrome.webview.postMessage({ action: "install-app-update", payload: {} });
+  window.chrome.webview.postMessage({ action: "install-app-update", payload: { prerelease: prereleaseOptIn() } });
 }
 
 function renderAppUpdateState(message) {
@@ -3931,7 +3934,7 @@ if (window.chrome && window.chrome.webview) {
   window.chrome.webview.addEventListener("message", event => handleInstallMessage(event.data));
   window.chrome.webview.postMessage({action:"get-app-info", payload:{}});
   window.chrome.webview.postMessage({action:"scan-installed", payload:{ids:apps.map(app => app.id), apps:apps.map(app => ({id:app.id,name:app.name,portable:!!app.portable,custom:!!app.custom}))}});
-  window.chrome.webview.postMessage({action:"check-app-update", payload:{}});
+  window.chrome.webview.postMessage({action:"check-app-update", payload:{prerelease:prereleaseOptIn()}});
   requestHealth();
   requestQuarantine();
   requestSecurityStatus();
@@ -4348,6 +4351,11 @@ $("#reducedMotionMode").addEventListener("change",saveAccessibilitySettings);
 $("#appTheme").addEventListener("change",event=>saveThemePreference(event.target.value));
 $("#firstRunTheme").addEventListener("change",event=>applyThemePreference(event.target.value));
 $("#autoRestorePoint").addEventListener("change",event=>localStorage.setItem(autoRestoreStorageKey,String(event.target.checked)));
+$("#prereleaseOptIn")?.addEventListener("change",event=>{
+  localStorage.setItem(prereleaseStorageKey,String(event.target.checked));
+  notify("Mises à jour d'OwlSetup",event.target.checked?"Les préversions (bêtas) seront proposées.":"Seules les versions stables seront proposées.");
+  if(window.chrome?.webview) window.chrome.webview.postMessage({action:"check-app-update", payload:{prerelease:event.target.checked}});
+});
 $("#alphaOneClickScan")?.addEventListener("click",runAlphaOneClickScan);
 $("#alphaFixSafe")?.addEventListener("click",()=>openAlphaReview("safe"));
 $("#alphaReviewRecommended")?.addEventListener("click",()=>openAlphaReview("recommended"));
@@ -4398,6 +4406,7 @@ applyAccessibilitySettings();
 setErrorTelemetryMode(getErrorTelemetryMode());
 $("#autoRestorePoint").checked=localStorage.getItem(autoRestoreStorageKey)==="true";
 $("#expertMode").checked=isExpertMode();
+if($("#prereleaseOptIn")) $("#prereleaseOptIn").checked=prereleaseOptIn();
 const savedSecurityRetention=localStorage.getItem(securityRetentionStorageKey);
 syncHistoryRetention(["7","30","90","365"].includes(savedSecurityRetention)?savedSecurityRetention:"30",false);
 refreshProfiles(); renderFilters(); renderApps(); renderSelection(); renderFeedbackFollowups();
