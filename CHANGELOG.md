@@ -1,5 +1,36 @@
 # Historique des versions
 
+## [4.0.0-beta.40] - 2026-08-29
+
+### Thème clair + « Contraste renforcé » : les cartes restaient noires
+
+Voici pourquoi certains panneaux restaient sombres alors que le thème clair
+était correct — ce n'était pas un oubli de teinte, mais un conflit d'héritage
+de variables CSS.
+
+- `body.high-contrast` (option **Accessibilité → Contraste renforcé**)
+  redéclare `--panel:#101b2a` **sur `<body>`**. Or une variable CSS est héritée
+  du **déclarant le plus proche** : `<body>` étant plus proche que `<html>`,
+  cette valeur sombre écrasait le `--panel` clair de
+  `:root[data-theme="light"]` pour tout le sous-arbre.
+- La surcharge claire du mode contraste ne corrigeait que `--line`, `--muted`
+  et `--text` — **ni `--panel`, ni `--bg`, ni `--panel-2`**. Résultat : tous
+  les éléments dont le fond vient de `var(--panel)` s'affichaient noirs en
+  thème clair : cartes du Centre des opérations, résumé de « Tout mettre à
+  jour », panneau « Santé des applications », étapes du guide, lignes
+  d'opération, options de nettoyage…
+- Correction : la surcharge claire redonne désormais **tous** les jetons de
+  surface (`--bg`, `--panel`, `--panel-2`, `--line`, `--muted`, `--text`), avec
+  des valeurs adaptées au contraste renforcé (panneaux blancs, texte quasi
+  noir, bordures marquées). Le texte secondaire du mode contraste
+  (`body.high-contrast .view p / small`) passe également en teinte foncée.
+- Vérifié sur les **4 combinaisons** (clair, clair + contraste, sombre, sombre
+  + contraste) : jetons cohérents, thème sombre inchangé. En thème clair avec
+  contraste renforcé : **0 texte à faible contraste** et 6 fonds sombres, tous
+  volontaires.
+- Vérifié : `tests/Test-ReleaseCandidateReadiness.ps1` vert, intégrité SHA-256
+  OK, l'application démarre.
+
 ## [4.0.0-beta.39] - 2026-08-29
 
 ### Thème clair — audit des contenus construits en JavaScript
