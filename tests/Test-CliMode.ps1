@@ -31,8 +31,12 @@ Assert-Has $native 'RunElevatedCleanupWorker(String.Join(",",cleanup),cleanupLog
 Assert-Has $native 'CliCleanupZones.Where(zone=>raw.Contains(zone' "--apply ne filtre plus les zones de nettoyage sur la liste autorisee."
 Assert-Has $native 'PC-Setup-CLI-' "--apply n'ecrit plus de journal fichier."
 if ($native -match 'CliApply\(rest\)\s*;') { throw "CliApply est encore appele sans les options dryRun/silent." }
-# Les identifiants CLI sont valides par la meme regex que le reste de l'hote.
-Assert-Has $native '^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$' "La validation d'identifiant du mode CLI a disparu."
+# Les identifiants CLI passent par la MEME validation que le reste de l'hote.
+# Depuis la 4.0.0-beta.57 le motif n'est plus recopie ici : on verifie l'appel a
+# la source unique, et non la presence d'un litteral - exiger le litteral
+# reviendrait a exiger la duplication qu'on vient justement de retirer.
+# Le comportement du motif est couvert par Test-PackageIdValidation.ps1.
+Assert-Has $native 'WebAppForm.IsValidPackageId(' "Le mode CLI ne valide plus les identifiants par la source unique."
 # --install passe toujours les drapeaux silencieux WinGet.
 Assert-Has $native '--silent --accept-package-agreements --accept-source-agreements --disable-interactivity' "Le mode CLI n'installe plus en silencieux."
 # --apply n'accepte qu'une configuration exportee par l'interface.
