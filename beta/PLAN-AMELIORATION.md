@@ -248,18 +248,26 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
 
 **Étapes :**
 
-1. **CSS** : `styles.css` (208 Ko, lignes très denses) → découpe en partiels +
-   `build:css` (esbuild/lightningcss) → un seul `styles.css` minifié
-   déterministe. Purge des règles mortes.
+1. [~] _(4.0.0-beta.48)_ **CSS** : `styles.css` formaté puis découpé en
+   **10 partiels** dans `beta/src/styles/`, réassemblés par
+   `beta/scripts/build-css.mjs` (concaténation déterministe, appelée par
+   `build.ps1`). Garde : `beta/test/styles-bundle.test.js`.
+   **Pas de minification** : la feuille est chargée depuis l'hôte virtuel local
+   par WebView2, jamais sur le réseau — minifier ne gagnerait rien et
+   compliquerait le débogage (même raisonnement que `build-js.mjs`).
+   **Reste** : purge des règles mortes.
 2. [~] _(4.0.0-beta.44)_ **i18n** : 343 traductions ajoutées — `index.html` est
    à **100 %** (0 chaîne française à l'écran en anglais). Outil
    `beta/scripts/audit-i18n.mjs` + garde dans `tests/Test-EnglishTranslation.ps1`.
    **Reste** : les chaînes rendues par `app.js` et celles d'`OwlSetupWebView.cs`,
    puis préparer l'ajout de langues par la communauté.
-3. [~] _(4.0.0-beta.46)_ **Accessibilité** : piège de focus générique sur les
-   19 boîtes, Échap, retour du focus, `prefers-reduced-motion` global et anneau
-   de focus visible. Garde : `tests/Test-Accessibility.ps1`. **Reste** :
-   contrastes AA à auditer et test axe-core dans l e2e.
+3. [~] _(4.0.0-beta.46, beta.47)_ **Accessibilité** : piège de focus générique
+   sur les 19 boîtes, Échap, retour du focus, `prefers-reduced-motion` global et
+   anneau de focus visible (beta.46). **Contrastes AA** (beta.47) : les couleurs
+   de texte passent par les tokens `--muted` et `--text-*`, garantis ≥ 4,5:1 sur
+   les 4 combinaisons de thème ; 0 échec sur 3 947 éléments mesurés.
+   Gardes : `tests/Test-Accessibility.ps1`, `beta/test/contrast.test.js`.
+   **Reste** : test axe-core dans l e2e.
 4. [x] _(4.0.0-beta.42)_ **Planification** : panneau « Entretien planifié » dans
        Paramètres — crée une **vraie tâche planifiée Windows** qui rappelle le mode
        CLI du lot 7 (`--check-updates` ou `--update --silent`), chaque semaine ou

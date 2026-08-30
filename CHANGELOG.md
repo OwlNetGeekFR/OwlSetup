@@ -1,5 +1,54 @@
 # Historique des versions
 
+## [4.0.0-beta.48] - 2026-08-30
+
+### Lot 6 — `styles.css` découpé en partiels
+
+`styles.css` était un fichier unique de 1 445 lignes, dont **20 dépassaient
+2 000 caractères** (la plus longue : 7 326). Les règles s'y étaient accumulées
+par ajouts successifs — « Beta 3.7 », « Audit beta.37 », « 4.0.0-beta.5 » — sans
+jamais être regroupées.
+
+La feuille est désormais **formatée**, puis découpée en **10 partiels** dans
+`beta/src/styles/`, réassemblés par `beta/scripts/build-css.mjs` que `build.ps1`
+appelle avant la compilation — même mécanique que `app.js`.
+
+**L'ordre des partiels est significatif** et le préfixe numérique le rend
+explicite : la feuille s'est construite par accumulation, et les surcharges du
+thème clair, de l'accessibilité et des contrastes s'appuient sur le fait
+d'arriver **après** les règles de base, à spécificité parfois égale. Les coupes
+ont donc été faites à l'endroit exact où elles tombent dans l'ordre d'origine,
+sans jamais réordonner.
+
+Pas de minification, contrairement à ce que prévoyait le plan : la feuille est
+chargée depuis l'hôte virtuel local par WebView2, **jamais sur le réseau**.
+Minifier ne ferait gagner aucun temps de chargement et compliquerait le
+débogage — c'est déjà le raisonnement retenu pour `build-js.mjs`.
+
+**Aucun changement de rendu.** Deux vérifications :
+
+- la concaténation des partiels reproduit le fichier formaté **octet pour
+  octet** ;
+- après normalisation des écarts purement cosmétiques du formateur (zéros de
+  tête, espaces dans les parenthèses, `!important`, `@media (`, opérateurs de
+  `calc()`, guillemets d'attribut), le résultat est **identique au caractère
+  près** à l'ancien `styles.css` — 251 099 caractères de part et d'autre.
+
+Contrôlé aussi à l'écran : 2 490 règles chargées, 0 échec de contraste sur les
+4 combinaisons de thème.
+
+Garde : `beta/test/styles-bundle.test.js` — déterminisme, correspondance entre
+le fichier généré et ses partiels, ordre de concaténation, accolades
+équilibrées.
+
+**Tests PowerShell rendus insensibles à la mise en forme.** 18 tests
+inspectaient `styles.css` en cherchant des motifs compacts
+(`#catalog .catalog-tools{`, `button,input,select,textarea,`) ; 10 se sont
+cassés au formatage. Plutôt que de les recoller à la sortie exacte du
+formateur — ce qui les aurait rendus fragiles à chaque reformatage — un helper
+partagé `tests/lib/CssText.ps1` ramène CSS et motif à une forme comparable.
+Les tests vérifient désormais le **contenu** des règles, pas leur présentation.
+
 ## [4.0.0-beta.47] - 2026-08-30
 
 ### Lot 6 — contrastes WCAG AA

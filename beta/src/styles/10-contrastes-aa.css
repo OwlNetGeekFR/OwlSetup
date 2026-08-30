@@ -1,0 +1,95 @@
+/* =========================================================================
+   Contrastes WCAG AA (lot 6) — 4.0.0-beta.47
+   Les couleurs de texte sont desormais prises dans les tokens --muted et
+   --text-* (voir :root et :root[data-theme="light"]), garantis >= 4.5:1 sur
+   les panneaux de chaque theme. Ce bloc ne traite plus que les cas ou le
+   probleme n etait pas la couleur du texte mais son support.
+   ========================================================================= */
+
+/* --- Boutons d action pleins ---------------------------------------------
+   Ils ne fixaient aucune couleur de texte : ils heritaient de --text, donc du
+   texte sombre sur fond bleu en theme clair. Les degrades etaient par ailleurs
+   trop clairs pour du blanc (extremite claire a 3,4:1). */
+.install-button,
+.home-primary,
+.primary-dialog-button,
+.onboarding-primary,
+.danger-dialog-button {
+  color: #fff;
+}
+.install-button,
+.home-primary,
+.primary-dialog-button,
+.onboarding-primary {
+  background: linear-gradient(90deg, #2b5fd0, #3d72dc);
+}
+.install-button.cleanup-button,
+.primary-dialog-button.cleanup-confirm-button,
+.primary-dialog-button.update-confirm-button {
+  background: linear-gradient(90deg, #14676c, #1a7a80);
+}
+.danger-dialog-button {
+  background: #9c3247;
+}
+
+/* --- Bouton « Parcourir… » (.btn.ghost) ----------------------------------
+   .btn.ghost n etait declare nulle part : le bouton retombait sur l apparence
+   native du navigateur (face grise #f0f0f0), d ou un texte clair illisible en
+   theme sombre. On lui donne un support explicite tire des tokens. */
+.btn.ghost {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+}
+.btn.ghost:hover {
+  border-color: var(--blue);
+}
+
+/* --- Textes poses sur une jauge coloree ----------------------------------
+   « / 100 » s affiche par-dessus le remplissage vert de la jauge et de
+   l anneau de sante : sur ce vert clair, il faut un texte sombre. */
+.security-gauge small,
+.health-ring small {
+  color: #0b2b22;
+}
+
+/* --- Bouton de soutien Ko-fi ---------------------------------------------
+   Rose pale sur fond rose : 1,7:1. */
+.top-support strong,
+.nav-support strong {
+  color: var(--text-danger);
+}
+
+/* --- Textes poses sur un remplissage colore ------------------------------
+   « / 100 » se superpose au remplissage de la jauge de securite et de l anneau
+   de sante : selon le pourcentage rempli, le support est tantot le panneau,
+   tantot le bleu ou le vert de la jauge. On lui donne donc son propre fond
+   opaque pour que le contraste ne depende plus du remplissage. */
+.security-gauge small,
+.health-ring small {
+  position: relative;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--muted);
+}
+
+/* --- Boutons bleus pleins ------------------------------------------------
+   La barre de selection heritait de --text (sombre en theme clair, et pas tout
+   a fait blanc en theme sombre) ; le badge d etape etait un bleu trop clair. */
+.selection-bar button {
+  color: #fff;
+}
+
+/* Le bouton One-Click garde son degrade bleu fonce dans tous les themes :
+   sa legende ne doit donc pas suivre --muted, qui s assombrit en theme clair. */
+.alpha-one-click-button small {
+  color: #e8f0ff;
+}
+
+/* La regle de contraste renforce (body.high-contrast small) est plus specifique
+   que la precedente : on la reprend explicitement pour le bouton One-Click. */
+body.high-contrast .alpha-one-click-button small,
+:root[data-theme="light"] body.high-contrast .alpha-one-click-button small {
+  color: #e8f0ff;
+}

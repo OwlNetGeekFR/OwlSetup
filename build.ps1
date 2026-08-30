@@ -85,6 +85,19 @@ if (-not (Test-Path $jsOutput)) {
     throw "app.js introuvable et Node absent : impossible de generer l'interface."
 }
 
+# Feuille de style : regenere styles.css depuis beta/src/styles/ (concatenation
+# deterministe des partiels, ordre significatif) quand Node est disponible ;
+# sinon le fichier deja versionne est utilise.
+$cssScript = Join-Path $root "beta\scripts\build-css.mjs"
+$cssOutput = Join-Path $root "styles.css"
+if ($node -and (Test-Path $cssScript)) {
+    & $node.Source $cssScript
+    if ($LASTEXITCODE -ne 0) { throw "Generation de styles.css echouee (code $LASTEXITCODE)." }
+}
+if (-not (Test-Path $cssOutput)) {
+    throw "styles.css introuvable et Node absent : impossible de generer l'interface."
+}
+
 # Anti-cache : WebView2 sert l'interface via https://pcsetup.local/ et met en
 # cache les ressources par URL. Le jeton "?v=" doit donc changer a chaque
 # version, sinon une ancienne feuille de style ou un ancien app.js peut rester

@@ -1,8 +1,11 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $stylesPath = Join-Path $root "styles.css"
 $styles = Get-Content -LiteralPath $stylesPath -Raw -Encoding UTF8
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$styles = ConvertTo-CssComparable $styles
 
 $required = @(
     '--owl-font-ui:',
