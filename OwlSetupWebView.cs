@@ -45,6 +45,29 @@ internal sealed class WebAppForm : Form
     const uint WscSecurityProviderAntivirus = 0x4;
     const int WscSecurityProviderHealthGood = 0;
 
+    // --- Identifiant de paquet : source unique de verite ---------------------
+    //
+    // Ce motif garde toutes les lignes de commande winget : un identifiant qui
+    // ne commence pas par un caractere alphanumerique serait lu par winget
+    // comme un drapeau, pas comme un nom de paquet.
+    //
+    // Il etait recopie en litteral a 27 endroits, sous TROIS formes qui ne
+    // disaient pas la meme chose : sans borne de longueur, bornee a 128, ou
+    // exigeant au moins deux caracteres. Le meme identifiant pouvait donc etre
+    // accepte a une entree et refuse a une autre. La forme retenue ici est la
+    // plus stricte des trois ; les 93 applications du catalogue mesurent entre
+    // 7 et 39 caracteres, aucune n'est concernee.
+    //
+    // Le nommer une seule fois est aussi ce qui evite la derive qui avait
+    // laisse Installer-selection.ps1 sur l'ancienne regex (cf. 4.0.0-beta.53).
+    static readonly Regex PackageIdPattern =
+        new Regex(@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$", RegexOptions.CultureInvariant);
+
+    internal static bool IsValidPackageId(string value)
+    {
+        return !String.IsNullOrEmpty(value) && PackageIdPattern.IsMatch(value);
+    }
+
     readonly WebView2 webView;
     readonly string appRoot;
     readonly JavaScriptSerializer json = new JavaScriptSerializer();
@@ -309,7 +332,7 @@ internal sealed class WebAppForm : Form
 
     void RunInstallPreflight(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(100).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(100).ToArray();
         var catalog=ReadCatalog(payload);
         long requestId=payload!=null&&payload.ContainsKey("requestId")?Convert.ToInt64(payload["requestId"]):0;
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide n'est sélectionné.");
@@ -365,7 +388,7 @@ internal sealed class WebAppForm : Form
 
     void RunInstall(Dictionary<string, object> payload)
     {
-        var packages = ReadArray(payload, "packages").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct().Take(100).ToArray();
+        var packages = ReadArray(payload, "packages").Where(x => IsValidPackageId(x)).Distinct().Take(100).ToArray();
         if(packages.Any(id=>String.Equals(id,"VMware.WorkstationPro",StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("VMware Workstation Pro necessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidee depuis sa carte.");
         var catalog=ReadCatalog(payload);
@@ -704,7 +727,7 @@ internal sealed class WebAppForm : Form
 
     void InspectPackageProcesses(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
         if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a examiner.");
         Task.Run(delegate
         {
@@ -718,7 +741,7 @@ internal sealed class WebAppForm : Form
 
     void ClosePackageProcesses(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
         bool force=payload!=null&&payload.ContainsKey("force")&&Convert.ToBoolean(payload["force"]);
         bool confirmed=payload!=null&&payload.ContainsKey("confirmed")&&Convert.ToBoolean(payload["confirmed"]);
         if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a traiter.");
@@ -1393,7 +1416,7 @@ internal sealed class WebAppForm : Form
     void ScanInstalled(Dictionary<string, object> payload)
     {
         if (scanRunning) return;
-        var requested = new HashSet<string>(ReadArray(payload, "ids").Where(x => Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Take(200), StringComparer.OrdinalIgnoreCase);
+        var requested = new HashSet<string>(ReadArray(payload, "ids").Where(x => IsValidPackageId(x)).Take(200), StringComparer.OrdinalIgnoreCase);
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         var customPackages=ReadCustomCatalog(payload);
@@ -1463,7 +1486,7 @@ internal sealed class WebAppForm : Form
 
     void ScanApplicationHealth(Dictionary<string, object> payload)
     {
-        var requested=new HashSet<string>(ReadArray(payload,"ids").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Take(200),StringComparer.OrdinalIgnoreCase);
+        var requested=new HashSet<string>(ReadArray(payload,"ids").Where(x=>IsValidPackageId(x)).Take(200),StringComparer.OrdinalIgnoreCase);
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         var customPackages=ReadCustomCatalog(payload);
@@ -1550,7 +1573,7 @@ internal sealed class WebAppForm : Form
                 string name=row.ContainsKey("name")?row["name"]:"";
                 string id=row.ContainsKey("id")?row["id"]:"";
                 // \ dans les ids MSIX\ / ARP\ : exclus par cette regex, comme avant.
-                if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||name.Length==0||!seen.Add(id))continue;
+                if(!IsValidPackageId(id)||name.Length==0||!seen.Add(id))continue;
                 string version=Regex.Match(row.ContainsKey("version")?row["version"]:"",@"^\S+").Value;
                 string sourceValue=row.ContainsKey("source")?row["source"]:"";
                 string source=(sourceValue.StartsWith("winget",StringComparison.OrdinalIgnoreCase)||sourceValue.StartsWith("msstore",StringComparison.OrdinalIgnoreCase))?"winget":"windows";
@@ -1682,7 +1705,7 @@ internal sealed class WebAppForm : Form
             var item=value as Dictionary<string,object>;
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("name"))continue;
             string id=Convert.ToString(item["id"]),name=Convert.ToString(item["name"]);
-            if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") && !String.IsNullOrWhiteSpace(name))result[id]=name;
+            if(IsValidPackageId(id) && !String.IsNullOrWhiteSpace(name))result[id]=name;
         }
         return result;
     }
@@ -1700,7 +1723,7 @@ internal sealed class WebAppForm : Form
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("portable"))continue;
             string id=Convert.ToString(item["id"]);
             bool portable=false;try{portable=Convert.ToBoolean(item["portable"]);}catch{}
-            if(portable && Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))result.Add(id);
+            if(portable && IsValidPackageId(id))result.Add(id);
         }
         return result;
     }
@@ -1718,7 +1741,7 @@ internal sealed class WebAppForm : Form
             if(item==null || !item.ContainsKey("id") || !item.ContainsKey("custom"))continue;
             string id=Convert.ToString(item["id"]);
             bool custom=false;try{custom=Convert.ToBoolean(item["custom"]);}catch{}
-            if(custom && Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))result.Add(id);
+            if(custom && IsValidPackageId(id))result.Add(id);
         }
         return result;
     }
@@ -1878,7 +1901,7 @@ internal sealed class WebAppForm : Form
         foreach(var row in ParseWingetTable(output))
         {
             string candidate=row.ContainsKey("id")?row["id"]:"";
-            if(Regex.IsMatch(candidate,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))yield return candidate;
+            if(IsValidPackageId(candidate))yield return candidate;
         }
     }
 
@@ -2006,7 +2029,7 @@ internal sealed class WebAppForm : Form
     {
         string packageId=payload!=null&&payload.ContainsKey("id")?Convert.ToString(payload["id"]):"";
         string appName=payload!=null&&payload.ContainsKey("name")?Convert.ToString(payload["name"]):LoadApplicationName(packageId);
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))throw new InvalidOperationException("Logiciel invalide.");
+        if(!IsValidPackageId(packageId))throw new InvalidOperationException("Logiciel invalide.");
         Task.Run(delegate {
             var report=new StringBuilder();bool installed=false;string version="",scope="Installation WinGet";int shortcuts=0;
             try
@@ -2069,7 +2092,7 @@ internal sealed class WebAppForm : Form
     {
         string packageId=payload != null && payload.ContainsKey("id") ? Convert.ToString(payload["id"]) : "";
         bool scanResidues=payload != null && payload.ContainsKey("scanResidues") && Convert.ToBoolean(payload["scanResidues"]);
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")) throw new InvalidOperationException("Logiciel invalide.");
+        if(!IsValidPackageId(packageId)) throw new InvalidOperationException("Logiciel invalide.");
         string appName=payload != null && payload.ContainsKey("name") ? Convert.ToString(payload["name"]) : LoadApplicationName(packageId);
         if(String.IsNullOrWhiteSpace(appName)||appName.Length>120)appName=LoadApplicationName(packageId);
         if(!ConsumeUninstallSimulation(packageId))throw new InvalidOperationException("La simulation de désinstallation est absente ou expirée. Relancez l'aperçu.");
@@ -2252,7 +2275,7 @@ internal sealed class WebAppForm : Form
     void RunRepair(Dictionary<string, object> payload)
     {
         string packageId=payload != null && payload.ContainsKey("id") ? Convert.ToString(payload["id"]) : "";
-        if(!Regex.IsMatch(packageId,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")) throw new InvalidOperationException("Logiciel invalide.");
+        if(!IsValidPackageId(packageId)) throw new InvalidOperationException("Logiciel invalide.");
         if(repairRunning) throw new InvalidOperationException("Une réparation est déjà en cours.");
         if(installationRunning || uninstallRunning || updateRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         repairRunning=true;
@@ -2304,7 +2327,7 @@ internal sealed class WebAppForm : Form
 
     void RunBatchUninstall(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
         var catalog=ReadCatalog(payload);
         bool scanResidues=payload!=null&&payload.ContainsKey("scanResidues")&&Convert.ToBoolean(payload["scanResidues"]);
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide à désinstaller.");
@@ -2384,7 +2407,7 @@ internal sealed class WebAppForm : Form
 
     void SimulateBatchUninstall(Dictionary<string,object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(50).ToArray();
         var catalog=ReadCatalog(payload);
         if(packages.Length==0)throw new InvalidOperationException("Aucun logiciel valide à simuler.");
         Task.Run(delegate {
@@ -2469,7 +2492,7 @@ internal sealed class WebAppForm : Form
         {
             string name=row.ContainsKey("name")?row["name"]:"";
             string id=row.ContainsKey("id")?row["id"]:"";
-            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$")||name.Length==0||!seen.Add(id))continue;
+            if(!IsValidPackageId(id)||name.Length==0||!seen.Add(id))continue;
             string versionArea=row.ContainsKey("version")?row["version"]:"";
             string version=Regex.Match(versionArea,@"^\S+").Value;
             results.Add(new {name=name,id=id,version=version,source="winget"});
@@ -2955,10 +2978,10 @@ internal sealed class WebAppForm : Form
 
     void RunUpdate(Dictionary<string, object> payload)
     {
-        var packages=ReadArray(payload,"packages").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct().Take(100).ToArray();
+        var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct().Take(100).ToArray();
         // Paquets que l'interface a marqués « géré par l'éditeur » ou « version
         // installée inconnue » : un échec winget n'est pas compté comme tel.
-        var lenientPackages=new HashSet<string>(ReadArray(payload,"lenient").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")),StringComparer.OrdinalIgnoreCase);
+        var lenientPackages=new HashSet<string>(ReadArray(payload,"lenient").Where(x=>IsValidPackageId(x)),StringComparer.OrdinalIgnoreCase);
         if(updateRunning) throw new InvalidOperationException("Une mise à jour est déjà en cours.");
         if(installationRunning || uninstallRunning || repairRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         updateRunning=true;
@@ -3372,7 +3395,7 @@ internal sealed class WebAppForm : Form
             string id=row.ContainsKey("id")?row["id"]:"";
             string current=row.ContainsKey("version")?row["version"]:"";
             string available=row.ContainsKey("available")?row["available"]:"";
-            if(!Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$") || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
+            if(!IsValidPackageId(id) || !Regex.IsMatch(available,"[0-9]") || !seen.Add(id))continue;
             bool unknownVersion=!Regex.IsMatch(current,"[0-9]");
             if(unknownVersion)current="inconnue";
             // Version installée inconnue = même traitement prudent que les
@@ -4213,7 +4236,7 @@ internal sealed class WebAppForm : Form
 
     void ExportConfiguration(Dictionary<string, object> payload)
     {
-        var selected=ReadArray(payload,"selected").Where(x=>Regex.IsMatch(x,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$")).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var selected=ReadArray(payload,"selected").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var cleanup=ReadArray(payload,"cleanup").Where(x=>Regex.IsMatch(x,"^[a-z-]+$")).Distinct().ToArray();
         string preferences=payload!=null&&payload.ContainsKey("preferences")?Convert.ToString(payload["preferences"]):"";
         if(preferences.Length>65536)preferences="";
@@ -4240,7 +4263,7 @@ internal sealed class WebAppForm : Form
                     foreach(Match match in Regex.Matches(File.ReadAllText(temp,Encoding.UTF8),"\"PackageIdentifier\"\\s*:\\s*\"([^\"]+)\"",RegexOptions.IgnoreCase))
                     {
                         string id=match.Groups[1].Value;
-                        if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))installed.Add(id);
+                        if(IsValidPackageId(id))installed.Add(id);
                     }
                 }
                 var configuration=new {
@@ -4276,7 +4299,7 @@ internal sealed class WebAppForm : Form
             if(root==null || !root.ContainsKey("format") || Convert.ToString(root["format"])!="pc-setup-configuration")throw new InvalidDataException("Ce fichier n'est pas une configuration OwlSetup valide.");
             var packages=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(string key in new[]{"installedPackages","selectedPackages"})
-                foreach(string id in ReadArray(root,key))if(Regex.IsMatch(id,"^[A-Za-z0-9][A-Za-z0-9.+_-]*$"))packages.Add(id);
+                foreach(string id in ReadArray(root,key))if(IsValidPackageId(id))packages.Add(id);
             var cleanup=ReadArray(root,"cleanupChoices").Where(x=>Regex.IsMatch(x,"^[a-z-]+$")).Distinct().ToArray();
             string preferences=root.ContainsKey("preferences")?Convert.ToString(root["preferences"]):"";
             if(preferences.Length>65536)preferences="";
@@ -4994,7 +5017,7 @@ internal static class Bootstrap
         return String.Join(",",rest)
             .Split(new[]{',',' ',';','\t'},StringSplitOptions.RemoveEmptyEntries)
             .Select(value=>value.Trim())
-            .Where(value=>Regex.IsMatch(value,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))
+            .Where(value=>WebAppForm.IsValidPackageId(value))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -5292,7 +5315,7 @@ internal static class Bootstrap
         var array=value as object[];
         if(array==null)return new string[0];
         return array.Select(item=>Convert.ToString(item).Trim())
-            .Where(id=>Regex.IsMatch(id, key=="cleanupChoices" ? "^[a-z-]+$" : @"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))
+            .Where(id=>key=="cleanupChoices" ? Regex.IsMatch(id,"^[a-z-]+$") : WebAppForm.IsValidPackageId(id))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -5345,7 +5368,7 @@ internal static class Bootstrap
                 foreach(Match match in Regex.Matches(File.ReadAllText(temp,Encoding.UTF8),"\"PackageIdentifier\"\\s*:\\s*\"([^\"]+)\"",RegexOptions.IgnoreCase))
                 {
                     string id=match.Groups[1].Value;
-                    if(Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))ids.Add(id);
+                    if(WebAppForm.IsValidPackageId(id))ids.Add(id);
                 }
         }
         catch{}
@@ -5362,7 +5385,7 @@ internal static class Bootstrap
         foreach(var row in WebAppForm.ParseWingetTable(String.Join("\r\n",lines)))
         {
             string id=row.ContainsKey("id")?row["id"].Trim():"";
-            if(!Regex.IsMatch(id,@"^[A-Za-z0-9][A-Za-z0-9.+_-]{0,127}$"))continue;
+            if(!WebAppForm.IsValidPackageId(id))continue;
             // Une vraie ligne de mise a jour porte une version disponible ; sans
             // elle, c est une ligne de resume de winget decoupee par les colonnes.
             string available=row.ContainsKey("available")?row["available"].Trim():"";

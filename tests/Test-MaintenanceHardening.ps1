@@ -46,8 +46,12 @@ Assert-Has $app 'engineUnsupportedCategories' "La table des catégories non pris
 Assert-Has $native 'MeasurePathFileCap' "Le plafond de mesure n'est plus une constante nommée."
 Assert-Has $native 'lastMeasureTruncated' "L'indicateur de mesure partielle a disparu."
 
-# --- Identifiants de paquet durcis (beta.2) ---
-Assert-Has $native '^[A-Za-z0-9][A-Za-z0-9.+_-]*$' "La regex durcie des identifiants de paquet a été retirée de l'hôte."
+# --- Identifiants de paquet durcis (beta.2), centralisés (beta.57) ---
+# Le motif vit désormais dans PackageIdPattern / IsValidPackageId. Exiger ici sa
+# présence en littéral reviendrait à exiger la duplication qu'on vient de
+# retirer : on vérifie la source unique, son comportement étant couvert par
+# Test-PackageIdValidation.ps1.
+Assert-Has $native 'internal static bool IsValidPackageId(string value)' "La validation centralisée des identifiants de paquet a disparu de l'hôte."
 Assert-Missing $native 'Regex.IsMatch(x,"^[A-Za-z0-9.+_-]+$")' "Un identifiant de paquet non ancré sur un caractère alphanumérique est de retour."
 
 Write-Host "Durcissement de l'onglet Maintenance : marqueurs présents." -ForegroundColor Green

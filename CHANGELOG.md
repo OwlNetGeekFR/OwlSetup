@@ -1,5 +1,45 @@
 # Historique des versions
 
+## [4.0.0-beta.57] - 2026-08-30
+
+### Lot 3 — trois regex de sécurité pour une seule règle
+
+Audit des **41 appels** à winget : chaque valeur interpolée dans une ligne de
+commande est bien assainie — identifiants par expression régulière, noms et
+chemins par retrait des guillemets, fichiers d'export construits sur un GUID.
+Aucun trou.
+
+**Mais la règle elle-même était écrite 27 fois, sous trois formes qui ne
+disaient pas la même chose :**
+
+| Forme | Occurrences | Accepte un caractère ? | Longueur maximale |
+| --- | ---: | --- | --- |
+| `[A-Za-z0-9.+_-]*` | 21 | oui | aucune |
+| `[A-Za-z0-9.+_-]{0,127}` | 4 | oui | 128 |
+| `[A-Za-z0-9._+\-]{1,127}` | 2 | **non** | 128 |
+
+Le même identifiant pouvait donc être **accepté à une entrée et refusé à une
+autre**, selon le chemin emprunté. C'est précisément la dérive qui avait laissé
+`Installer-selection.ps1` sur l'ancienne regex jusqu'à la 4.0.0-beta.53 : une
+règle recopiée finit toujours par diverger.
+
+Une seule déclaration désormais — `PackageIdPattern` / `IsValidPackageId` —
+alignée sur **la plus stricte des trois**. Les 93 applications du catalogue
+mesurent entre 7 et 39 caractères : aucune n'est concernée. Les quatre appels
+venant de la classe `Bootstrap` sont qualifiés, une méthode statique d'une autre
+classe ne s'appelant pas sans préfixe.
+
+**Deux tests existants ont dû changer de critère.** Ils vérifiaient la
+*présence du littéral* dans le source : les laisser tels quels aurait exigé la
+duplication qu'on venait de retirer. Ils vérifient maintenant l'appel à la
+source unique, le comportement du motif étant couvert à part.
+
+Garde : `tests/Test-PackageIdValidation.ps1` — une seule déclaration dans le
+fichier, appels qualifiés depuis `Bootstrap`, puis le comportement réel par
+réflexion : identifiants légitimes acceptés, `-Force`, `--source`, guillemets,
+chaîne vide, caractère unique et identifiant de 200 caractères refusés, et les
+93 applications du catalogue passées une à une.
+
 ## [4.0.0-beta.56] - 2026-08-30
 
 ### Lot 3 — appels natifs confinés à System32, analyse de sécurité activée

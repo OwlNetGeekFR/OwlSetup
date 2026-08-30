@@ -170,8 +170,17 @@ commande, sans analyseur ni découpage.
    dédiées) : `Ipc/` (routage `OnWebMessage`), `Winget/` (invocations + parsing
    colonnes), `Cleanup/`, `Security/`, `Process/` (élévation, jetons),
    `Quarantine/`, `Diagnostics/`.
-3. Centraliser la construction des arguments `winget` : un unique
-   `WingetCommand` avec échappement et tests (Pester) sur les cas limites.
+3. [~] _(4.0.0-beta.57)_ **Validation des identifiants centralisée.** L'audit des
+   41 appels winget montre que chaque valeur interpolée est bien assainie —
+   identifiants par regex, noms et chemins par retrait des guillemets, fichiers
+   d'export construits sur un GUID. En revanche le motif d'identifiant était
+   recopié **27 fois**, sous **trois formes non équivalentes** (sans borne,
+   bornée à 128, ou exigeant au moins deux caractères) : un même identifiant
+   pouvait être accepté à une entrée et refusé à une autre. Une seule
+   déclaration désormais (`PackageIdPattern` / `IsValidPackageId`), sur la plus
+   stricte des trois. Garde : `tests/Test-PackageIdValidation.ps1`.
+   **Reste** : un objet `WingetCommand` qui porterait aussi la construction des
+   arguments, plutôt que la concaténation actuelle.
 4. **Corrections de sécurité ciblées :**
    - [x] refuser un identifiant commençant par un non-alphanumérique — regex
          passée à `^[A-Za-z0-9][A-Za-z0-9.+_-]*$` dans `app.js`, `OwlSetupWebView.cs`
