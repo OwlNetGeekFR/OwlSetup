@@ -1,5 +1,50 @@
 # Historique des versions
 
+## [4.0.0-beta.52] - 2026-08-30
+
+### Lot 7 — auto-élévation du mode CLI, avec relais de sortie
+
+Le mode ligne de commande détectait l'absence de droits administrateur, mais ne
+savait qu'avertir : « relancez depuis une invite Administrateur ». Pour un
+déploiement en parc, cela veut dire deux exécutions et un opérateur devant
+l'écran.
+
+`--elevate` relance OwlSetup en administrateur, puis **rejoue la sortie et le
+code de sortie** de l'exécution élevée vers l'appelant : un script voit
+exactement ce qu'il aurait vu sans élévation.
+
+**Pourquoi un fichier de relais.** Une élévation passe forcément par
+`ShellExecute` + `runas`, qui **interdit la redirection des flux** : le
+processus élevé ne peut pas écrire dans la console de l'appelant. Il écrit donc
+dans un fichier que le parent recopie sur sa propre sortie, puis supprime.
+
+**L'élévation est opt-in, à dessein.** Sans le drapeau, aucune invite UAC
+n'apparaît et le comportement ne change pas : les actions qui exigent des
+droits sont signalées puis ignorées. Un script ou un MDM ne doit jamais se
+bloquer sur une invite qu'il n'a pas demandée. `--elevate` ne s'applique qu'à
+`--install`, `--uninstall`, `--apply` et `--update`, et reste sans effet avec
+`--dry-run` — demander l'UAC pour une simulation n'aurait aucun sens.
+
+Trois garde-fous côté processus élevé :
+
+- il **ne s'élève jamais lui-même** : invoqué sans droits, il renvoie 740 ;
+- il **valide son fichier de relais** — confiné au dossier des journaux, nom
+  conforme à un motif généré ; une remontée de chemin est refusée ;
+- `--elevate` est **retiré des arguments relayés**, pour qu'aucune boucle
+  d'élévation ne soit possible.
+
+La ligne de commande de l'enfant est construite à la convention Windows, avec
+les antislashs précédant un guillemet doublés : sans cela, un dossier terminé
+par `\` échapperait le guillemet fermant et décalerait tout le reste.
+
+Garde : `tests/Test-CliElevation.ps1` — câblage, puis comportement réel par
+réflexion (mise entre guillemets, refus des chemins de relais illégitimes,
+refus hors élévation) et exécution réelle de `--elevate --dry-run`, qui doit
+rendre 0 sans aucune invite.
+
+**Le trajet UAC complet reste à essayer sur le PC de test** : une invite
+interactive ne peut pas être automatisée ici.
+
 ## [4.0.0-beta.51] - 2026-08-30
 
 ### Lot 3 — trace des opérations élevées et dernier trou de validation

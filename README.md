@@ -67,7 +67,19 @@ OwlSetup.exe --version | --help
 ```
 
 Options: `--dry-run` (plan only, changes nothing), `--silent` (minimal output),
-`--json` (machine-readable output for `--list` and `--check-updates`).
+`--json` (machine-readable output for `--list` and `--check-updates`),
+`--elevate` (see below).
+
+`--elevate` restarts OwlSetup as administrator when the current session is not
+elevated, then **replays the elevated run's output and exit code** to the
+caller — so a script sees the same output and the same code as an unelevated
+run. It applies to `--install`, `--uninstall`, `--apply` and `--update` only,
+and does nothing with `--dry-run`.
+
+Elevation is **opt-in on purpose**: without the flag no UAC prompt ever
+appears, and actions that require administrator rights are reported then
+skipped. An unattended run therefore never blocks on a prompt it did not ask
+for.
 
 Exit codes: `0` success, `1` at least one failure, `2` usage error, `3` WinGet
 missing. `--check-updates` returns `1` when at least one update is available, so

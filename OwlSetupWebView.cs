@@ -4770,6 +4770,155 @@ internal static class Bootstrap
         catch{return false;}
     }
 
+    // --- Auto-elevation avec relais de sortie (lot 7) -----------------------
+    //
+    // L elevation est OPT-IN (--elevate). Un outil pilote par un script ou un
+    // MDM ne doit jamais faire surgir une invite UAC de lui-meme : sans le
+    // drapeau, le comportement reste inchange (avertissement, nettoyage saute).
+    //
+    // Une elevation passe forcement par ShellExecute + « runas », qui interdit
+    // la redirection des flux : le processus eleve ne peut donc pas ecrire dans
+    // la console de l appelant. Il ecrit dans un fichier de relais que le
+    // processus parent recopie ensuite sur sa propre sortie, avant de renvoyer
+    // le code de sortie de l enfant. L appelant voit donc la sortie et le code
+    // comme si l operation s etait deroulee sans elevation.
+    const string CliRelaySwitch="--elevated-relay";
+    static readonly Regex CliRelayNamePattern=new Regex(@"^PC-Setup-Elevation-\d{4}-\d{2}-\d{2}-\d{6}-[a-f0-9]{8}\.log$");
+
+    // Les verbes qui touchent la machine entiere. --list, --search, --version…
+    // n ont aucune raison de demander des droits.
+    static bool CliVerbCanNeedAdmin(string verb)
+    {
+        return verb=="--install" || verb=="--uninstall" || verb=="--apply" || verb=="--update";
+    }
+
+    /// Mise entre guillemets a la convention Windows (CommandLineToArgvW) :
+    /// les antislashs qui precedent un guillemet doivent etre doubles.
+    static string CliQuoteArgument(string argument)
+    {
+        if(argument==null)return "\"\"";
+        var builder=new StringBuilder("\"");
+        int backslashes=0;
+        foreach(char c in argument)
+        {
+            if(c=='\\'){backslashes++;continue;}
+            if(c=='"'){builder.Append('\\',backslashes*2+1);builder.Append('"');}
+            else{builder.Append('\\',backslashes);builder.Append(c);}
+            backslashes=0;
+        }
+        builder.Append('\\',backslashes*2);
+        builder.Append('"');
+        return builder.ToString();
+    }
+
+    static bool CliIsValidRelayPath(string path)
+    {
+        try
+        {
+            if(String.IsNullOrWhiteSpace(path))return false;
+            string root=Path.GetFullPath(CliLogsFolder())+Path.DirectorySeparatorChar;
+            string full=Path.GetFullPath(path);
+            return full.StartsWith(root,StringComparison.OrdinalIgnoreCase)
+                && CliRelayNamePattern.IsMatch(Path.GetFileName(full));
+        }
+        catch{return false;}
+    }
+
+    /// Relance le processus courant en eleve, puis rejoue sa sortie.
+    static int CliRunElevated(string[] commandLine)
+    {
+        string relay=Path.Combine(CliLogsFolder(),
+            "PC-Setup-Elevation-"+DateTime.Now.ToString("yyyy-MM-dd-HHmmss")
+            +"-"+Guid.NewGuid().ToString("N").Substring(0,8)+".log");
+
+        var arguments=new StringBuilder();
+        arguments.Append(CliRelaySwitch).Append(' ').Append(CliQuoteArgument(relay));
+        // On rejoue les arguments d origine, sans --elevate : l enfant est deja
+        // eleve, il ne doit surtout pas tenter de s elever a son tour.
+        for(int i=1;i<commandLine.Length;i++)
+        {
+            if(commandLine[i]=="--elevate")continue;
+            arguments.Append(' ').Append(CliQuoteArgument(commandLine[i]));
+        }
+
+        int code;
+        try
+        {
+            using(var process=new Process())
+            {
+                process.StartInfo=new ProcessStartInfo{
+                    FileName=Assembly.GetExecutingAssembly().Location,
+                    Arguments=arguments.ToString(),
+                    UseShellExecute=true,
+                    Verb="runas",
+                    WindowStyle=ProcessWindowStyle.Hidden
+                };
+                process.Start();
+                process.WaitForExit();
+                code=process.ExitCode;
+            }
+        }
+        catch(System.ComponentModel.Win32Exception ex)
+        {
+            try{File.Delete(relay);}catch{}
+            if(ex.NativeErrorCode==1223)
+            {
+                Console.Error.WriteLine("Elevation refusee : l'invite administrateur a ete annulee.");
+                return 1223;
+            }
+            Console.Error.WriteLine("Elevation impossible : "+ex.Message);
+            return ex.NativeErrorCode;
+        }
+        catch(Exception ex)
+        {
+            try{File.Delete(relay);}catch{}
+            Console.Error.WriteLine("Elevation impossible : "+ex.Message);
+            return -1;
+        }
+
+        try
+        {
+            if(File.Exists(relay))
+            {
+                foreach(string line in File.ReadAllLines(relay,Encoding.UTF8))Console.Out.WriteLine(line);
+                File.Delete(relay);
+            }
+        }
+        catch{}
+        return code;
+    }
+
+    /// Point d entree du processus eleve : ecrit toute sa sortie dans le relais.
+    internal static int CliRelayWorker(string[] commandLine)
+    {
+        // L enfant ne s eleve jamais lui-meme : s il n est pas deja
+        // administrateur, l invocation est illegitime.
+        if(!CliIsAdmin())return 740;
+        string relay=commandLine.Length>2?commandLine[2]:null;
+        if(!CliIsValidRelayPath(relay))return 87;
+
+        var buffer=new StringWriter();
+        var previousOut=Console.Out;
+        var previousError=Console.Error;
+        int code;
+        try
+        {
+            Console.SetOut(buffer);
+            Console.SetError(buffer);
+            var forwarded=new List<string>{commandLine[0]};
+            for(int i=3;i<commandLine.Length;i++)forwarded.Add(commandLine[i]);
+            try{code=forwarded.Count>=2?RunCli(forwarded.ToArray()):2;}
+            catch(Exception ex){buffer.WriteLine(ex.Message);code=-1;}
+        }
+        finally
+        {
+            Console.SetOut(previousOut);
+            Console.SetError(previousError);
+        }
+        try{File.WriteAllText(relay,buffer.ToString(),Encoding.UTF8);}catch{}
+        return code;
+    }
+
     static string CliResolveWinget()
     {
         try
@@ -4893,7 +5042,12 @@ internal static class Bootstrap
         Console.Out.WriteLine("  OwlSetup.exe --version                   Version d'OwlSetup");
         Console.Out.WriteLine("  OwlSetup.exe --help                      Cette aide");
         Console.Out.WriteLine();
-        Console.Out.WriteLine("Options : --dry-run (simule sans rien changer), --silent (sortie minimale).");
+        Console.Out.WriteLine("Options : --dry-run (simule sans rien changer), --silent (sortie minimale),");
+        Console.Out.WriteLine("          --elevate (relance en administrateur si nécessaire, puis rejoue la");
+        Console.Out.WriteLine("          sortie et le code de l'opération élevée).");
+        Console.Out.WriteLine("--elevate ne s'applique qu'à --install, --uninstall, --apply et --update, et");
+        Console.Out.WriteLine("reste sans effet avec --dry-run. Sans ce drapeau, aucune invite UAC n'apparaît :");
+        Console.Out.WriteLine("les actions qui exigent des droits sont signalées puis ignorées.");
         Console.Out.WriteLine("--apply exécute aussi les zones de nettoyage de la config si la session est élevée,");
         Console.Out.WriteLine("et écrit un journal dans %LOCALAPPDATA%\\PCSetup\\Logs.");
         Console.Out.WriteLine();
@@ -5325,7 +5479,11 @@ internal static class Bootstrap
         bool asJson=flags.Any(a=>a=="--json");
         bool dryRun=flags.Any(a=>a=="--dry-run");
         bool silent=flags.Any(a=>a=="--silent" || a=="--quiet");
-        var rest=flags.Where(a=>a!="--json" && a!="--dry-run" && a!="--silent" && a!="--quiet").ToArray();
+        bool elevate=flags.Any(a=>a=="--elevate");
+        var rest=flags.Where(a=>a!="--json" && a!="--dry-run" && a!="--silent" && a!="--quiet" && a!="--elevate").ToArray();
+        // --dry-run ne change rien sur la machine : demander l elevation pour
+        // une simulation ne ferait qu afficher une invite UAC inutile.
+        if(elevate && !dryRun && !CliIsAdmin() && CliVerbCanNeedAdmin(verb))return CliRunElevated(commandLine);
         switch(verb)
         {
             case "--help": case "-h": case "/?": CliHelp(); return 0;
@@ -5356,6 +5514,12 @@ internal static class Bootstrap
             if(commandLine.Length==4 && commandLine[1]=="--elevated-cleanup")
             {
                 try{Environment.ExitCode=RunElevatedCleanupWorker(commandLine[2],commandLine[3]);}
+                catch{Environment.ExitCode=-1;}
+                return;
+            }
+            if(commandLine.Length>=4 && commandLine[1]==CliRelaySwitch)
+            {
+                try{Environment.ExitCode=CliRelayWorker(commandLine);}
                 catch{Environment.ExitCode=-1;}
                 return;
             }
