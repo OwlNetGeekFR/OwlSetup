@@ -94,7 +94,11 @@ const patterns = (() => {
   const start = i18n.indexOf("const englishPatterns");
   const block = i18n.slice(start, i18n.indexOf("];", start));
   const list = [];
-  for (const match of block.matchAll(/\[\/(.+?)\/,/g)) {
+  // Le litteral regulier peut etre colle au crochet (`[/motif/, "..."]`) ou
+  // seul sur sa ligne quand l entree est formatee sur plusieurs lignes. Exiger
+  // « [/ » faisait manquer toute la seconde forme — et l audit annoncait alors
+  // des trous deja couverts.
+  for (const match of block.matchAll(/^\s*\[?\s*\/(.+?)\/\s*,/gm)) {
     try {
       list.push(new RegExp(match[1]));
     } catch {
@@ -106,6 +110,61 @@ const patterns = (() => {
 
 function isCoveredByPattern(value) {
   return patterns.some((pattern) => pattern.test(value));
+}
+
+// MIROIR de `translateFragment` dans i18n.js : meme decomposition (segments
+// « · », compteur final entre parentheses, nombre en tete). Les deux doivent
+// evoluer ensemble, sinon l audit annoncerait une couverture que l interface n a
+// pas — ou l inverse.
+const SEGMENT_SEPARATOR = " · ";
+const LEADING_COUNT = /^(\d[\d  .,]*(?:\s*%)?)\s+(.+)$/;
+const TRAILING_COUNT = /^(.+?)\s*\((\d+)\)$/;
+
+/**
+ * Feuilles NON couvertes d une chaine : ce qu il reste a ajouter au
+ * dictionnaire ou a couvrir par un motif. Meme decoupe que `estCouverte`, mais
+ * on descend au lieu de s arreter au premier echec.
+ */
+function feuillesManquantes(value, depth = 0, out = new Set()) {
+  if (translated.has(value) || isCoveredByPattern(value) || VALUE_ONLY.test(value)) return out;
+  if (depth >= 2) {
+    out.add(value);
+    return out;
+  }
+  if (value.includes(SEGMENT_SEPARATOR)) {
+    for (const part of value.split(SEGMENT_SEPARATOR)) {
+      feuillesManquantes(part.trim(), depth + 1, out);
+    }
+    return out;
+  }
+  const trailing = TRAILING_COUNT.exec(value);
+  if (trailing) return feuillesManquantes(trailing[1], depth + 1, out);
+  const leading = LEADING_COUNT.exec(value);
+  if (leading) return feuillesManquantes(leading[2], depth + 1, out);
+  out.add(value);
+  return out;
+}
+
+// Un segment sans texte (« 4,2 Go », « 12 », « 45 % ») n a rien a traduire.
+// MIROIR de VALUE_ONLY dans i18n.js.
+const VALUE_ONLY = /^[\d\s.,:%/+-]*\d[\d\s.,:%/+-]*(?:\s*(?:o|K?o|Mo|Go|To|B|[KMGT]B|h|min|s))?$/i;
+
+function estCouverte(value, depth = 0) {
+  if (translated.has(value) || isCoveredByPattern(value)) return true;
+  if (VALUE_ONLY.test(value)) return true;
+  if (depth >= 2) return false;
+
+  if (value.includes(SEGMENT_SEPARATOR)) {
+    return value.split(SEGMENT_SEPARATOR).every((part) => estCouverte(part.trim(), depth + 1));
+  }
+
+  const trailing = TRAILING_COUNT.exec(value);
+  if (trailing && estCouverte(trailing[1], depth + 1)) return true;
+
+  const leading = LEADING_COUNT.exec(value);
+  if (leading && estCouverte(leading[2], depth + 1)) return true;
+
+  return false;
 }
 
 // Decodage en UN seul passage : enchainer des `replace()` produirait un
@@ -372,7 +431,43 @@ function recordLiteral(value, origin) {
 const INTERPOLATION = /\$\{(?:[^{}]|\{[^}]*\})*\}/g;
 // Deux sondes suffisent a couvrir les motifs existants : un compteur et un nom
 // d application.
-const SONDES = ["1", "Chrome"];
+/**
+ * Rend un gabarit en substituant chaque `${...}` selon ce qu il produit.
+ *
+ * Une substitution uniforme ne suffit pas : beaucoup de gabarits interpolent la
+ * MARQUE DU PLURIEL au milieu d un mot (`mise${n > 1 ? "s" : ""} a jour`).
+ * Remplacer cette expression par « 1 » donnait « 1 mise1 a jour », une chaine
+ * qui n existe nulle part et contre laquelle on ne peut ecrire aucun motif.
+ *
+ * On distingue donc deux natures d expression, et on rend le gabarit au
+ * singulier puis au pluriel — les deux formes que verra l utilisateur.
+ */
+/**
+ * Reconnait une marque d accord : un ternaire dont une branche est la chaine
+ * vide et l autre une terminaison courte. Couvre le pluriel (`? "s" : ""`) comme
+ * l accord du verbe (`? "nt" : ""` pour « resiste » / « resistent »).
+ *
+ * Renvoie la terminaison a ajouter au pluriel, ou null si l expression produit
+ * une valeur ordinaire.
+ */
+function marqueAccord(expression) {
+  if (!expression.includes("?")) return null;
+  const litteraux = [...expression.matchAll(/(["'`])((?:[^\\]|\\.)*?)\1/g)].map((m) => m[2]);
+  if (litteraux.length !== 2) return null;
+  const vide = litteraux.find((l) => l === "");
+  const terminaison = litteraux.find((l) => l !== "");
+  if (vide === undefined || terminaison === undefined) return null;
+  return /^[a-zà-ÿ]{1,3}$/i.test(terminaison) ? terminaison : null;
+}
+
+function rendreGabarit(source, nombre) {
+  return source.replace(INTERPOLATION, (expression) => {
+    const accord = marqueAccord(expression.slice(2, -1));
+    if (accord !== null) return nombre > 1 ? accord : "";
+    return String(nombre);
+  });
+}
+
 const interpolated = new Set();
 
 for (const { quote, contenu } of scanJsLiterals(appJs)) {
@@ -389,24 +484,27 @@ for (const { quote, contenu } of scanJsLiterals(appJs)) {
   // est la concatenation des morceaux et des valeurs, et c est cette chaine
   // complete que i18n.js soumet a `englishPatterns`. Un fragment isole ferait
   // croire a un trou alors que le motif « ^Desinstaller (.+)$ » couvre le cas.
-  // Deux instanciations suffisent a couvrir les motifs existants : une valeur
-  // numerique (compteurs) et un nom d application.
-  for (const valeur of SONDES) {
-    const rendu = contenu.replace(INTERPOLATION, valeur);
+  // Singulier puis pluriel : ce sont les deux chaines que i18n.js soumettra
+  // reellement a `englishPatterns`.
+  for (const nombre of [1, 3]) {
+    const rendu = rendreGabarit(contenu, nombre);
     const candidats = rendu.includes("<") ? extractFromHtml(rendu).texts : [rendu];
     for (const brut of candidats) {
       const text = clean(brut);
       if (!isCandidate(text) || text.length < 12) continue;
-      if (translated.has(text) || isCoveredByPattern(text)) continue;
-      // On compte des FORMES, pas des instanciations : les deux sondes
-      // produiraient sinon deux entrees pour un meme gabarit.
-      interpolated.add(text.replaceAll(valeur, "%s"));
+      // Artefact de sonde : le chiffre s est colle a un mot parce que le
+      // gabarit interpolait un suffixe optionnel (`${rebootRequired ? " · ..."
+      // : ""}`) qu on ne sait pas evaluer. « Windows est a jour1. » n existe pas
+      // a l execution — la vraie chaine est produite par une autre sonde.
+      if (new RegExp(`[A-Za-zà-ÿ]${nombre}(?![0-9])`, "i").test(text)) continue;
+      if (estCouverte(text)) continue;
+      interpolated.add(text);
     }
   }
 }
 
 const missing = [...found.entries()]
-  .filter(([text]) => !translated.has(text) && !isCoveredByPattern(text))
+  .filter(([text]) => !estCouverte(text))
   .sort((a, b) => a[0].localeCompare(b[0], "fr"));
 
 const total = found.size;
@@ -422,6 +520,13 @@ if (process.argv.includes("--json")) {
         percent,
         missing: missing.map(([text, from]) => ({ text, from })),
         interpolated: [...interpolated].sort((a, b) => a.localeCompare(b, "fr")),
+        leaves: [...new Set([...interpolated].flatMap((v) => [...feuillesManquantes(v)]))]
+          // Pas `isCandidate` ici : une feuille comme « libres » ou
+          // « introuvable(s) » n a ni accent ni mot-outil, mais reste bien du
+          // texte a traduire. Le filtre la masquait, et le total ne bougeait
+          // plus sans qu on sache pourquoi.
+          .filter((v) => v.length >= 3 && !VALUE_ONLY.test(v))
+          .sort((a, b) => a.localeCompare(b, "fr")),
       },
       null,
       2
@@ -451,18 +556,20 @@ if (process.argv.includes("--json")) {
 // par le tokeniseur, et les scripts PowerShell comme les sorties console sont
 // ecartes. La couverture exacte etant a 100 %, la porte protege l acquis.
 //
-// Les gabarits interpoles restent HORS de la porte : leur noeud rendu melange
-// texte et valeurs, ils relevent de `englishPatterns` et non du dictionnaire.
+// Les gabarits interpoles sont DANS la porte depuis la 4.0.0-beta.50 : ils sont
+// tous couverts, soit par un motif, soit par la decomposition (compteur en tete,
+// compteur final, segments « · ») dont ce script reproduit la logique.
 if (process.argv.includes("--check")) {
   if (missing.length) {
     console.error(`\n${missing.length} chaine(s) sans traduction anglaise.`);
     process.exit(1);
   }
-  console.log(`Couverture anglaise complete (${total} chaines).`);
   if (interpolated.size) {
-    console.log(
-      `Rappel : ${interpolated.size} chaine(s) construite(s) par interpolation restent a couvrir` +
-        ` par un motif (hors porte).`
+    console.error(
+      `\n${interpolated.size} chaine(s) construite(s) par interpolation sans traduction :`
     );
+    for (const value of interpolated) console.error(`  ${value}`);
+    process.exit(1);
   }
+  console.log(`Couverture anglaise complete (${total} chaines, interpolations comprises).`);
 }
