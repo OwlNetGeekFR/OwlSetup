@@ -1,5 +1,40 @@
 # Historique des versions
 
+## [4.0.0-beta.54] - 2026-08-30
+
+### Lot 4 — les quatre scripts d'opération sont couverts, `winget` simulé
+
+`Nettoyer-residus-applications.ps1` et `Mettre-a-jour-mon-PC.ps1` rejoignent les
+deux premiers : leur logique passe en **fonctions importables**, chargées par
+`-AsModule` sans rien exécuter. La suite Pester passe de **15 à 37 tests**.
+
+**`winget` est désormais simulé.** L'appel réel est isolé dans une fonction
+d'enveloppe que les tests remplacent par `Mock` : on vérifie que la branche
+« winget absent » ne l'appelle **jamais**, qu'un code 0 donne « réussi » et
+qu'un code non nul demande une vérification — sans rien installer sur la
+machine.
+
+**Un test tient ensemble deux côtés du code.** Quand un dossier part en
+quarantaine, son nom porte l'emplacement d'origine en préfixe (`Local-`,
+`Roaming-`, `ProgramData-`). C'est ce préfixe que `RestoreQuarantine`
+(`OwlSetupWebView.cs`) relit pour savoir où remettre le dossier. Si les deux
+divergent, **la restauration échoue en silence** : le test compare maintenant
+ce que le script produit à ce que l'hôte C# sait relire.
+
+La sélection des résidus était jusqu'ici enfouie dans un `Where-Object` en
+chaîne. Elle devient une fonction, `Test-OwlSetupResidueCandidate`, avec ses
+règles nommées et testées : âge supérieur à 90 jours, pas un lien symbolique,
+nom d'au moins 4 caractères, hors liste protégée, sans point initial, et aucune
+application installée dont le nom se rapproche — **dans les deux sens**, car
+« vlcmedia » contient « vlc » comme l'inverse.
+
+Le comportement de la normalisation est documenté au lieu d'être subi : les
+caractères accentués disparaissent (« Café » → « caf »), le rapprochement étant
+volontairement grossier.
+
+**Vérifié en cassant le code** : changer le préfixe de quarantaine produit 4
+échecs, dont celui qui compare au C#.
+
 ## [4.0.0-beta.53] - 2026-08-30
 
 ### Lot 4 — premiers tests de comportement, et une regex de sécurité oubliée
