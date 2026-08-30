@@ -1,21 +1,42 @@
 param(
     [string]$PackagesFile,
-    [string]$PackageList
+    [string]$PackageList,
+    # Charge les fonctions sans rien executer, pour les tests.
+    [switch]$AsModule
 )
 
 $ErrorActionPreference = "Continue"
-$rawPackages = if ($PackageList) {
-    $PackageList -split ';'
-} elseif ($PackagesFile -and (Test-Path -LiteralPath $PackagesFile)) {
-    @(Get-Content -LiteralPath $PackagesFile -Raw | ConvertFrom-Json)
-} else {
-    @()
+
+# Un identifiant de paquet doit COMMENCER par un caractere alphanumerique.
+# Sans cette contrainte, « -Force » ou « --source » passent la validation et
+# winget les lit comme des drapeaux, pas comme un nom de paquet. Meme regle que
+# app.js et OwlSetupWebView.cs (durcissement 4.0.0-beta.2).
+$script:OwlSetupPackageIdPattern = '^[A-Za-z0-9][A-Za-z0-9.+_-]*$'
+
+function Get-OwlSetupPackageIds {
+    param([Parameter(ValueFromPipeline = $true)][object[]]$Raw)
+    @($Raw) |
+        ForEach-Object { [string]$_ } |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -match $script:OwlSetupPackageIdPattern } |
+        Select-Object -Unique
 }
-$packages = @($rawPackages) |
-    ForEach-Object { [string]$_ } |
-    ForEach-Object { $_.Trim() } |
-    Where-Object { $_ -match '^[A-Za-z0-9.+_-]+$' } |
-    Select-Object -Unique
+
+function Read-OwlSetupPackageSelection {
+    param([string]$PackagesFile, [string]$PackageList)
+    $raw = if ($PackageList) {
+        $PackageList -split ';'
+    } elseif ($PackagesFile -and (Test-Path -LiteralPath $PackagesFile)) {
+        @(Get-Content -LiteralPath $PackagesFile -Raw | ConvertFrom-Json)
+    } else {
+        @()
+    }
+    Get-OwlSetupPackageIds -Raw $raw
+}
+
+if ($AsModule) { return }
+
+$packages = Read-OwlSetupPackageSelection -PackagesFile $PackagesFile -PackageList $PackageList
 if ($PackagesFile) { Remove-Item -LiteralPath $PackagesFile -Force -ErrorAction SilentlyContinue }
 
 if (@($packages).Count -eq 0) { Write-Host "Aucun logiciel valide." -ForegroundColor Red; Read-Host "Entree pour fermer"; exit 1 }

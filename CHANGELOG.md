@@ -1,5 +1,50 @@
 # Historique des versions
 
+## [4.0.0-beta.53] - 2026-08-30
+
+### Lot 4 — premiers tests de comportement, et une regex de sécurité oubliée
+
+Les ~45 tests PowerShell du dépôt vérifient surtout la **présence de chaînes**
+dans le source. Ils n'exécutent presque rien : un fichier peut contenir le bon
+texte et se comporter mal.
+
+`Installer-selection.ps1` et `Liberer-espace-disque.ps1` exposent désormais
+leur logique en **fonctions importables**. Le drapeau `-AsModule` charge le
+fichier sans rien exécuter, ce qui permet de tester les fonctions directement.
+
+**Un seul fichier par script, volontairement.** Sortir la logique dans un
+`.psm1` aurait ajouté une ressource à embarquer, à extraire, et surtout à
+recopier dans le dossier d'exécution élevé à ACL stricte — un fichier de plus
+dont l'intégrité conditionne une exécution administrateur. Le drapeau évite
+tout cela.
+
+**Une regex de sécurité avait été oubliée.** Le durcissement de la beta.2 —
+« un identifiant de paquet doit commencer par un caractère alphanumérique » —
+avait été appliqué à `app.js`, `OwlSetupWebView.cs`, `tools/check-catalog.mjs`
+et `beta/`, mais **pas à `Installer-selection.ps1`**, resté sur
+`^[A-Za-z0-9.+_-]+$`. Cette regex accepte `-Force`, `--source` ou `-h`, que
+winget lirait comme des drapeaux et non comme des noms de paquet. Le script est
+alimenté par OwlSetup, qui valide déjà — c'était donc de la défense en
+profondeur manquante, sur un fichier extrait sur disque et lançable seul.
+
+**15 tests Pester** (`tests/Pester/`, lancés par
+`tests/Test-OperationScripts.ps1`) couvrent la validation des identifiants, la
+lecture des sélections (liste, JSON, vide), le filtrage des zones de nettoyage,
+et la suppression de contenu — dont le refus de vider un dossier qui est
+lui-même une jonction.
+
+Pester 3.4 est livré avec Windows : aucune dépendance ajoutée.
+
+**La suite a été validée en cassant volontairement le code** : le retour de
+l'ancienne regex produit 5 échecs, le retrait du garde-fou des jonctions 1
+échec. Un test qui ne peut pas échouer ne prouve rien.
+
+Cette vérification a d'ailleurs montré qu'un des tests **ne discriminait pas** :
+retirer le filtre sur les points d'analyse des enfants ne le fait pas échouer,
+`Remove-Item -Recurse` ne traversant pas une jonction sur PowerShell 5.1. Le
+filtre reste (ce comportement a varié selon les versions de Windows), mais le
+test dit maintenant clairement qu'il vérifie le contrat, pas l'implémentation.
+
 ## [4.0.0-beta.52] - 2026-08-30
 
 ### Lot 7 — auto-élévation du mode CLI, avec relais de sortie

@@ -2,30 +2,30 @@
 param(
     [string]$ChoicesFile,
     [switch]$Integrated,
-    [string]$LogPath
+    [string]$LogPath,
+    # Charge les fonctions sans rien executer, pour les tests.
+    [switch]$AsModule
 )
 
 $ErrorActionPreference = "Continue"
 
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
-    $choiceArg = if ($ChoicesFile) { " -ChoicesFile `"$ChoicesFile`"" } else { "" }
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"$choiceArg"
-    exit
-}
+# Zones nettoyables. Toute autre valeur est ignoree : le fichier de choix est
+# ecrit par OwlSetup, mais le script reste lancable a la main.
+$script:OwlSetupCleanupZones = @("user-temp", "windows-temp", "recycle-bin", "delivery", "components", "app-leftovers")
 
-$choices = if ($ChoicesFile -and (Test-Path -LiteralPath $ChoicesFile)) {
-    @(Get-Content -LiteralPath $ChoicesFile -Raw | ConvertFrom-Json)
-} else {
-    @("user-temp", "windows-temp", "recycle-bin", "delivery")
+function Get-OwlSetupCleanupChoices {
+    param([string]$ChoicesFile)
+    $raw = if ($ChoicesFile -and (Test-Path -LiteralPath $ChoicesFile)) {
+        @(Get-Content -LiteralPath $ChoicesFile -Raw | ConvertFrom-Json)
+    } else {
+        @("user-temp", "windows-temp", "recycle-bin", "delivery")
+    }
+    @($raw) |
+        ForEach-Object { [string]$_ } |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $script:OwlSetupCleanupZones -contains $_ } |
+        Select-Object -Unique
 }
-if ($ChoicesFile) { Remove-Item -LiteralPath $ChoicesFile -Force -ErrorAction SilentlyContinue }
-
-$Host.UI.RawUI.WindowTitle = "OwlSetup - Nettoyage du disque"
-$logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
-New-Item -ItemType Directory -Path $logs -Force | Out-Null
-$log = if ($LogPath) { $LogPath } else { Join-Path $logs ("PC-Setup-Nettoyage-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log") }
-Start-Transcript -Path $log -Force
 
 function Run-Step([string]$Label, [scriptblock]$Action) {
     Write-Host "`nNettoyage : $Label" -ForegroundColor Yellow
@@ -37,17 +37,41 @@ function Run-Step([string]$Label, [scriptblock]$Action) {
     }
 }
 
-function Clear-Folder([string]$Path, [string]$Label) {
-    Run-Step $Label {
-        if (Test-Path -LiteralPath $Path) {
-            $root = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
-            if (($root.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Lien symbolique refuse : $Path" }
-            Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue |
-                Where-Object { ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 } |
-                Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-        }
-    }
+# Separe du wrapper Run-Step, qui avale les exceptions : ainsi le refus d'un
+# lien symbolique est verifiable, et non masque par la gestion d'erreur.
+function Remove-OwlSetupFolderContent {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return }
+    $root = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
+    if (($root.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Lien symbolique refuse : $Path" }
+    # Un enfant qui est une jonction est saute : le supprimer recursivement
+    # effacerait la cible, hors de la zone nettoyee.
+    Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue |
+        Where-Object { ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 } |
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 }
+
+function Clear-Folder([string]$Path, [string]$Label) {
+    Run-Step $Label { Remove-OwlSetupFolderContent -Path $Path }
+}
+
+if ($AsModule) { return }
+
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    $choiceArg = if ($ChoicesFile) { " -ChoicesFile `"$ChoicesFile`"" } else { "" }
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"$choiceArg"
+    exit
+}
+
+$choices = Get-OwlSetupCleanupChoices -ChoicesFile $ChoicesFile
+if ($ChoicesFile) { Remove-Item -LiteralPath $ChoicesFile -Force -ErrorAction SilentlyContinue }
+
+$Host.UI.RawUI.WindowTitle = "OwlSetup - Nettoyage du disque"
+$logs = Join-Path $env:LOCALAPPDATA "PCSetup\Logs"
+New-Item -ItemType Directory -Path $logs -Force | Out-Null
+$log = if ($LogPath) { $LogPath } else { Join-Path $logs ("PC-Setup-Nettoyage-" + (Get-Date -Format "yyyy-MM-dd-HHmm") + ".log") }
+Start-Transcript -Path $log -Force
 
 $drive = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
 $before = [math]::Round($drive.FreeSpace / 1GB, 2)
