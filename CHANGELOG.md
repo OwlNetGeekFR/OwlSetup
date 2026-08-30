@@ -1,5 +1,70 @@
 # Historique des versions
 
+## [4.0.0-beta.58] - 2026-08-30
+
+### Lot 2 — le routeur de 827 lignes, découpé sans en changer une seule
+
+`handleInstallMessage` recevait **tous** les messages de l'hôte C# : 97 branches
+`message.type === "…"` à plat, **829 lignes**. À elle seule, cette fonction
+pesait **23,6 % de tout le code fonctionnel** de `legacy.js` — onze fois la
+suivante (`renderWindowsUpdates`, 75 lignes). Toute panne d'affichage commençait
+par une lecture en diagonale de ces 829 lignes.
+
+Elle est maintenant **dix fonctions de domaine** et un répartiteur de treize
+lignes :
+
+| Domaine | Types | Lignes |
+| --- | ---: | ---: |
+| `handleQuarantineAndCleanupMessage` | 8 | 120 |
+| `handleInstallFlowMessage` | 10 | 107 |
+| `handleSystemAndConfigMessage` | 17 | 102 |
+| `handleUpdateAndInstalledMessage` | 5 | 93 |
+| `handleSimulationMessage` | 10 | 86 |
+| `handleUninstallAndRepairMessage` | 6 | 83 |
+| `handleDiskAndBatchMessage` | 8 | 82 |
+| `handleHealthAndWindowsUpdateMessage` | 16 | 75 |
+| `handleToolAndSecurityMessage` | 4 | 60 |
+| `handleHistoryMessage` | 12 | 40 |
+
+La plus grosse fonction du fichier passe de **829 à 120 lignes**, de 23,6 % à
+3,4 % du total.
+
+**Aucun corps de branche n'a été touché.** Le découpage a été fait
+mécaniquement, puis vérifié en comparant les 827 lignes d'origine à la
+concaténation des dix nouveaux corps : **identiques, ligne pour ligne**. Le
+comportement ne peut pas avoir changé — seul le choix du domaine est nouveau.
+
+Une condition préalable rendait l'opération sûre : sur les 97 branches, **95
+testent uniquement `message.type`**, et les deux seules conditions composées
+(la paire `uninstall-residues-complete`, distinguée par `message.context`)
+tombent dans le même domaine. Aucune branche ne dépendait donc de la chute vers
+la suivante.
+
+### Un garde qui ne gardait rien
+
+`if (!message) return;` se trouvait **après** le premier accès à
+`message.type` : un message nul levait une exception au lieu d'être écarté. Il
+est remonté dans le répartiteur, où il protège réellement.
+
+### Le mode de panne que ce découpage introduit, et son filet
+
+Le répartiteur choisit le domaine dans une table `MESSAGE_DOMAINS`. Cette table
+peut désormais **diverger du code** : une branche non déclarée n'est jamais
+atteinte, un type déclaré sans branche route vers rien. Dans les deux cas, le
+message est ignoré en silence — exactement le genre de panne que
+`beta/test/ipc-contract.test.js` existait pour empêcher.
+
+Trois contrôles ont donc été ajoutés à ce test : la table décrit exactement les
+branches de chaque fonction, aucun type n'est réclamé par deux domaines, aucune
+branche ne vit hors des domaines. Ils ont été validés en cassant délibérément le
+code — type retiré de la table, type déclaré sans branche, type dupliqué entre
+deux domaines, branche déplacée dans un dispatcher parallèle : **les quatre
+sabotages sont détectés**.
+
+**Vérifié :** 237 tests JavaScript, 55 fichiers de tests PowerShell, `app.js`
+régénéré et contrôlé syntaxiquement.
+
+
 ## [4.0.0-beta.57] - 2026-08-30
 
 ### Lot 3 — trois regex de sécurité pour une seule règle

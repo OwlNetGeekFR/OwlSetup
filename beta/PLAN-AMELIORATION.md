@@ -133,6 +133,21 @@ régression élevé (57 bêtas pour la 3.7).
    entre désinstallation simple et groupée) + `beta/test/ipc-contract.test.js`,
    qui tient ensemble les types émis par `OwlSetupWebView.cs` et les branches du
    routeur — filet indispensable avant de découper ce routeur.
+
+   **Fait en 4.0.0-beta.58 — le routeur est découpé.** `handleInstallMessage`
+   est passé de 829 lignes à un répartiteur de 13 lignes + **dix fonctions de
+   domaine** (40 à 120 lignes). Les corps de branches sont **verbatim** : les
+   827 lignes d'origine et la concaténation des dix nouveaux corps sont
+   identiques ligne pour ligne. La plus grosse fonction du fichier tombe de
+   23,6 % à 3,4 % du code fonctionnel. Le garde `if (!message) return;`, qui
+   était placé après le premier accès à `message.type`, est remonté dans le
+   répartiteur. `ipc-contract.test.js` gagne trois contrôles sur la table
+   `MESSAGE_DOMAINS` (correspondance table/code, pas de type réclamé deux fois,
+   pas de branche hors domaine), validés par quatre sabotages.
+
+   **Suite :** les dix domaines sont maintenant des unités déplaçables. Le
+   prochain pas est d'en sortir un vers `features/`, avec son test de parité.
+
 3. Pour **chaque** fonction déplacée : test de parité (`beta/test/parity.test.js`
    est le patron) avant de retirer la version inline.
 4. `build.ps1` appelle `npm run build:js` (et `build:css`, cf. lot 6) avant le
