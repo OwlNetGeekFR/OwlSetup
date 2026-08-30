@@ -9,9 +9,12 @@ $ErrorActionPreference = "Stop"
 # Assertions en ASCII : PowerShell 5.1 decode mal les accents des .ps1 sans BOM.
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $app = Get-Content -LiteralPath (Join-Path $root "app.js") -Raw -Encoding UTF8
 $html = Get-Content -LiteralPath (Join-Path $root "index.html") -Raw -Encoding UTF8
 $css = Get-Content -LiteralPath (Join-Path $root "styles.css") -Raw -Encoding UTF8
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$css = ConvertTo-CssComparable $css
 
 function Assert-Has([string]$Text, [string]$Token, [string]$Message) {
     if (-not $Text.Contains($Token)) { throw $Message }
@@ -32,13 +35,13 @@ Assert-Has $app 'modalsWithOwnKeyboard' "Les boites a gestion clavier dediee ne 
 
 # 3) Reduced motion : la regle doit couvrir toute l'interface, pas seulement le
 #    parcours d'accueil comme avant.
-Assert-Has $css 'prefers-reduced-motion: reduce' "La prise en charge de prefers-reduced-motion a disparu."
-Assert-Has $css 'animation-iteration-count: 1 !important' "Les animations ne sont plus neutralisees globalement."
-Assert-Has $css 'transition-duration: .01ms !important' "Les transitions ne sont plus neutralisees globalement."
+Assert-CssContains $css 'prefers-reduced-motion: reduce' "La prise en charge de prefers-reduced-motion a disparu."
+Assert-CssContains $css 'animation-iteration-count: 1 !important' "Les animations ne sont plus neutralisees globalement."
+Assert-CssContains $css 'transition-duration: .01ms !important' "Les transitions ne sont plus neutralisees globalement."
 
 # 4) Un anneau de focus visible sur les fonds sombres comme clairs.
-Assert-Has $css ':focus-visible' "L'anneau de focus clavier a disparu."
-Assert-Has $css ':root[data-theme="light"] :focus-visible' "L'anneau de focus n'est plus adapte au theme clair."
+Assert-CssContains $css ':focus-visible' "L'anneau de focus clavier a disparu."
+Assert-CssContains $css ':root[data-theme="light"] :focus-visible' "L'anneau de focus n'est plus adapte au theme clair."
 
 # 5) Les boites obligatoires restent sans bouton de fermeture : c'est ce qui les
 #    rend non annulables par Echap. Si l'une en gagnait un, la regle changerait

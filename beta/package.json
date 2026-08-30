@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "catalog:build": "node scripts/build-catalog.mjs",
     "catalog:verify": "node scripts/build-catalog.mjs --check && vitest run test/catalog-schema.test.js test/catalog-parity.test.js",
-    "build:js": "node scripts/build-js.mjs"
+    "build:js": "node scripts/build-js.mjs",
+    "build:css": "node scripts/build-css.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

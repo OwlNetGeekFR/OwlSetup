@@ -1,0 +1,65 @@
+/* Entretien planifie (lot 6) — 4.0.0-beta.42 */
+.schedule-panel .alpha-schedule-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.schedule-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #4c4327;
+  border-radius: 10px;
+  background: rgba(143, 111, 31, 0.08);
+}
+.schedule-note > span {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #715d27;
+  color: #ffe19a;
+  font-size: 11px;
+  font-weight: 900;
+}
+.schedule-note strong,
+.schedule-note small {
+  display: block;
+}
+.schedule-note strong {
+  font-size: 10px;
+}
+.schedule-note small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.schedule-actions .hidden {
+  display: none;
+}
+:root[data-theme="light"] .schedule-note {
+  border-color: #e6cfa0;
+  background: #f7f0dd;
+}
+:root[data-theme="light"] .schedule-note > span {
+  background: #f0e2c0;
+  color: #8a6524;
+}
+:root[data-theme="light"] .schedule-note strong {
+  color: #6b5827;
+}
+:root[data-theme="light"] .schedule-note small {
+  color: #7a6a4a;
+}
+@media (max-width: 920px) {
+  .schedule-panel .alpha-schedule-grid {
+    grid-template-columns: 1fr;
+  }
+}

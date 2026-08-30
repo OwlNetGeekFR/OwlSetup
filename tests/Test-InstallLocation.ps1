@@ -1,10 +1,13 @@
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $frontend = Get-Content -LiteralPath (Join-Path $root 'app.js') -Raw
 $interface = Get-Content -LiteralPath (Join-Path $root 'index.html') -Raw
 $native = Get-Content -LiteralPath (Join-Path $root 'OwlSetupWebView.cs') -Raw
 $styles = Get-Content -LiteralPath (Join-Path $root 'styles.css') -Raw
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$styles = ConvertTo-CssComparable $styles
 
 $checks = @(
     @{ Name = 'Choix automatique ou personnalisé'; Text = $interface; Pattern = 'installLocationMode' },

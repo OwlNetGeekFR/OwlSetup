@@ -1,6 +1,9 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $css = Get-Content (Join-Path $root 'styles.css') -Raw
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$css = ConvertTo-CssComparable $css
 $hostSource = Get-Content (Join-Path $root 'OwlSetupWebView.cs') -Raw
 
 if ($css -notmatch '\.history-toolbar\{[^}]*align-items:end') {

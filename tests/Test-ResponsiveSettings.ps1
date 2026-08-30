@@ -1,7 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $css = Get-Content -LiteralPath (Join-Path $root "styles.css") -Raw
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$css = ConvertTo-CssComparable $css
 
 $checks = @(
     @{ Name = "seuil principal"; Pattern = '@media\(max-width:1750px\)' },
@@ -21,7 +24,9 @@ foreach ($check in $checks) {
 Write-Host "Responsive settings : OK"
 
 $css = Get-Content (Join-Path $root 'styles.css') -Raw
-if ($css -notmatch 'installed-app-grid\{[^}]*container-type:inline-size' -or $css -notmatch '@container \(max-width:1050px\)') {
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$css = ConvertTo-CssComparable $css
+if ($css -notmatch 'installed-app-grid\{[^}]*container-type:inline-size' -or $css -notmatch '@container\(max-width:1050px\)') {
     throw 'Les cartes des applications installées ne sont pas adaptées à la largeur de leur conteneur.'
 }
 if ($css -notmatch 'installed-page-tools select\{[^}]*color-scheme:dark') {

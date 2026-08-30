@@ -1,8 +1,11 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $html = Get-Content -LiteralPath (Join-Path $root "index.html") -Raw -Encoding UTF8
 $css = Get-Content -LiteralPath (Join-Path $root "styles.css") -Raw -Encoding UTF8
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$css = ConvertTo-CssComparable $css
 
 $requiredSymbols = @("nav-install", "nav-update", "nav-cleanup", "nav-residue", "nav-quarantine", "nav-check")
 foreach ($symbol in $requiredSymbols) {

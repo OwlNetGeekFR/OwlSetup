@@ -1,9 +1,12 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "lib\CssText.ps1")
 $frontend = Get-Content -LiteralPath (Join-Path $root "app.js") -Raw -Encoding UTF8
 $html = Get-Content -LiteralPath (Join-Path $root "index.html") -Raw -Encoding UTF8
 $styles = Get-Content -LiteralPath (Join-Path $root "styles.css") -Raw -Encoding UTF8
+# styles.css est genere et formate : on compare le contenu, pas la mise en forme.
+$styles = ConvertTo-CssComparable $styles
 
 $checks = @(
     @{ Name = "avertissement externe masque apres installation"; Text = $frontend; Token = 'app.externalWinget&&!app.discoveredInstalled&&!installed' },
