@@ -256,16 +256,14 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
    par WebView2, jamais sur le réseau — minifier ne gagnerait rien et
    compliquerait le débogage (même raisonnement que `build-js.mjs`).
    **Reste** : purge des règles mortes.
-2. [~] _(4.0.0-beta.44, beta.49)_ **i18n** : **1 227 chaînes à 100 %**,
-   `index.html` et `app.js` compris. La porte `--check` de
-   `beta/scripts/audit-i18n.mjs` bloque désormais sur les deux fichiers
+2. [~] _(4.0.0-beta.44, beta.49, beta.50)_ **i18n** : **1 227 chaînes à 100 %**,
+   `index.html` et `app.js` compris, **interpolations comprises**. La porte
+   `--check` de `beta/scripts/audit-i18n.mjs` bloque sur tout
    (`tests/Test-EnglishTranslation.ps1`). Vérifié à l'écran : plus aucune
    chaîne ni aucun attribut en français en mode anglais, hors le badge BÊTA et
    les noms de langues, laissés dans leur langue à dessein.
-   **Reste** : les **152 chaînes construites par interpolation**
-   (« 3 mises à jour disponibles ») — elles relèvent d'un motif dans
-   `englishPatterns`, pas du dictionnaire ; puis les chaînes
-   d'`OwlSetupWebView.cs`, et l'ajout de langues par la communauté.
+   **Reste** : les chaînes d'`OwlSetupWebView.cs` (côté hôte, hors DOM), et
+   l'ajout de langues par la communauté.
 3. [~] _(4.0.0-beta.46, beta.47)_ **Accessibilité** : piège de focus générique
    sur les 19 boîtes, Échap, retour du focus, `prefers-reduced-motion` global et
    anneau de focus visible (beta.46). **Contrastes AA** (beta.47) : les couleurs

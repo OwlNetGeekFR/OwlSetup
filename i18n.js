@@ -1055,6 +1055,9 @@
     "zone": "area"
   });
 
+  // Fragments des chaines construites par interpolation (lot 6 — 4.0.0-beta.50).
+  // Le compteur et les valeurs sont retires par translateFragment ; ce sont ces
+  // morceaux fixes qui restent a traduire.
   // Chaines rendues par app.js et chaines sans accent de index.html
   // (lot 6 — 4.0.0-beta.49). Reperees par
   // beta/scripts/audit-i18n.mjs, qui scanne les litteraux de app.js et en
@@ -1557,6 +1560,110 @@
     "ZONE EN COURS": "CURRENT AREA"
   });
 
+  // Chaines rendues par app.js (lot 6 — 4.0.0-beta.49). Reperees par
+  // beta/scripts/audit-i18n.mjs, qui scanne les litteraux de app.js et en
+  // extrait les noeuds de texte quand le litteral contient du HTML.
+  Object.assign(translations.en, {
+    ": [MASQUÉ]": ": [HIDDEN]",
+    "a été interrompue. OwlSetup vous ramène à l'étape de contrôle, sans relancer automatiquement une action.": "was interrupted. OwlSetup takes you back to the check step, without automatically restarting an action.",
+    "à vérifier": "to check",
+    "à vérifier.": "to check.",
+    "action(s) à examiner. Rien n’a été modifié.": "action(s) to review. Nothing was changed.",
+    "action(s) disponible(s). Une seule étape contrôlée sera préparée à la fois.": "action(s) available. Only one checked step will be prepared at a time.",
+    "application(s) concernée(s)": "application(s) concerned",
+    "application(s) installée(s)": "application(s) installed",
+    "application(s) n’ont pas pu être installée(s) correctement.": "application(s) could not be installed correctly.",
+    "application(s) non confirmée(s) par WinGet ont été écartées.": "application(s) not confirmed by WinGet were set aside.",
+    "application(s) portable(s) détectée(s). Le raccourci sera placé selon votre choix, sans déplacer les fichiers gérés par WinGet.": "portable application(s) detected. The shortcut will be placed as you choose, without moving the files managed by WinGet.",
+    "application(s) retirée(s)": "application(s) removed",
+    "application(s) sélectionnée(s)": "application(s) selected",
+    "application(s) sont contrôlée(s) avant la confirmation.": "application(s) are checked before confirmation.",
+    "application(s) sont prêtes à être retentées.": "application(s) are ready to be retried.",
+    "aucun point retiré": "no points deducted",
+    "avertissement(s) sont présents.": "warning(s) present.",
+    "désinstallé": "uninstalled",
+    "détectée(s) via Windows": "detected through Windows",
+    "Détection impossible": "Detection not possible",
+    "doit être complètement fermée. OwlSetup préparera ensuite uniquement la mise à jour en échec.": "must be fully closed. OwlSetup will then prepare only the failed update.",
+    "dossier": "folder",
+    "dossier(s) à vérifier": "folder(s) to check",
+    "dossier(s) en quarantaine": "folder(s) in quarantine",
+    "dossier(s) en quarantaine réversible": "folder(s) in reversible quarantine",
+    "dossier(s) placé(s) en quarantaine": "folder(s) moved to quarantine",
+    "dossier(s) placé(s) en quarantaine réversible.": "folder(s) moved to reversible quarantine.",
+    "dossier(s) résiduel(s) à vérifier": "leftover folder(s) to check",
+    "dossier(s) résiduel(s) trouvé(s). Vérifiez-les ci-dessous.": "leftover folder(s) found. Check them below.",
+    "dossiers": "folders",
+    "élément(s) nécessitent une vérification manuelle.": "item(s) need a manual check.",
+    "élément(s) nécessitent votre attention.": "item(s) need your attention.",
+    "élément(s) supprimé(s)": "item(s) deleted",
+    "Enregistrez votre travail puis redémarrez complètement le PC.": "Save your work, then fully restart the PC.",
+    "est à vérifier": "needs checking",
+    "est désinstallé": "is uninstalled",
+    "est installé": "is installed",
+    "fichier(s)": "file(s)",
+    "fichier(s) local(aux) supprimé(s).": "local file(s) deleted.",
+    "fichier(s) mesurés avant suppression": "file(s) measured before deletion",
+    "fichier(s) récupérables": "recoverable file(s)",
+    "gérable(s) par WinGet": "manageable by WinGet",
+    "Go libres : aucun nettoyage urgent.": "GB free: no urgent cleanup.",
+    "groupe(s) analysé(s)": "group(s) analysed",
+    "ignoré(s)": "skipped",
+    "Installation confirmée par WinGet": "Installation confirmed by WinGet",
+    "installée(s)": "installed",
+    "Installer la sélection": "Install the selection",
+    "Le diagnostic reste affiché afin que vous puissiez réessayer.": "The diagnostic stays on screen so you can try again.",
+    "ligne(s) nécessitent votre attention.": "line(s) need your attention.",
+    "logiciel(s) dans la file": "application(s) in the queue",
+    "logiciel(s) reconnu(s) localement malgré l’indisponibilité de WinGet.": "application(s) recognised locally despite WinGet being unavailable.",
+    "mise à jour disponible": "update available",
+    "mise à jour masquée": "update hidden",
+    "mise à jour sélectionnée": "update selected",
+    "mise à jour Windows en attente": "Windows update pending",
+    "mise à jour Windows installée": "Windows update installed",
+    "mise(s) à jour": "update(s)",
+    "mise(s) à jour sont disponibles.": "update(s) available.",
+    "mises à jour disponibles": "updates available",
+    "mises à jour masquées": "updates hidden",
+    "mises à jour sélectionnées": "updates selected",
+    "mises à jour Windows en attente": "Windows updates pending",
+    "mises à jour Windows installées": "Windows updates installed",
+    "n'est pas détecté après installation.": "is not detected after installation.",
+    "ne sera plus proposé. Utilisez « Réafficher » pour revenir en arrière.": "will no longer be offered. Use « Show again » to undo.",
+    "opération(s) classée(s) résolue(s)": "operation(s) marked as resolved",
+    "ouvrir les notifications": "open notifications",
+    "processus détecté": "process detected",
+    "processus détectés": "processes detected",
+    "processus est encore actif. Vérifiez votre travail avant de forcer sa fermeture.": "process is still running. Check your work before forcing it to close.",
+    "processus fermé. La mise à jour ciblée peut reprendre.": "process closed. The targeted update can resume.",
+    "processus fermé. Relance silencieuse de la mise à jour…": "process closed. Silently restarting the update…",
+    "processus fermés. La mise à jour ciblée peut reprendre.": "processes closed. The targeted update can resume.",
+    "processus fermés. Relance silencieuse de la mise à jour…": "processes closed. Silently restarting the update…",
+    "processus résiste à la fermeture normale": "process resists a normal close",
+    "processus résistent à la fermeture normale": "processes resist a normal close",
+    "profil(s)": "profile(s)",
+    "rapport(s) local(aux). Aucun contenu n’est transmis automatiquement.": "local report(s). No content is sent automatically.",
+    "récupérables estimés": "estimated recoverable",
+    "récupérés": "recovered",
+    "réponse(s)": "answer(s)",
+    "résultat(s) externe(s). Vérifiez le nom et l’identifiant exact avant de l’ajouter.": "external result(s). Check the exact name and identifier before adding it.",
+    "réussi(s)": "successful",
+    "s’utilise dans votre navigateur. OwlSetup ouvrira uniquement le site officiel et ne transmettra aucune donnée.": "runs in your browser. OwlSetup will only open the official website and will send no data.",
+    "sera contrôlé par OwlSetup avant l’installation.": "will be checked by OwlSetup before installing.",
+    "terminée avec vérifications": "finished with checks",
+    "Tous les contrôles sont réussis": "All checks passed",
+    "un redémarrage est nécessaire pour terminer.": "a restart is needed to finish.",
+    "Une vérification demande votre attention": "One check needs your attention",
+    "utilise encore des fichiers du logiciel à mettre à jour. Enregistrez votre travail avant de le fermer.": "is still using files from the application being updated. Save your work before closing it.",
+    "utilise son propre installateur. OwlSetup vous conduit vers la source officielle afin que vous puissiez vérifier les options avant l’installation.": "uses its own installer. OwlSetup takes you to the official source so you can check the options before installing.",
+    "Vérifier": "Check",
+    "zone(s) dans la file": "area(s) in the queue",
+    "introuvable(s)": "not found",
+    "libres": "free",
+    "mesure partielle": "partial measurement",
+    "simulation valable 5 minutes": "simulation valid for 5 minutes"
+  });
+
   const englishPatterns = [
     [/^(\d+) logiciel(?:s)? sélectionné(?:s)?$/, "$1 application(s) selected"],
     [/^(\d+) application(?:s)? sélectionnée(?:s)?$/, "$1 application(s) selected"],
@@ -1572,17 +1679,189 @@
     // Attribut `title` des cartes du catalogue : une entree de dictionnaire par
     // application serait ingerable, et le nom du logiciel ne se traduit pas.
     [/^Ouvrir le site officiel de (.+)$/, "Open the $1 official website"],
-    [/^Étape (\d+)$/, "Step $1"]
+    [/^Étape (\d+)$/, "Step $1"],
+
+    // --- Valeur au milieu de la phrase (lot 6 — 4.0.0-beta.50) -------------
+    // Ces chaînes sont construites par interpolation et la valeur n'est pas en
+    // tête : la décomposition (compteur en tête, compteur final, segments
+    // « · ») ne peut rien en faire, il faut donc capturer.
+    //
+    // L'ORDRE COMPTE : le premier motif qui correspond gagne. Les formes
+    // spécifiques passent avant les génériques — « Version détectée : X. Y »
+    // avant « Version X », sinon la seconde avalerait la première.
+    [/^Analyse Windows Update indisponible : (.+)$/, "Windows Update analysis unavailable: $1"],
+    [/^Analyse incomplète : (.+)$/, "Incomplete analysis: $1"],
+    [
+      /^Aucun paquet WinGet supplémentaire trouvé pour « (.+) »\.$/,
+      "No additional WinGet package found for « $1 »."
+    ],
+    [
+      /^Certaines applications sont à vérifier \(code (.+)\)$/,
+      "Some applications need checking (code $1)"
+    ],
+    [/^Certaines zones sont à vérifier \(code (.+)\)$/, "Some areas need checking (code $1)"],
+    [/^Création d’un point de restauration avant (.+)\.$/, "Creating a restore point before $1."],
+    [/^Fermer (.+) et relancer$/, "Close $1 and retry"],
+    [/^Installation de (.+) avec WinGet$/, "Installing $1 with WinGet"],
+    [
+      /^La réparation native et la réinstallation ont échoué \(code (.+)\)\.$/,
+      "Native repair and reinstall both failed (code $1)."
+    ],
+    [
+      /^Le dashboard a refusé ce diagnostic \(HTTP (.+)\)\.$/,
+      "The dashboard refused this diagnostic (HTTP $1)."
+    ],
+    [
+      /^Le fichier (.+) contient uniquement les éléments anonymisés relus\.$/,
+      "File $1 contains only the anonymised items you reviewed."
+    ],
+    [
+      /^Les ressources intégrées correspondent à l’exécutable\. SHA-256 : (.+)\.$/,
+      "The embedded resources match the executable. SHA-256: $1."
+    ],
+    [/^Mise à jour OwlSetup (.+) disponible$/, "OwlSetup update $1 available"],
+    [/^Nettoyage à vérifier \(code (.+)\)$/, "Cleanup to check (code $1)"],
+    [/^OwlSetup (.+) est disponible(\.?)$/, "OwlSetup $1 is available$2"],
+    [
+      /^Préférence locale : chaque (.+) à (.+)\. L’exécution automatique sera activée dans une prochaine Alpha\.$/,
+      "Local preference: every $1 at $2. Automatic runs will be enabled in a future Alpha."
+    ],
+    [/^Rapport rangé dans OwlSetup : (.+)$/, "Report filed in OwlSetup: $1"],
+    [
+      /^Recherche de « (.+) » dans la source communautaire WinGet…$/,
+      "Searching for « $1 » in the WinGet community source…"
+    ],
+    [/^Rechercher « (.+) » dans WinGet$/, "Search for « $1 » in WinGet"],
+    [/^Réparation incomplète \(code (.+)\)\. Consultez (.+)\.$/, "Incomplete repair (code $1). See $2."],
+    [/^Seulement (\d+) % sont libres sur C:\.$/, "Only $1 % free on C:."],
+    [/^Signature approuvée : (.+)\.$/, "Signature approved: $1."],
+    [/^Supprimer les (\d+) élément\(s\) de plus de 30 jours$/, "Delete the $1 item(s) older than 30 days"],
+    [
+      /^Tous les rapports ont moins de (\d+) jours\. Pour tout supprimer, utilisez « Effacer tout »\.$/,
+      "All reports are less than $1 days old. To delete everything, use « Clear all »."
+    ],
+    [/^Tâche enregistrée\. Prochaine exécution : (.+)\.$/, "Task saved. Next run: $1."],
+    [/^Prochaine exécution : (.+)\.$/, "Next run: $1."],
+    [
+      /^Un point de restauration récent existe déjà \(créé il y a environ (.+) h\) et protège déjà votre PC\. Windows limite la création à un point par 24 h\.$/,
+      "A recent restore point already exists (created about $1 h ago) and already protects your PC. Windows allows only one point per 24 h."
+    ],
+    [/^Version détectée : (.+)\. (.+)$/, "Detected version: $1. $2"],
+    [/^Vérification terminée : (.+) est bien détecté\.$/, "Check complete: $1 is properly detected."],
+    [/^WinGet n’a pas terminé la mise à jour \(code (.+)\)\.$/, "WinGet did not finish the update (code $1)."],
+    [
+      /^Windows a accepté (\d+) mise\(s\) à jour sans les appliquer \(préversion \/ cumulative optionnelle\)\. Utilisez « Ouvrir Windows Update » pour les installer\.$/,
+      "Windows accepted $1 update(s) without applying them (prerelease / optional cumulative). Use « Open Windows Update » to install them."
+    ],
+    [
+      /^Étape (\d+)\/(\d+) préparée : (.+)\. Les confirmations habituelles restent actives\.$/,
+      "Step $1/$2 prepared: $3. The usual confirmations remain active."
+    ],
+    [/^— (.+) le (.+) à (.+)\.$/, "— $1 on $2 at $3."],
+    [/^· vérifié à (.+)$/, "· checked at $1"],
+    [/^: (\d+) erreur\(s\) et (\d+) avertissement\(s\)$/, ": $1 error(s) and $2 warning(s)"],
+    [/^−(\d+) points$/, "−$1 points"],
+    [/^(\d+)\+ fichiers$/, "$1+ files"],
+    [/^et (\d+) autre\(s\)$/, "and $1 other(s)"],
+    [
+      /^fichier\(s\) plus ancien\(s\) que (\d+) jours ont été supprimé\(s\)\.$/,
+      "file(s) older than $1 days were deleted."
+    ],
+    [/^installée\(s\), (\d+) en échec\. Rapport : (.+)$/, "installed, $1 failed. Report: $2"],
+    [
+      /^logiciel\(s\) disponible\(s\) ajouté\(s\) à la sélection depuis (.+)\.$/,
+      "application(s) available added to the selection from $1."
+    ],
+    [/^logiciel\(s\) enregistrés dans (.+)\.$/, "application(s) saved in $1."],
+    [/^navigateur sélectionné sur (\d+)$/, "browser selected out of $1"],
+    [/^navigateurs sélectionnés sur (\d+)$/, "browsers selected out of $1"],
+    [/^réussi\(s\), (\d+) à vérifier$/, "successful, $1 to check"],
+    [/^sur (\d+) traité\(s\)$/, "of $1 processed"],
+
+    // Formes génériques : elles doivent rester en dernier.
+    [/^Désinstallation de (.+)$/, "Uninstalling $1"],
+    [/^Installation de (.+)$/, "Installing $1"],
+    [/^Préparation de (.+)$/, "Preparing $1"],
+    [/^Réparation de (.+)$/, "Repairing $1"],
+    [/^Vérification de (.+)$/, "Checking $1"],
+    [/^Détectée par (.+)$/, "Detected by $1"],
+    [/^détectée par (.+)$/, "detected by $1"],
+    [/^Modifié le (.+)$/, "Modified on $1"],
+    [/^est prêt\. (.+)$/, "is ready. $1"],
+    [/^rapport (.+)$/, "report $1"],
+    [/^Version (.+)$/, "Version $1"]
   ];
+
+  // Beaucoup de chaînes sont construites par interpolation : « 3 mises à jour
+  // disponibles », « Installer la sélection (2) », « 4 installée(s) · 1 à
+  // vérifier ». Une entrée de dictionnaire ne peut pas les couvrir, puisque le
+  // nombre change, et écrire un motif par forme en demanderait plus de 150.
+  //
+  // On décompose donc la chaîne autour de ses parties variables, on traduit le
+  // texte fixe par le dictionnaire, puis on réassemble. Le dictionnaire ne
+  // contient alors que des clés exactes — sans risque d'accord ni de capture
+  // ratée.
+  //
+  // La décomposition n'est retenue que si TOUTES les parties se traduisent :
+  // une phrase à moitié anglaise serait pire que la version française.
+  const SEGMENT_SEPARATOR = " · ";
+  // Un nombre en tête, avec ses séparateurs de milliers et un « % » optionnel.
+  const LEADING_COUNT = /^(\d[\d  .,]*(?:\s*%)?)\s+(.+)$/;
+  const TRAILING_COUNT = /^(.+?)\s*\((\d+)\)$/;
+  // Un segment qui ne porte aucun texte — « 4,2 Go », « 12 », « 45 % », « 2 h »
+  // — n'a rien à traduire. Sans cette règle il ferait échouer toute la phrase,
+  // puisque la décomposition exige que CHAQUE partie soit couverte.
+  const VALUE_ONLY = /^[\d\s.,:%/+-]*\d[\d\s.,:%/+-]*(?:\s*(?:o|K?o|Mo|Go|To|B|[KMGT]B|h|min|s))?$/i;
+
+  function translateFragment(source, depth) {
+    const exact = translations[currentLanguage]?.[source];
+    if (exact) return exact;
+    if (VALUE_ONLY.test(source)) return source;
+
+    for (const [pattern, replacement] of englishPatterns) {
+      if (!pattern.test(source)) continue;
+      // La valeur capturée n'est pas toujours un nom propre : « Étape 1/3
+      // préparée : Nettoyage » injecte un libellé, lui-même traduisible. On la
+      // passe donc au dictionnaire — mais par correspondance EXACTE seulement,
+      // pour ne jamais produire une phrase à moitié traduite.
+      return source.replace(pattern, (...args) => {
+        const groups = args.slice(1, -2);
+        return replacement.replace(/\$(\d)/g, (whole, index) => {
+          const captured = groups[Number(index) - 1];
+          if (typeof captured !== "string") return whole;
+          return translations[currentLanguage]?.[captured] ?? captured;
+        });
+      });
+    }
+
+    if (depth >= 2) return null;
+
+    if (source.includes(SEGMENT_SEPARATOR)) {
+      const parts = source
+        .split(SEGMENT_SEPARATOR)
+        .map((part) => translateFragment(part.trim(), depth + 1));
+      if (parts.every(Boolean)) return parts.join(SEGMENT_SEPARATOR);
+      return null;
+    }
+
+    const trailing = TRAILING_COUNT.exec(source);
+    if (trailing) {
+      const base = translateFragment(trailing[1], depth + 1);
+      if (base) return `${base} (${trailing[2]})`;
+    }
+
+    const leading = LEADING_COUNT.exec(source);
+    if (leading) {
+      const rest = translateFragment(leading[2], depth + 1);
+      if (rest) return `${leading[1]} ${rest}`;
+    }
+
+    return null;
+  }
 
   function translateValue(source) {
     if (currentLanguage === "fr") return source;
-    const exact = translations[currentLanguage]?.[source];
-    if (exact) return exact;
-    for (const [pattern, replacement] of englishPatterns) {
-      if (pattern.test(source)) return source.replace(pattern, replacement);
-    }
-    return source;
+    return translateFragment(source, 0) ?? source;
   }
 
   const originalText = new WeakMap();

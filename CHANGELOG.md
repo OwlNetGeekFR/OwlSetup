@@ -1,5 +1,56 @@
 # Historique des versions
 
+## [4.0.0-beta.50] - 2026-08-30
+
+### Lot 6 — les chaînes construites par interpolation passent en anglais
+
+La beta.49 laissait **152 chaînes** en français : celles que le code assemble
+avec une valeur, comme « 3 mises à jour disponibles » ou « Installer la
+sélection (2) ». Aucune clé de dictionnaire ne peut les couvrir, puisque le
+nombre change à chaque affichage.
+
+**Écrire un motif par forme aurait demandé plus de 150 expressions
+régulières**, dont beaucoup avec la marque du pluriel au milieu d'un mot
+(`mise${s} à jour`) — autant d'occasions de fautes d'accord.
+
+`i18n.js` **décompose** désormais la chaîne autour de ses parties variables :
+
+- compteur en tête (« 3 mises à jour disponibles ») ;
+- compteur final entre parenthèses (« Installer la sélection (2) ») ;
+- segments séparés par « · » (« 4 installée(s) · 1 à vérifier »).
+
+Le texte fixe passe alors par le dictionnaire — des **clés exactes**, sans
+risque d'accord. La décomposition n'est retenue que si **toutes** les parties
+se traduisent : une phrase à moitié anglaise serait pire que la version
+française. Un segment sans texte (« 4,2 Go », « 45 % ») passe tel quel plutôt
+que de faire échouer la phrase entière.
+
+**98 fragments** ajoutés au dictionnaire, **58 motifs** pour les cas où la
+valeur est au milieu de la phrase (« Désinstallation de X », « Réparation
+incomplète (code N) »). Les groupes capturés passent eux aussi par le
+dictionnaire, en correspondance exacte : « Étape 1/3 préparée : **Nettoyage** »
+devient « Step 1/3 prepared: **Cleanup** », tandis qu'un nom d'application
+reste intact.
+
+**Trois défauts de l'audit corrigés au passage**, tous découverts parce que le
+compte refusait de descendre :
+
+- les **sondes d'instanciation** substituaient un nombre à la marque du
+  pluriel, produisant « 1 mise1 à jour » — une chaîne qui n'existe nulle part.
+  L'audit reconnaît maintenant un accord (`? "s" : ""`, mais aussi
+  `? "nt" : ""` pour « résiste » / « résistent ») et rend le gabarit au
+  singulier **puis** au pluriel ;
+- le **parseur de motifs** exigeait `[/` collés, donc ignorait toute entrée
+  formatée sur plusieurs lignes — l'audit signalait des trous déjà couverts ;
+- la liste des fragments manquants était filtrée par la détection du français,
+  ce qui **masquait** « libres » ou « introuvable(s) », sans accent.
+
+La porte `--check` **inclut désormais les interpolations** : elles sont toutes
+couvertes, elle protège donc l'acquis.
+
+Vérifié à l'écran en anglais, toutes vues et fenêtres affichées : **0 texte** et
+**0 attribut** en français, hors le badge BÊTA et les noms de langues.
+
 ## [4.0.0-beta.49] - 2026-08-30
 
 ### Lot 6 — traduction anglaise complète de l'interface
