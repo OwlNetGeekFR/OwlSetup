@@ -22,6 +22,7 @@ const MODULES = [
   "../src/modules/theme.js",
   "../src/modules/update-heuristics.js",
   "../src/modules/operations-reconcile.js",
+  "../src/modules/operation-summary.js",
 ];
 
 /**

@@ -1,5 +1,43 @@
 # Historique des versions
 
+## [4.0.0-beta.55] - 2026-08-30
+
+### Lot 2 — où est vraiment la masse d'`app.js`, et un filet avant d'y toucher
+
+Première tranche du découpage du front-end. Avant de couper, j'ai mesuré — et
+la masse n'est pas là où le plan la supposait.
+
+Sur les **236 fonctions** de premier niveau de `legacy.js`,
+**`handleInstallMessage` en fait 827 à elle seule, soit 18 % du fichier**. C'est
+un routeur plat de **97 branches** `message.type === "…"`, et le **seul** point
+d'entrée des messages envoyés par l'hôte C#.
+
+Deuxième constat : seules **34 fonctions (279 lignes)** sont exemptes de DOM et
+d'état global, et les plus grosses sont déjà extraites. Le reste du fichier
+demandera un découpage **par couches**, pas une simple récolte de fonctions
+pures — c'est une correction utile de la trajectoire du lot.
+
+**Un filet avant de découper ce routeur.**
+`beta/test/ipc-contract.test.js` tient ensemble les deux côtés de l'IPC : tout
+type émis par `OwlSetupWebView.cs` doit avoir une branche, et toute branche doit
+correspondre à un type émis. Un message non traité ne provoque aucune erreur —
+il est simplement ignoré, et la fonctionnalité ne fait rien. C'est le genre de
+panne silencieuse qu'un découpage de 827 lignes peut introduire sans bruit.
+
+Le test lit **les deux formes** d'émission côté C# : l'initialiseur d'objet
+`new { type="x" }` et l'affectation `snapshot["type"]="x"`. N'en chercher
+qu'une faisait passer un handler bien vivant pour du code mort. Résultat
+actuel : **96 types, aucun orphelin des deux côtés**.
+
+**Première extraction.** `operation-summary.js` porte les libellés d'issue de
+quarantaine, que le routeur construisait **deux fois** — une pour la
+désinstallation simple, une pour la groupée — avec des titres et des détails
+rigoureusement identiques et seule la phrase du panneau qui changeait.
+
+Le test de parité recopie **les chaînes de l'ancien code** comme valeurs
+attendues, et vérifie en plus qu'elles ont toujours une entrée dans `i18n.js` :
+en modifier une ferait retomber ce texte en français dans l'interface anglaise.
+
 ## [4.0.0-beta.54] - 2026-08-30
 
 ### Lot 4 — les quatre scripts d'opération sont couverts, `winget` simulé

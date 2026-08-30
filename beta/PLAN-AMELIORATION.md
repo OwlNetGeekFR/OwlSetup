@@ -116,10 +116,23 @@ régression élevé (57 bêtas pour la 3.7).
    est présent. Garde-fou `beta/test/bundle.test.js`. Voir
    `beta/src/app/README.md`. _Le passage à esbuild/rollup viendra quand
    `legacy.js` aura fondu._
-2. Découper progressivement, par domaine (un module + ses tests par PR) :
+2. [~] Découper progressivement, par domaine (un module + ses tests par PR) :
    `core/` (dom, state, ipc, storage, i18n-bridge, telemetry),
    `features/` (catalog, install, updates, uninstall, cleanup, browser,
    diagnostics, security, history, onboarding).
+
+   **Mesure faite en 4.0.0-beta.55** — la masse n'est pas là où on la croyait :
+   sur 236 fonctions de premier niveau, **`handleInstallMessage` en fait 827 à
+   elle seule, soit 18 % du fichier**. C'est un routeur plat de 97 branches
+   `message.type === "…"`, et le **seul** point d'entrée des messages de l'hôte.
+   Par ailleurs, seules 34 fonctions (279 lignes) sont exemptes de DOM et
+   d'état global : le reste demandera un découpage par couches, pas une simple
+   extraction de fonctions pures.
+
+   Fait en beta.55 : `operation-summary.js` (libellés de quarantaine, dupliqués
+   entre désinstallation simple et groupée) + `beta/test/ipc-contract.test.js`,
+   qui tient ensemble les types émis par `OwlSetupWebView.cs` et les branches du
+   routeur — filet indispensable avant de découper ce routeur.
 3. Pour **chaque** fonction déplacée : test de parité (`beta/test/parity.test.js`
    est le patron) avant de retirer la version inline.
 4. `build.ps1` appelle `npm run build:js` (et `build:css`, cf. lot 6) avant le
