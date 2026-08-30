@@ -43,15 +43,15 @@ OwlSetup vérifie les nouvelles versions sur GitHub, télécharge l'exécutable,
 
 Inchangée. Les préférences et l'historique restent sur le PC. Aucun diagnostic n'est envoyé sans choix explicite. Les rapports facultatifs n'incluent ni nom, ni adresse e-mail, ni chemin personnel, ni liste complète des logiciels.
 
-## Ce qui reste à éprouver dans cette Release Candidate
+## Essais menés sur un poste réel
 
-Cette build est une candidate, pas une version finale. Les essais suivants n'ont **pas encore** été menés sur un poste réel :
+En plus des 53 contrôles automatiques rejoués à chaque build, les trois trajets qui ne peuvent pas être automatisés ont été exercés à la main :
 
-- le trajet complet de l'**auto-élévation** `--elevate` avec invite UAC ;
-- l'écriture du **journal d'audit des élévations** de bout en bout ;
-- la **mise en quarantaine d'un dossier résiduel puis sa restauration**.
+- l'**auto-élévation** `--elevate`, invite UAC comprise, avec relais de la sortie et du code vers l'appelant ;
+- l'écriture du **journal d'audit des élévations**, de la demande jusqu'à son issue ;
+- la **mise en quarantaine d'un dossier résiduel puis sa restauration** à son emplacement d'origine.
 
-Les retours sur ces trois points sont particulièrement utiles.
+Cette build reste une candidate : les retours d'usage sur d'autres configurations Windows sont les bienvenus.
 
 ## Vérification
 
