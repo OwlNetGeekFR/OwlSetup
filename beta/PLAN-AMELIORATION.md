@@ -197,16 +197,16 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
 **Étapes :**
 
 1. **JS unitaires** : poursuivre la couverture Vitest au fil du lot 2.
-2. [~] _(4.0.0-beta.53)_ **PowerShell** : `Installer-selection.ps1` et
-   `Liberer-espace-disque.ps1` exposent leur logique en **fonctions
-   importables** (`-AsModule` charge sans rien exécuter), couvertes par une
-   suite **Pester** de 15 tests (`tests/Pester/`, lancée par
-   `tests/Test-OperationScripts.ps1`). Un seul fichier par script : pas de
-   module séparé à embarquer, donc rien de neuf dans le chemin d'exécution
-   élevé à ACL stricte. La suite a été validée en **cassant volontairement** le
-   code — 5 échecs au retour de l'ancienne regex, 1 au retrait du garde-fou des
-   jonctions. **Reste** : `Mettre-a-jour-mon-PC.ps1` et
-   `Nettoyer-residus-applications.ps1`, puis la simulation de `winget`.
+2. [x] _(4.0.0-beta.53, beta.54)_ **PowerShell** : les **quatre** scripts
+   d'opération exposent leur logique en **fonctions importables** (`-AsModule`
+   charge sans rien exécuter), couvertes par une suite **Pester de 37 tests**
+   (`tests/Pester/`, lancée par `tests/Test-OperationScripts.ps1`). Un seul
+   fichier par script : pas de module séparé à embarquer, donc rien de neuf
+   dans le chemin d'exécution élevé à ACL stricte. `winget` est **simulé** par
+   `Mock` sur une fonction d'enveloppe, ce qui couvre la branche « winget
+   absent » sans toucher la machine. Un test tient ensemble le préfixe de
+   quarantaine produit par le script et celui que `RestoreQuarantine` relit
+   côté C#. La suite est validée en **cassant volontairement** le code.
 3. **e2e** : conteneur/VM Windows jetable + WebView2, script qui lance
    `OwlSetup.exe`, pilote l'IPC et vérifie les parcours clés (install simulé,
    scan, nettoyage annulé). Cible : GitHub Actions `windows-latest` nocturne.
