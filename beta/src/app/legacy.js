@@ -3871,22 +3871,24 @@ function handleInstallMessage(message) {
     return;
   }
   if(message.type==="uninstall-residues-complete"&&message.context!=="batch"){
+    const resume=quarantineSummary({moved:message.moved,failed:message.failed,batch:false});
     $("#quarantineUninstallResidues").disabled=false;
     $("#uninstallResiduePanel").classList.add("hidden");
     $("#finishUninstall").classList.remove("hidden");
-    $("#uninstallSummary").textContent=message.failed?`${message.moved} dossier(s) placé(s) en quarantaine · ${message.failed} à vérifier.`:`${message.moved} dossier(s) placé(s) en quarantaine réversible.`;
+    $("#uninstallSummary").textContent=resume.text;
     pendingUninstallResidueToken="";
-    setBackgroundUninstall(message.failed?"Nettoyage terminé avec vérifications":"Nettoyage terminé",message.failed?`${message.failed} dossier(s) à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`,100,message.failed?"warning":"complete");
+    setBackgroundUninstall(resume.title,resume.detail,100,resume.tone);
     requestHealth();requestQuarantine();requestHistory();
     return;
   }
   if(message.type==="uninstall-residues-complete"&&message.context==="batch"){
+    const resume=quarantineSummary({moved:message.moved,failed:message.failed,batch:true});
     $("#quarantineBatchResidues").disabled=false;
     $("#batchResiduePanel").classList.add("hidden");
     $("#finishBatchUninstall").classList.remove("hidden");
-    $("#batchUninstallResult").textContent=message.failed?`${message.moved} dossier(s) en quarantaine · ${message.failed} à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`;
+    $("#batchUninstallResult").textContent=resume.text;
     pendingBatchResidueToken="";
-    setBackgroundUninstall(message.failed?"Nettoyage terminé avec vérifications":"Nettoyage terminé",message.failed?`${message.failed} dossier(s) à vérifier`:`${message.moved} dossier(s) en quarantaine réversible`,100,message.failed?"warning":"complete");
+    setBackgroundUninstall(resume.title,resume.detail,100,resume.tone);
     requestHealth();requestQuarantine();requestHistory();return;
   }
   if (message.type === "install-preflight-progress") {
