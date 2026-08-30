@@ -21,21 +21,31 @@ function escapeHtml(value) {
 /**
  * Validation des identifiants de paquet (WinGet / MS Store) manipules par l'interface.
  *
- * Meme expression que :
- *  - `app.js` (racine) : `isValidPackageId`, filtre de `pcsetup-selection`.
- *  - `OwlSetupWebView.cs` : `Regex.IsMatch(x, "^[A-Za-z0-9][A-Za-z0-9.+_-]*$")` cote hote.
+ * SOURCE DE VERITE : `PackageIdPattern` dans `OwlSetupWebView.cs`. C'est l'hote
+ * qui construit les lignes de commande `winget.exe` : sa regle est la seule qui
+ * decide vraiment. Ce module la reflete pour que l'interface refuse tot ce que
+ * l'hote refusera de toute facon.
  *
- * Garder les deux cotes strictement identiques : c'est la frontiere de confiance
- * entre l'UI et l'appel `winget.exe`. Le premier caractere doit etre
- * alphanumerique : un identifiant en `-...` ne peut donc pas etre confondu avec
- * un argument `winget` (durcissement 4.0-beta).
+ * `beta/test/package-id.test.js` LIT `OwlSetupWebView.cs` et compare les deux :
+ * ce n'est plus une copie litterale ecrite dans le test. La version precedente
+ * comparait a une chaine figee, et a donc continue de passer en affirmant une
+ * egalite devenue fausse quand l'hote a ete durci en 4.0.0-beta.57.
+ *
+ * Le premier caractere doit etre alphanumerique : un identifiant en `-...` ne
+ * peut donc pas etre confondu avec un argument `winget`. La longueur est bornee
+ * a 128 : un identifiant demesure n'atteint pas la ligne de commande.
+ *
+ * Seul l'echappement differe de l'hote (`+-]` ici, `+\-]` en C#) : le tiret en
+ * fin de classe est deja litteral en JavaScript, et l'echapper serait signale
+ * comme inutile. Le test normalise cette difference et compare aussi les deux
+ * regles sur un corpus.
  */
 
 /** Jeu de caracteres autorise dans un identifiant transmis a l'hote. */
-const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/;
+const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]{1,127}$/;
 
 /** Longueur defensive utilisee par la telemetrie (`targetPackage`). */
-const TELEMETRY_PACKAGE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]{0,95}$/;
+const TELEMETRY_PACKAGE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]{1,95}$/;
 
 /**
  * @param {unknown} id
@@ -440,7 +450,7 @@ document.querySelector("#homeCatalogCount").textContent = apps.length;
 let selected;
 try {
   const storedSelection = JSON.parse(localStorage.getItem("pcsetup-selection") || "[]");
-  selected = new Set((Array.isArray(storedSelection) ? storedSelection : []).filter(id => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(id)));
+  selected = new Set(sanitizePackageIds(storedSelection));
 } catch {
   selected = new Set();
   localStorage.removeItem("pcsetup-selection");
@@ -1225,7 +1235,7 @@ function scheduleExtendedWingetSearch(){
 
 function addExtendedWingetResult(id){
   const result=extendedWingetResults.find(item=>item.id===id);
-  if(!result||!/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(result.id))return;
+  if(!result||!isValidPackageId(result.id))return;
   let app=apps.find(item=>item.id.toLocaleLowerCase("en")===result.id.toLocaleLowerCase("en"));
   if(!app){
     const brand=resolveWingetBrand(result);
@@ -3736,7 +3746,7 @@ function handleSimulationMessage(message) {
     if(responseQuery!==searchTerm.trim())return;
     extendedWingetPending=false;
     extendedWingetQuery=responseQuery||extendedWingetQuery;
-    extendedWingetResults=message.success&&Array.isArray(message.items)?message.items.filter(item=>item&&/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(String(item.id||""))).slice(0,12):[];
+    extendedWingetResults=message.success&&Array.isArray(message.items)?message.items.filter(item=>item&&isValidPackageId(String(item.id||""))).slice(0,12):[];
     renderExtendedWingetSearch();
     if(!message.success){const state=$("#wingetSearchState");state.classList.remove("hidden");state.classList.add("error");state.textContent=message.message||extendedWingetText("La recherche WinGet n’a pas abouti.","The WinGet search did not complete.");}
     return;

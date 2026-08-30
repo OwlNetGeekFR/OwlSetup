@@ -196,6 +196,31 @@ commande, sans analyseur ni découpage.
    stricte des trois. Garde : `tests/Test-PackageIdValidation.ps1`.
    **Reste** : un objet `WingetCommand` qui porterait aussi la construction des
    arguments, plutôt que la concaténation actuelle.
+
+   **Suite en 4.0.0-beta.59 — le front ne suivait pas.** L'unification de la
+   beta.57 n'avait touché que l'hôte : côté interface la règle était écrite
+   **six fois en trois versions**, et le module partagé `package-id.js` — dont
+   c'est précisément le rôle de refléter l'hôte — était resté sur la forme
+   lâche, docstring affirmant l'inverse. Pire, `package-id.test.js` prétendait
+   vérifier cette égalité mais comparait à une **copie littérale écrite dans le
+   test** : il a continué de passer pendant deux versions en affirmant quelque
+   chose de faux.
+
+   Le module est aligné, les trois copies inline de `legacy.js` sont retirées
+   (la sélection restaurée passe par `sanitizePackageIds`), et le test **lit
+   désormais `OwlSetupWebView.cs`** — comparaison de la chaîne et du
+   comportement sur un corpus. Un garde empêche la copie inline de revenir.
+   Quatre sabotages valident l'ensemble.
+
+   **Leçon transposable :** un test qui recopie l'autre côté d'une frontière ne
+   garde pas cette frontière, il garde sa propre copie. Partout où deux fichiers
+   doivent s'accorder, le test doit aller lire les deux.
+
+   **Audit sans suite :** les trois générateurs de scripts PowerShell du
+   front-end (`generateScript`, `generateUpdateScript`, `generateCleanupScript`)
+   ont été audités — aucune injection possible aujourd'hui, mais par accident
+   plutôt que par construction. Échapper les valeurs interpolées à la
+   construction reste à faire.
 4. **Corrections de sécurité ciblées :**
    - [x] refuser un identifiant commençant par un non-alphanumérique — regex
          passée à `^[A-Za-z0-9][A-Za-z0-9.+_-]*$` dans `app.js`, `OwlSetupWebView.cs`

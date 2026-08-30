@@ -1,5 +1,92 @@
 # Historique des versions
 
+## [4.0.0-beta.59] - 2026-08-30
+
+### Lot 3 — le front ne disait plus la même règle que l'hôte, et le test qui devait s'en apercevoir mentait
+
+La 4.0.0-beta.57 avait unifié la validation des identifiants de paquet **côté
+hôte**, sur la plus stricte des trois formes trouvées. Elle n'a pas touché au
+front-end. Résultat : depuis deux versions, l'interface acceptait des
+identifiants que `OwlSetupWebView.cs` refuse.
+
+La règle était écrite **six fois, en trois versions** :
+
+| Lieu | Motif | ≥ 2 car. | Borne |
+| --- | --- | --- | --- |
+| `package-id.js` (module partagé) | `[A-Za-z0-9.+_-]*` | non | aucune |
+| `legacy.js` — sélection restaurée | idem, recopié | non | aucune |
+| `package-id.test.js` — copie figée | idem, recopié | non | aucune |
+| `parity.test.js` — copie figée | idem, recopié | non | aucune |
+| `legacy.js` — recherche étendue (×2) | `[A-Za-z0-9._+\-]{1,127}` | oui | 128 |
+| **`OwlSetupWebView.cs`** (la seule qui décide) | `[A-Za-z0-9._+\-]{1,127}` | oui | 128 |
+
+C'est la même dérive qu'au lot 3 côté C# — 27 copies, trois règles — mais côté
+front, et sur le module dont c'est précisément le rôle de refléter l'hôte.
+
+### Le test qui affirmait le contraire
+
+`package-id.test.js` contenait ceci :
+
+```js
+it("est identique a la regex de l'hote C# (…)", () => {
+  expect(PACKAGE_ID_PATTERN.source).toBe("^[A-Za-z0-9][A-Za-z0-9.+_-]*$");
+});
+```
+
+Il ne comparait pas le module à l'hôte : il le comparait à une **copie littérale
+écrite dans le test lui-même**. Quand l'hôte a changé, la copie n'a pas bougé,
+le test a continué de passer, et il a affirmé pendant deux versions une égalité
+devenue fausse. Un test qui ne va pas chercher l'autre côté de la frontière ne
+garde pas cette frontière — il garde sa propre copie.
+
+Il lit désormais `OwlSetupWebView.cs`, en extrait `PackageIdPattern`, et compare
+de deux façons : la chaîne (aux conventions d'échappement près, documentées) et
+le **comportement** sur un corpus de vingt cas limites. Une reformulation
+équivalente en apparence seulement ne passe pas.
+
+### Ce que ça changeait en pratique
+
+Peu, et il faut le dire : les 93 applications du catalogue mesurent entre 7 et
+39 caractères — aucune n'est concernée, et c'est vérifié par un test. Les seuls
+identifiants pouvant sortir des bornes viennent de la découverte d'applications
+installées et de la recherche WinGet étendue, où ils sont possibles sans avoir
+été observés. L'écart était réel mais dormant.
+
+Le point n'est pas le dégât évité, c'est que l'invariant est maintenant
+**vérifié** au lieu d'être affirmé à tort. Une application découverte avec un
+identifiant hors bornes entrait dans le catalogue, s'affichait, se laissait
+sélectionner — et l'installation ne faisait rien, sans message. Le front refuse
+désormais ce que l'hôte refusera.
+
+### Nettoyage
+
+Les trois copies inline de `legacy.js` sont retirées ; la restauration de la
+sélection passe par `sanitizePackageIds`, dont c'était déjà le rôle exact. Un
+garde vérifie qu'aucune copie ne revient — en visant la forme
+`[A-Za-z0-9][A-Za-z0-9`, pour ne pas confondre avec la regex de recherche
+étendue, qui est une autre règle sur une autre donnée.
+
+Les quatre contrôles ont été validés en cassant le code : hôte durci sans le
+front, front relâché sans l'hôte, `PackageIdPattern` renommé, copie inline
+réintroduite — **les quatre échouent bien**.
+
+### Audit sans suite : l'export de scripts PowerShell
+
+Les trois générateurs (`OwlSetup-Installer.ps1`, `Mettre-a-jour-mon-PC.ps1`,
+`Liberer-espace-disque.ps1`) construisent du PowerShell par interpolation de
+chaînes en JavaScript, et n'avaient jamais été audités. **Aucune faille :**
+`generateUpdateScript` n'interpole rien, `generateCleanupScript` n'assemble que
+des littéraux choisis par des clés fixes, et les deux valeurs de
+`generateScript` sont contraintes — `app.id` est validé sur ses trois chemins
+d'entrée, `app.source` n'est jamais écrit depuis une donnée externe.
+
+C'est vrai par accident plutôt que par construction : `mergeDiscoveredInstalledApps`
+lit `item.source` deux lignes au-dessus de l'endroit où il construit l'objet
+sans le poser. Échapper ces valeurs à la construction reste à faire.
+
+**Vérifié :** 243 tests JavaScript, 55 fichiers de tests PowerShell.
+
+
 ## [4.0.0-beta.58] - 2026-08-30
 
 ### Lot 2 — le routeur de 827 lignes, découpé sans en changer une seule

@@ -8,7 +8,7 @@ import { describe, it, expect } from "vitest";
 import { rootSource } from "./helpers/extract-from-root.js";
 
 import { escapeHtml } from "../src/modules/escape-html.js";
-import { isValidPackageId } from "../src/modules/package-id.js";
+import { isValidPackageId, PACKAGE_ID_PATTERN } from "../src/modules/package-id.js";
 import {
   wingetInitials,
   normalizeWingetBrand,
@@ -102,12 +102,15 @@ describe("package-id — migré vers le module", () => {
   });
 
   it("app.js contient la fonction et le motif du module", () => {
+    // Le motif est DERIVE du module, jamais recopie : une copie litterale ici
+    // aurait laisse passer le durcissement de la 4.0.0-beta.57 sans rien dire,
+    // exactement comme l'a fait celle de package-id.test.js.
     expect(rootSource).toContain("function isValidPackageId(id) {");
-    expect(rootSource).toContain("const PACKAGE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/;");
+    expect(rootSource).toContain(`const PACKAGE_ID_PATTERN = /${PACKAGE_ID_PATTERN.source}/;`);
   });
 
   it("app.js n'a plus le test regex inline de la télémétrie", () => {
-    expect(rootSource).not.toContain("[A-Za-z0-9.+_-]{0,95}$/.test(targetPackage)");
+    expect(rootSource).not.toMatch(/\{0,95\}\$\/\.test\(targetPackage\)/);
     expect(rootSource).toContain("targetPackage = telemetrySafePackageId(targetPackage);");
   });
 
