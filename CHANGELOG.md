@@ -1,5 +1,53 @@
 # Historique des versions
 
+## [4.0.0-beta.49] - 2026-08-30
+
+### Lot 6 — traduction anglaise complète de l'interface
+
+En mode anglais, **491 chaînes restaient en français** : tout ce que rend
+`app.js` (résultats d'opération, messages d'erreur, états), plus des libellés
+d'`index.html` qui échappaient à l'audit.
+
+**L'outil d'audit était la vraie cause.** Il annonçait « `index.html` : 100 % »
+alors que 16 chaînes de ce fichier n'étaient même pas comptées. Trois défauts :
+
+- **La détection du français exigeait un accent** ou un mot-outil. « Espace
+  disque », « Langue », « Validation avant action » passaient donc pour de
+  l'anglais. La liste s'étend à des mots français sans accent — en excluant
+  ceux qui s'écrivent pareil en anglais (`installation`, `version`, `guide`).
+- **Le filtre « identifiant de paquet »** (`^[A-Za-z0-9._+-]+$`) rejetait
+  « Analyse... » à cause de ses points de suspension. Il exige maintenant un
+  séparateur **entre** deux groupes alphanumériques (`Microsoft.Edge`).
+- **Les littéraux de `app.js` étaient extraits à l'expression régulière.** Une
+  apostrophe française dans une chaîne à guillemets doubles (`"n'a pas ...
+  l'application"`) faisait croire à un littéral simple quote « a pas ... l ».
+  Un vrai scanner JavaScript remplace les regex : il suit les commentaires, les
+  trois types de guillemets, les échappements, l'imbrication `${}` et les
+  littéraux réguliers.
+
+L'extraction gagne aussi en précision : le HTML contenu dans un littéral passe
+par le tokeniseur (les nœuds de texte sont comptés un par un, plus le bloc
+entier), et les scripts PowerShell comme les sorties console sont écartés — ils
+n'atteignent jamais le DOM.
+
+**Résultat : 1 227 chaînes, 100 %.** 489 traductions ajoutées, plus un motif
+pour l'attribut `title` des cartes du catalogue, qui couvre à lui seul les
+**95 boutons « Ouvrir le site officiel de… »**.
+
+La porte `--check` **bloque désormais sur `app.js` aussi**, et plus seulement
+sur `index.html` : l'extraction est assez fiable pour cela.
+
+Vérifié à l'écran, toutes vues et fenêtres affichées : **0 attribut** et **0
+texte** en français, hors le badge BÊTA et les noms de langues (`Français`,
+`Demnächst`, `Português`), laissés dans leur langue à dessein.
+
+**Ce qui reste.** 152 chaînes sont **construites par interpolation** (« 3 mises
+à jour disponibles ») : le nœud rendu mêle texte et valeurs, aucune clé exacte
+ne peut correspondre. Elles relèvent d'un motif dans `englishPatterns`, souvent
+avec la marque du pluriel au milieu d'un mot (`mise${s} à jour`) — c'est une
+passe à part, avec ses propres tests. L'audit les compte et les liste
+séparément, hors de la porte.
+
 ## [4.0.0-beta.48] - 2026-08-30
 
 ### Lot 6 — `styles.css` découpé en partiels
