@@ -21,7 +21,7 @@ document.querySelector("#homeCatalogCount").textContent = apps.length;
 let selected;
 try {
   const storedSelection = JSON.parse(localStorage.getItem("pcsetup-selection") || "[]");
-  selected = new Set((Array.isArray(storedSelection) ? storedSelection : []).filter(id => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(id)));
+  selected = new Set(sanitizePackageIds(storedSelection));
 } catch {
   selected = new Set();
   localStorage.removeItem("pcsetup-selection");
@@ -806,7 +806,7 @@ function scheduleExtendedWingetSearch(){
 
 function addExtendedWingetResult(id){
   const result=extendedWingetResults.find(item=>item.id===id);
-  if(!result||!/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(result.id))return;
+  if(!result||!isValidPackageId(result.id))return;
   let app=apps.find(item=>item.id.toLocaleLowerCase("en")===result.id.toLocaleLowerCase("en"));
   if(!app){
     const brand=resolveWingetBrand(result);
@@ -3317,7 +3317,7 @@ function handleSimulationMessage(message) {
     if(responseQuery!==searchTerm.trim())return;
     extendedWingetPending=false;
     extendedWingetQuery=responseQuery||extendedWingetQuery;
-    extendedWingetResults=message.success&&Array.isArray(message.items)?message.items.filter(item=>item&&/^[A-Za-z0-9][A-Za-z0-9._+\-]{1,127}$/.test(String(item.id||""))).slice(0,12):[];
+    extendedWingetResults=message.success&&Array.isArray(message.items)?message.items.filter(item=>item&&isValidPackageId(String(item.id||""))).slice(0,12):[];
     renderExtendedWingetSearch();
     if(!message.success){const state=$("#wingetSearchState");state.classList.remove("hidden");state.classList.add("error");state.textContent=message.message||extendedWingetText("La recherche WinGet n’a pas abouti.","The WinGet search did not complete.");}
     return;
