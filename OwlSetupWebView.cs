@@ -524,6 +524,11 @@ internal sealed class WebAppForm : Form
         string windows=Environment.GetFolderPath(Environment.SpecialFolder.Windows).TrimEnd(Path.DirectorySeparatorChar);
         if(IsSameOrChildPath(full,windows)||IsSameOrChildPath(full,appRoot))throw new InvalidOperationException("Ce dossier est protégé. Choisissez un autre emplacement.");
         if(!Directory.Exists(full))Directory.CreateDirectory(full);
+        // Les controles ci-dessus travaillent sur le chemin TEXTUEL : un dossier
+        // existant peut etre une jonction qui redirige vers une zone protegee
+        // sans que le chemin le laisse voir. On verifie donc chaque composant,
+        // comme le fait deja GetAuthorizedDiskTarget pour les dossiers analyses.
+        EnsureNoReparsePoints(full,Path.GetPathRoot(full));
         return full;
     }
 
@@ -1080,8 +1085,66 @@ internal sealed class WebAppForm : Form
         return RunHiddenProcess(fileName,arguments,report,null);
     }
 
+    // --- Journal d'audit des operations elevees -----------------------------
+    //
+    // Chaque elevation laisse une trace, ecrite par RunElevatedProcess lui-meme :
+    // on ne peut donc pas ajouter un appelant qui echapperait au journal. Le
+    // fichier suit la convention de nommage des journaux (PC-Setup-*.log), il
+    // apparait donc dans l'historique local et s'ouvre depuis l'interface.
+    const string ElevationLogName="PC-Setup-Elevations.log";
+    const long ElevationLogMaxBytes=512*1024;
+    static readonly object elevationLogLock=new object();
+
+    internal static string SummarizeElevationArguments(string arguments)
+    {
+        if(String.IsNullOrEmpty(arguments))return "(sans argument)";
+        string flat=Regex.Replace(arguments,"\\s+"," ").Trim();
+        return flat.Length>300?flat.Substring(0,300)+"…":flat;
+    }
+
+    internal static void TrimElevationLog(string path)
+    {
+        // OpenLog refuse d'afficher un journal de plus de 2 Mo. On garde la
+        // moitie la plus recente plutot que de laisser le fichier grossir
+        // jusqu'a devenir illisible depuis l'interface.
+        try
+        {
+            if(!File.Exists(path))return;
+            if(new FileInfo(path).Length<=ElevationLogMaxBytes)return;
+            string[] lines=File.ReadAllLines(path,Encoding.UTF8);
+            var kept=new List<string>();
+            for(int i=lines.Length/2;i<lines.Length;i++)kept.Add(lines[i]);
+            File.WriteAllLines(path,kept.ToArray(),Encoding.UTF8);
+        }
+        catch{}
+    }
+
+    internal static void LogElevation(string fileName,string arguments,string outcome)
+    {
+        // Une trace d'audit ne doit jamais faire echouer l'operation qu'elle
+        // observe : toute erreur d'ecriture est ignoree.
+        try
+        {
+            string line=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                +" | "+Path.GetFileName(fileName==null?"":fileName)
+                +" | "+SummarizeElevationArguments(arguments)
+                +" | "+outcome;
+            lock(elevationLogLock)
+            {
+                string path=Path.Combine(GetDataFolder("Logs"),ElevationLogName);
+                TrimElevationLog(path);
+                File.AppendAllText(path,line+Environment.NewLine,Encoding.UTF8);
+            }
+        }
+        catch{}
+    }
+
     int RunElevatedProcess(string fileName,string arguments,StringBuilder report)
     {
+        // La demande est tracee AVANT le lancement : si l'application est
+        // interrompue pendant l'operation, l'historique garde tout de meme la
+        // trace de ce qui a ete demande.
+        LogElevation(fileName,arguments,"demande");
         try
         {
             report.AppendLine("Autorisation administrateur demandee uniquement pour cette operation.");
@@ -1090,15 +1153,18 @@ internal sealed class WebAppForm : Form
                 process.StartInfo=new ProcessStartInfo{FileName=fileName,Arguments=arguments,UseShellExecute=true,Verb="runas",WindowStyle=ProcessWindowStyle.Hidden};
                 process.Start();process.WaitForExit();
                 report.AppendLine("Code de l'operation elevee : "+process.ExitCode);
+                LogElevation(fileName,arguments,"code="+process.ExitCode);
                 return process.ExitCode;
             }
         }
         catch(System.ComponentModel.Win32Exception ex)
         {
-            if(ex.NativeErrorCode==1223){report.AppendLine("Autorisation administrateur annulee par l'utilisateur.");return 1223;}
-            report.AppendLine("Elevation impossible : "+ex.Message);return ex.NativeErrorCode;
+            if(ex.NativeErrorCode==1223){report.AppendLine("Autorisation administrateur annulee par l'utilisateur.");LogElevation(fileName,arguments,"refus UAC");return 1223;}
+            report.AppendLine("Elevation impossible : "+ex.Message);
+            LogElevation(fileName,arguments,"echec Win32 "+ex.NativeErrorCode);
+            return ex.NativeErrorCode;
         }
-        catch(Exception ex){report.AppendLine("Elevation impossible : "+ex.Message);return -1;}
+        catch(Exception ex){report.AppendLine("Elevation impossible : "+ex.Message);LogElevation(fileName,arguments,"echec");return -1;}
     }
 
     int RunHiddenProcess(string fileName, string arguments, StringBuilder report, Action<string> onLine)
@@ -2575,6 +2641,7 @@ internal sealed class WebAppForm : Form
         if(name.IndexOf("Nettoyage",StringComparison.OrdinalIgnoreCase)>=0)return "Nettoyage";
         if(name.IndexOf("Residus",StringComparison.OrdinalIgnoreCase)>=0)return "Résidus";
         if(name.IndexOf("Mise-a-jour",StringComparison.OrdinalIgnoreCase)>=0)return "Mise à jour";
+        if(name.IndexOf("Elevations",StringComparison.OrdinalIgnoreCase)>=0)return "Élévation";
         return "Opération";
     }
 
@@ -3371,7 +3438,7 @@ internal sealed class WebAppForm : Form
         return "";
     }
 
-    string GetDataFolder(string name)
+    static string GetDataFolder(string name)
     {
         string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PCSetup",name);
         Directory.CreateDirectory(folder);

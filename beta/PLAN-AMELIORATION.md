@@ -159,9 +159,24 @@ commande, sans analyseur ni découpage.
    - [x] refuser un identifiant commençant par un non-alphanumérique — regex
          passée à `^[A-Za-z0-9][A-Za-z0-9.+_-]*$` dans `app.js`, `OwlSetupWebView.cs`
          (20 occurrences), `tools/check-catalog.mjs` et `beta/` _(4.0.0-beta.2)_ ;
-   - [ ] valider systématiquement les chemins reçus (déjà fait pour la plupart via
-         jeton `^[a-f0-9]{32}$` — généraliser) ;
-   - [ ] journaliser toute opération élevée dans l'historique local.
+   - [x] _(4.0.0-beta.51)_ **chemins reçus validés** : l'audit des handlers
+         montre que `OpenLog`, `OpenReport`, `GetQuarantineItem` et
+         `GetAuthorizedDiskTarget` étaient déjà confinés (nom de fichier seul,
+         racine autorisée, liste blanche issue d'une analyse, points de
+         jonction). Le seul trou restant était `ValidateInstallBasePath`, qui ne
+         travaillait que sur le chemin **textuel** : un dossier existant pouvait
+         être une jonction vers une zone protégée. Il vérifie désormais chaque
+         composant depuis la racine du disque ;
+   - [x] _(4.0.0-beta.51)_ **opérations élevées journalisées** :
+         `RunElevatedProcess` écrit lui-même dans
+         `PC-Setup-Elevations.log` — aucun appelant ne peut contourner la trace.
+         Demande tracée **avant** le lancement (l'application peut être
+         interrompue), puis issue : code de sortie, refus UAC ou échec. Le
+         fichier suit la convention `PC-Setup-*.log`, donc il apparaît dans
+         l'historique et s'ouvre depuis l'interface ; il est tronqué à 512 Ko en
+         gardant les entrées récentes, sous la limite d'affichage d'`OpenLog`.
+         Garde : `tests/Test-ElevationAudit.ps1` (câblage + comportement réel
+         des helpers par réflexion).
 5. Envisager la migration `net462 → net48` (toujours sans redistribuable) puis
    étudier `.NET 8 + WebView2` auto-contenu (gros chantier, lot ultérieur).
 

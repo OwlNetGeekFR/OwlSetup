@@ -1,5 +1,44 @@
 # Historique des versions
 
+## [4.0.0-beta.51] - 2026-08-30
+
+### Lot 3 — trace des opérations élevées et dernier trou de validation
+
+Deux points de sécurité du plan restaient décochés.
+
+**Les opérations élevées ne laissaient pas de trace fiable.**
+`RunElevatedProcess` n'écrivait que dans le rapport de son appelant : rien ne
+garantissait qu'il soit persisté, et un nouvel appelant pouvait l'oublier. La
+trace est désormais écrite **par `RunElevatedProcess` lui-même**, dans
+`PC-Setup-Elevations.log` :
+
+- la **demande** est tracée **avant** le lancement — si l'application est
+  interrompue pendant l'opération, l'historique garde ce qui a été demandé ;
+- puis l'issue : code de sortie, refus de l'invite UAC, ou échec.
+
+Le fichier suit la convention de nommage des journaux, il apparaît donc dans
+l'historique local et s'ouvre depuis l'interface. Il est tronqué à 512 Ko en
+gardant les entrées **récentes**, pour rester sous la limite d'affichage
+d'`OpenLog` (2 Mo). Une trace d'audit ne doit jamais faire échouer l'opération
+qu'elle observe : toute erreur d'écriture est ignorée.
+
+**Un seul trou de validation de chemin restait.** L'audit des handlers montre
+que `OpenLog`, `OpenReport`, `GetQuarantineItem` et `GetAuthorizedDiskTarget`
+étaient déjà confinés — nom de fichier seul, racine autorisée, liste blanche
+issue d'une analyse préalable, refus des points de jonction.
+
+`ValidateInstallBasePath` faisait exception : il ne travaillait que sur le
+chemin **textuel** (pas la racine du disque, pas le dossier Windows, pas de
+guillemet). Un dossier d'installation existant pouvait donc être une
+**jonction** redirigeant vers une zone protégée, invisible pour ces contrôles.
+Il vérifie maintenant chaque composant depuis la racine du disque, comme le
+faisait déjà `GetAuthorizedDiskTarget`.
+
+Garde : `tests/Test-ElevationAudit.ps1` — câblage dans le source, puis
+comportement réel des helpers par réflexion sur l'exécutable compilé
+(aplatissement des sauts de ligne, troncature des arguments longs, rotation qui
+conserve bien la fin du journal et laisse un fichier sous le seuil intact).
+
 ## [4.0.0-beta.50] - 2026-08-30
 
 ### Lot 6 — les chaînes construites par interpolation passent en anglais
