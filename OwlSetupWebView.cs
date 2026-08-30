@@ -32,10 +32,12 @@ internal sealed class WebAppForm : Form
     const int DwmwaCaptionColor = 35;
     const int DwmwaTextColor = 36;
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("dwmapi.dll")]
     static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int valueSize);
 
     // Windows Security Center agrège les produits Microsoft et les suites de sécurité tierces.
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("wscapi.dll")]
     static extern int WscGetSecurityProviderHealth(uint providers, out int health);
 
@@ -1050,7 +1052,11 @@ internal sealed class WebAppForm : Form
         string installer=Path.Combine(folder,packageId+"-"+Guid.NewGuid().ToString("N")+extension);
         try
         {
-            ServicePointManager.SecurityProtocol=(SecurityProtocolType)3072;
+            // TLS 1.2 explicite, et non SecurityProtocolType.SystemDefault que
+            // suggere l analyseur : sur .NET Framework 4.6.2, la valeur par
+            // defaut du systeme peut encore autoriser TLS 1.0. Le jour ou la
+            // cible passera en 4.7.1+, SystemDefault deviendra le bon choix.
+            ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;
             report.AppendLine("Téléchargement officiel : "+url);
             using(var client=new WebClient())
             {
@@ -1249,13 +1255,21 @@ internal sealed class WebAppForm : Form
         public int cb;public string lpReserved,lpDesktop,lpTitle;public int dwX,dwY,dwXSize,dwYSize,dwXCountChars,dwYCountChars,dwFillAttribute,dwFlags;public short wShowWindow,cbReserved2;public IntPtr lpReserved2,hStdInput,hStdOutput,hStdError;
     }
     [StructLayout(LayoutKind.Sequential)]struct PROCESS_INFORMATION{public IntPtr hProcess,hThread;public uint dwProcessId,dwThreadId;}
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll",SetLastError=true)]static extern bool OpenProcessToken(IntPtr processHandle,uint desiredAccess,out IntPtr tokenHandle);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll",SetLastError=true)]static extern bool DuplicateTokenEx(IntPtr existingToken,uint desiredAccess,IntPtr tokenAttributes,int impersonationLevel,int tokenType,out IntPtr newToken);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern bool CreateProcessWithTokenW(IntPtr token,uint logonFlags,string applicationName,StringBuilder commandLine,uint creationFlags,IntPtr environment,string currentDirectory,ref STARTUPINFO startupInfo,out PROCESS_INFORMATION processInformation);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("userenv.dll",SetLastError=true)]static extern bool CreateEnvironmentBlock(out IntPtr environment,IntPtr token,bool inherit);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("userenv.dll",SetLastError=true)]static extern bool DestroyEnvironmentBlock(IntPtr environment);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll",SetLastError=true)]static extern uint WaitForSingleObject(IntPtr handle,uint milliseconds);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll",SetLastError=true)]static extern bool GetExitCodeProcess(IntPtr process,out uint exitCode);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll",EntryPoint="CloseHandle",SetLastError=true)]static extern bool CloseNativeHandle(IntPtr handle);
 
     string ResolveWingetPath()
@@ -3585,7 +3599,7 @@ internal sealed class WebAppForm : Form
 
     Dictionary<string,object> GetLatestRelease()
     {
-        ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         using(var client=new WebClient())
         {
             client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+Assembly.GetExecutingAssembly().GetName().Version;
@@ -3604,7 +3618,7 @@ internal sealed class WebAppForm : Form
     Dictionary<string,object> GetLatestRelease(bool includePrerelease)
     {
         if(!includePrerelease)return GetLatestRelease();
-        ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         using(var client=new WebClient())
         {
             client.Headers[HttpRequestHeader.UserAgent]="OwlSetup/"+Assembly.GetExecutingAssembly().GetName().Version;
@@ -3833,9 +3847,13 @@ internal sealed class WebAppForm : Form
         try{admin=new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);}catch{}
         try
         {
-            var certificate=new X509Certificate2(X509Certificate.CreateFromSignedFile(Application.ExecutablePath));
-            signed=true;signer=certificate.GetNameInfo(X509NameType.SimpleName,false);
-            using(var chain=new X509Chain()){chain.ChainPolicy.RevocationMode=X509RevocationMode.Online;chain.ChainPolicy.UrlRetrievalTimeout=TimeSpan.FromSeconds(4);trusted=chain.Build(certificate);}
+            // Le certificat detient des ressources non managees : il est libere
+            // des la fin du controle, comme la chaine qu il alimente.
+            using(var certificate=new X509Certificate2(X509Certificate.CreateFromSignedFile(Application.ExecutablePath)))
+            {
+                signed=true;signer=certificate.GetNameInfo(X509NameType.SimpleName,false);
+                using(var chain=new X509Chain()){chain.ChainPolicy.RevocationMode=X509RevocationMode.Online;chain.ChainPolicy.UrlRetrievalTimeout=TimeSpan.FromSeconds(4);trusted=chain.Build(certificate);}
+            }
         }
         catch{}
         try
@@ -4647,6 +4665,7 @@ internal static class Bootstrap
         }
     }
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32", CharSet=CharSet.Unicode, SetLastError=true)]
     static extern bool SetDllDirectory(string lpPathName);
 
@@ -4705,9 +4724,13 @@ internal static class Bootstrap
     // du processus appelant pour écrire la sortie.
     // ------------------------------------------------------------------
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool AttachConsole(int dwProcessId);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll")] static extern bool FreeConsole();
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int nStdHandle);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("kernel32.dll")] static extern uint GetFileType(IntPtr hFile);
     const int ATTACH_PARENT_PROCESS = -1;
     const int STD_OUTPUT_HANDLE = -11, STD_ERROR_HANDLE = -12;

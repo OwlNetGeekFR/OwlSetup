@@ -159,9 +159,13 @@ commande, sans analyseur ni découpage.
 
 **Étapes :**
 
-1. Adopter `beta/csharp/OwlSetup.csproj` comme chemin de build officiel (garder
-   `build.ps1` en repli), activer `TreatWarningsAsErrors`, les analyseurs .NET et
-   `dotnet format` en CI.
+1. [~] _(4.0.0-beta.56)_ **Analyseurs .NET activés** dans
+   `beta/csharp/OwlSetup.csproj` : catégorie **sécurité traitée en erreur**, le
+   reste informatif. `TreatWarningsAsErrors` global reste hors de portée —
+   l'analyse complète lève **plus de 1 250 avertissements** sur ce fichier, dont
+   390 `catch` génériques et 300 appels sans `IFormatProvider`. Deux règles sont
+   écartées avec justification écrite (CA5386, CA2322). **Reste** : adopter le
+   `.csproj` comme chemin de build officiel, et `dotnet format` en CI.
 2. Découper `WebAppForm` par responsabilité (fichiers `partial` puis classes
    dédiées) : `Ipc/` (routage `OnWebMessage`), `Winget/` (invocations + parsing
    colonnes), `Cleanup/`, `Security/`, `Process/` (élévation, jetons),

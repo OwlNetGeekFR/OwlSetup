@@ -47,6 +47,41 @@
     <Company>OwlNetGeekFR</Company>
     <Product>OwlSetup</Product>
     <Description>Installation, mise a jour et entretien de Windows</Description>
+
+    <!--
+      Analyseurs Roslyn : la categorie SECURITE est traitee en erreur, le reste
+      reste informatif.
+
+      L'analyse complete (`AnalysisLevel=latest-all`) leve plus de 1 250
+      avertissements sur ce fichier, dont 390 `catch` generiques et 300 appels
+      sans IFormatProvider : les passer tous en erreur bloquerait le build sans
+      rien apprendre d'utile aujourd'hui. Les regles de securite, elles, sont
+      peu nombreuses et actionnables — elles ne doivent plus regresser.
+    -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <AnalysisModeSecurity>All</AnalysisModeSecurity>
+    <WarningsAsErrors>$(WarningsAsErrors);CA5392;CA5387;CA5388;CA5389;CA5390;CA5391;CA5393;CA5394;CA5395</WarningsAsErrors>
+
+    <!--
+      Deux regles de securite sont ecartees, apres examen, et non par confort :
+
+      CA5386 (TLS code en dur) — l'analyseur recommande SystemDefault. Sur
+      .NET Framework 4.6.2, la valeur par defaut du systeme peut encore
+      autoriser TLS 1.0 : forcer TLS 1.2 est ici le choix le PLUS sur. A
+      reconsiderer si la cible passe en 4.7.1 ou plus.
+
+      CA2322 (deserialisation JSON) — l'avertissement ne vaut que pour un
+      JavaScriptSerializer construit avec un JavaScriptTypeResolver. Ici il est
+      toujours construit sans, donc il ne peut produire que des dictionnaires,
+      des tableaux et des primitives : aucun type arbitraire n'est instancie.
+
+      Le NoWarn est volontairement au niveau du projet plutot qu'en `#pragma`
+      dans le source : csc.exe, utilise par build.ps1, ne connait pas les
+      identifiants d'analyseurs et signalerait chaque pragma (CS1691).
+    -->
+    <NoWarn>$(NoWarn);CA5386;CA2322</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
