@@ -3587,14 +3587,60 @@ function renderAppUpdateState(message) {
   }
 }
 
+// Repartition des messages de l'hote par domaine (lot 2).
+//
+// handleInstallMessage faisait 827 lignes et 97 branches a plat : 18 % de ce
+// fichier. Chaque domaine garde ici sa chaine `if` VERBATIM ; seul le choix du
+// domaine change. Le repartiteur rend la main des qu'un domaine a pris le
+// message, comme le faisait le `return` de chaque branche.
+//
+// La table des types est verifiee par beta/test/ipc-contract.test.js : elle
+// doit couvrir exactement les types que l'hote C# sait envoyer.
+const MESSAGE_DOMAINS = [
+  // outils, emplacement d'installation et etat de securite
+  { run: handleToolAndSecurityMessage, types: ["install-location-selected","tool-progress","portable-access-ready","security-status"] },
+  // simulations de desinstallation, diagnostic WinGet, point de restauration
+  { run: handleSimulationMessage, types: ["uninstall-simulation","uninstall-simulation-error","batch-uninstall-simulation","batch-uninstall-simulation-error","winget-diagnostic","winget-search-complete","winget-repair-start","winget-repair-complete","restore-point-start","restore-point-complete"] },
+  // historique, journaux, rapports et demarrage
+  { run: handleHistoryMessage, types: ["history-state","history-pruned","history-cleared","security-exported","feedback-followup-state","feedback-followup-error","support-exported","self-diagnostic-result","report-data","log-data","history-error","startup-state"] },
+  // analyse du disque et desinstallation groupee
+  { run: handleDiskAndBatchMessage, types: ["disk-scan-start","disk-scan-state","disk-folder-action","disk-scan-error","batch-uninstall-start","batch-uninstall-progress","batch-uninstall-item","batch-uninstall-complete"] },
+  // informations systeme, configuration, analyse de nettoyage, navigateurs
+  { run: handleSystemAndConfigMessage, types: ["app-info","system-summary","feedback-diagnostics","config-export-start","config-export-complete","config-imported","config-import-error","cleanup-analysis-start","cleanup-analysis","cleanup-analysis-error","browser-scan-state","browser-scan-error","browser-analysis-state","browser-analysis-error","browser-cleanup-start","browser-cleanup-complete","browser-cleanup-error"] },
+  // sante, planification et mises a jour Windows
+  { run: handleHealthAndWindowsUpdateMessage, types: ["app-update-state","health-scanning","schedule-state","schedule-busy","schedule-saved","schedule-removed","schedule-error","health-state","updates-scanning","windows-updates-scanning","windows-updates","windows-update-open-failed","windows-update-install-start","windows-update-install-stage","windows-update-install-complete","updates-found"] },
+  // quarantaine, nettoyage et processus bloquants
+  { run: handleQuarantineAndCleanupMessage, types: ["quarantine-state","quarantine-error","quarantine-action","cleanup-start","cleanup-stage","cleanup-complete","package-process-scan","package-process-close"] },
+  // mise a jour des applications et applications installees
+  { run: handleUpdateAndInstalledMessage, types: ["update-start","update-stage","update-complete","installed-state","app-health-state"] },
+  // desinstallation, reparation et residus
+  { run: handleUninstallAndRepairMessage, types: ["uninstall-start","repair-start","repair-fallback","repair-complete","uninstall-complete","uninstall-residues-complete"] },
+  // deroulement de l'installation
+  { run: handleInstallFlowMessage, types: ["install-preflight-progress","install-preflight-complete","install-start","install-progress","install-security","install-execution","install-item","install-verification","install-complete","install-already-running"] },
+];
+
 function handleInstallMessage(message) {
+  // Le garde arrivait APRES le premier acces a message.type : un message nul
+  // levait une exception avant d'etre ecarte.
+  if (!message) return;
+  for (var i = 0; i < MESSAGE_DOMAINS.length; i++) {
+    if (MESSAGE_DOMAINS[i].types.indexOf(message.type) >= 0) {
+      MESSAGE_DOMAINS[i].run(message);
+      return;
+    }
+  }
+}
+
+// Outils, emplacement d'installation et etat de securite.
+function handleToolAndSecurityMessage(message) {
   if(message.type==="install-location-selected"){
     $("#installLocationMode").value="custom";
     $("#installLocationPath").value=message.path||"";
     updateInstallLocationControls(true);
     return;
   }
-  if (!message) return;
+  // Le garde `if (!message) return;` vivait ici, apres le premier acces a
+  // message.type : il est remonte dans le repartiteur, ou il protege reellement.
   if (message.type === "tool-progress") {
     setToolProgress(message.tool,message.percent,message.status);
     return;
@@ -3645,6 +3691,10 @@ function handleInstallMessage(message) {
     const refresh=$("#refreshSecurity");refresh.disabled=false;refresh.textContent="Vérifier maintenant";
     return;
   }
+}
+
+// Simulations de desinstallation, diagnostic WinGet, point de restauration.
+function handleSimulationMessage(message) {
   if (message.type === "uninstall-simulation") {
     if(message.id!==pendingUninstallId)return;
     $("#uninstallSimulationStatus").textContent=message.installed?"Aperçu terminé · valable 5 minutes":"Paquet non détecté par WinGet";
@@ -3729,6 +3779,10 @@ function handleInstallMessage(message) {
     }
     return;
   }
+}
+
+// Historique, journaux, rapports et demarrage.
+function handleHistoryMessage(message) {
   if (message.type === "history-state") {
     historyItems=message.items || []; renderHistoryItems();
     return;
@@ -3767,6 +3821,10 @@ function handleInstallMessage(message) {
     $("#startupList").innerHTML = (message.items || []).length ? message.items.map(item => `<article><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.source)} · ${escapeHtml(item.command)}</small></div></article>`).join("") : `<p class="tool-empty">Aucun élément de démarrage détecté.</p>`;
     return;
   }
+}
+
+// Analyse du disque et desinstallation groupee.
+function handleDiskAndBatchMessage(message) {
   if (message.type === "disk-scan-start") {
     setToolProgress("disk",5,"Préparation de l'analyse...");
     $("#diskList").innerHTML = `<p class="tool-empty">Analyse en cours, cela peut prendre quelques instants...</p>`; return;
@@ -3847,6 +3905,10 @@ function handleInstallMessage(message) {
     requestHistory(); requestInstalledScan();
     return;
   }
+}
+
+// Informations systeme, configuration, analyse de nettoyage, navigateurs.
+function handleSystemAndConfigMessage(message) {
   if (message.type === "app-info") {
     currentBuildVersion = message.version || "inconnue";
     currentBuildChannel = message.channel || (message.beta ? "beta" : "stable");
@@ -3947,6 +4009,10 @@ function handleInstallMessage(message) {
   if (message.type === "browser-cleanup-error") {
     browserCleanupRunning=false;$("#browserCleanupProgressTitle").textContent="Nettoyage interrompu";$("#browserCleanupProgressDetail").textContent=message.message;$("#browserCleanupResult").textContent="Aucune autre donnée n’a été supprimée.";$("#openBrowserCleanupReport")?.classList.add("hidden");$("#browserCleanupResultActions")?.classList.remove("hidden");updateBrowserActionState();return;
   }
+}
+
+// Sante, planification et mises a jour Windows.
+function handleHealthAndWindowsUpdateMessage(message) {
   if (message.type === "app-update-state") {
     renderAppUpdateState(message);
     return;
@@ -4020,6 +4086,10 @@ function handleInstallMessage(message) {
     if (message.error) notify("Analyse partielle", message.error);
     return;
   }
+}
+
+// Quarantaine, nettoyage et processus bloquants.
+function handleQuarantineAndCleanupMessage(message) {
   if (message.type === "quarantine-state") {
     renderQuarantine(message.items);
     return;
@@ -4138,6 +4208,10 @@ function handleInstallMessage(message) {
     }
     return;
   }
+}
+
+// Mise a jour des applications et applications installees.
+function handleUpdateAndInstalledMessage(message) {
   if (message.type === "update-start") {
     $("#updateProgressBar").style.width = "5%";
     $("#updateProgressPercent").textContent = "5%";
@@ -4229,6 +4303,10 @@ function handleInstallMessage(message) {
     $("#scanAppHealth").disabled=false;$("#scanAppHealth").textContent="Analyser maintenant";
     return;
   }
+}
+
+// Desinstallation, reparation et residus.
+function handleUninstallAndRepairMessage(message) {
   if (message.type === "uninstall-start") {
     $("#uninstallProgressBar").style.width = "55%";
     $("#uninstallProgressDetail").textContent = `Suppression de ${message.id}`;
@@ -4310,6 +4388,10 @@ function handleInstallMessage(message) {
     setBackgroundUninstall(resume.title,resume.detail,100,resume.tone);
     requestHealth();requestQuarantine();requestHistory();return;
   }
+}
+
+// Deroulement de l'installation.
+function handleInstallFlowMessage(message) {
   if (message.type === "install-preflight-progress") {
     if(Number(message.requestId)!==installPreflightRequestId)return;
     setPreflightState(message.key,message.state||"checking",message.detail);
