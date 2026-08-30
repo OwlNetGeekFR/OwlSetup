@@ -318,8 +318,14 @@ Garde-fou `tests/Test-CliMode.ps1`.
 2. [x] _(beta.41)_ `--export-profile <fichier>` (profil rejouable par `--apply`,
        même format que l'export de l'interface), `--check-updates [--json]` (code de
        sortie 1 s'il existe des mises à jour) et `--update [<id>,...]`.
-3. Auto-élévation propre (relais de sortie vers l'appelant) pour les
-   installations machine.
+3. [x] _(4.0.0-beta.52)_ **Auto-élévation propre** : `--elevate` relance
+       OwlSetup en administrateur, puis **rejoue la sortie et le code** de
+       l'exécution élevée vers l'appelant. `runas` interdisant la redirection
+       des flux, le processus élevé écrit dans un fichier de relais confiné au
+       dossier des journaux, que le parent recopie puis supprime. **Opt-in** :
+       sans le drapeau, aucune invite UAC n'apparaît — un script ou un MDM ne
+       doit jamais se bloquer sur une invite qu'il n'a pas demandée. Garde :
+       `tests/Test-CliElevation.ps1`.
 4. [x] _(beta.41)_ Documenté dans le `README` (section « Command line »). Page
        dédiée du site : à faire.
 
