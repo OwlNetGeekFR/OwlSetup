@@ -1344,6 +1344,9 @@
     "Non renseignées": "Not provided",
     "Nouvelles versions détectées": "New versions detected",
     "Opération": "Operation",
+    // Categorie d historique produite par OwlSetupWebView.cs (HistoryType) :
+    // l audit ne scanne pas le C#, cette entree se maintient a la main.
+    "Élévation": "Elevation",
     "Opération à corriger": "Operation to fix",
     "Opération arrêtée en sécurité": "Operation stopped safely",
     "Opération classée résolue": "Operation marked as resolved",
