@@ -1,5 +1,48 @@
 # Historique des versions
 
+## [4.0.0-beta.56] - 2026-08-30
+
+### Lot 3 — appels natifs confinés à System32, analyse de sécurité activée
+
+Les analyseurs Roslyn n'avaient jamais tourné sur l'hôte C#. Mis en analyse
+complète, ils lèvent **plus de 1 250 avertissements** — dont 390 `catch`
+génériques et 300 appels sans `IFormatProvider`. Passer tout cela en erreur
+bloquerait le build sans rien apprendre d'utile. La **catégorie sécurité**, elle,
+est courte et actionnable : c'est elle qui est désormais traitée en erreur.
+
+**Le vrai correctif : 15 P/Invoke confinés à System32.**
+
+Sans l'attribut `DefaultDllImportSearchPaths`, un appel natif suit l'ordre de
+recherche par défaut de Windows, qui inclut **le dossier de l'application et le
+répertoire courant**. Une DLL déposée à côté de l'exécutable peut alors être
+chargée à la place de celle du système.
+
+Le risque n'était pas théorique partout, mais il ne l'était pas nulle part non
+plus : `kernel32` et `advapi32` sont des **KnownDLLs**, que Windows protège
+déjà de ce détournement — mais **`userenv.dll`, `wscapi.dll` et `dwmapi.dll` ne
+le sont pas**. Ce sont précisément celles utilisées pour créer un bloc
+d'environnement lors d'une opération élevée, lire l'état du Centre de sécurité,
+et dessiner la barre de titre. L'attribut est appliqué aux 15 déclarations,
+plutôt que de maintenir à la main la liste des DLL protégées par Windows.
+
+**Deux règles écartées, après examen et non par confort** — la justification est
+écrite dans le `.csproj` :
+
+- **CA5386** conseille `SecurityProtocolType.SystemDefault` plutôt qu'un
+  protocole codé en dur. Sur .NET Framework 4.6.2, le défaut système peut encore
+  autoriser TLS 1.0 : forcer TLS 1.2 est ici le choix **le plus sûr**. Le nombre
+  magique `3072` devient toutefois `SecurityProtocolType.Tls12`.
+- **CA2322** ne vaut que pour un `JavaScriptSerializer` construit avec un
+  `JavaScriptTypeResolver`. Ici il est toujours construit sans, donc il ne peut
+  produire que des dictionnaires, des tableaux et des primitives.
+
+Le certificat de signature est également libéré (`using`) : il détenait des
+ressources non managées jusqu'au passage du ramasse-miettes.
+
+Garde : `tests/Test-NativeInteropHardening.ps1` — chaque P/Invoke porte
+l'attribut, aucune DLL inattendue n'est importée, le forçage TLS explicite
+subsiste, et la catégorie sécurité reste en erreur dans le projet.
+
 ## [4.0.0-beta.55] - 2026-08-30
 
 ### Lot 2 — où est vraiment la masse d'`app.js`, et un filet avant d'y toucher
