@@ -7,7 +7,7 @@
 //
 //   node beta/scripts/audit-i18n.mjs           # rapport lisible
 //   node beta/scripts/audit-i18n.mjs --json    # sortie machine
-//   node beta/scripts/audit-i18n.mjs --check   # code 1 si index.html a des trous
+//   node beta/scripts/audit-i18n.mjs --check   # code 1 s il reste une chaine sans traduction
 //
 // Le HTML est parcouru par un petit analyseur a un seul passage, et non par des
 // expressions regulieres : retirer les commentaires et les elements `script` /
@@ -21,10 +21,16 @@ const html = readFileSync(here("../../index.html"), "utf8");
 const appJs = readFileSync(here("../../app.js"), "utf8");
 const i18n = readFileSync(here("../../i18n.js"), "utf8");
 
-// Accents ou mots-outils francais : suffisant pour distinguer une chaine
-// d interface d un identifiant technique ou d un nom de produit.
+// Accents ou mots francais : suffisant pour distinguer une chaine d interface
+// d un identifiant technique ou d un nom de produit.
+//
+// La deuxieme liste tient aux chaines SANS accent : « Espace disque »,
+// « Validation avant action » ou « Langue » echappaient a la detection, donc a
+// l audit, et restaient en francais dans l interface anglaise. On n y met que
+// des mots qui ne s ecrivent pas pareil en anglais — pas « installation »,
+// « version », « configuration », « guide » ni « selection ».
 const FRENCH =
-  /[àâäçéèêëîïôöùûüœÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŒ]|\b(?:le|la|les|des|une|un|du|dans|pour|avec|sur|vos|votre|vous|est|sont|aucun|aucune|sans|puis|selon|ainsi|cette|ces|par|aux|et|ou|tout|toute|toutes|tous|depuis|entre|chaque|mise|mises|jour|logiciel|logiciels|fichier|fichiers|nettoyage)\b/i;
+  /[àâäçéèêëîïôöùûüœÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŒ]|\b(?:le|la|les|des|une|un|du|dans|pour|avec|sur|vos|votre|vous|est|sont|aucun|aucune|sans|puis|selon|ainsi|cette|ces|par|aux|et|ou|tout|toute|toutes|tous|depuis|entre|chaque|mise|mises|jour|logiciel|logiciels|fichier|fichiers|nettoyage|avant|apres|ouvrir|fermer|langue|locale|locaux|cours|jointe|joint|choisir|lancer|enregistrer|supprimer|restauration|espace|disque|facultatif|facultative|analyse|profil|profils|securite|parametres|resultat|semaine|taille|dossier|dossiers|exemple|zone|zones)\b/i;
 
 // Attributs que `i18n.js` traduit reellement.
 const TRANSLATED_ATTRIBUTES = new Set([
@@ -137,7 +143,11 @@ function isCandidate(value) {
   if (SKIP.has(value)) return false;
   if (!FRENCH.test(value)) return false;
   if (/^[\d\s.,:%–—-]+$/.test(value)) return false; // valeurs purement numeriques
-  if (/^[A-Za-z0-9._+-]+$/.test(value)) return false; // identifiants de paquet
+  // Identifiants de paquet (« Microsoft.Edge », « 7-Zip ») : il faut un
+  // separateur ENTRE deux groupes alphanumeriques. Sans cette precision,
+  // « Analyse... » passait pour un identifiant et echappait a l audit.
+  if (/^[A-Za-z0-9]+(?:[._+-][A-Za-z0-9]+)+$/.test(value)) return false;
+  if (/^[.#][A-Za-z][\w-]*$/.test(value)) return false; // selecteur CSS
   return true;
 }
 
@@ -233,11 +243,166 @@ for (const value of attributes) {
 }
 
 // --- app.js : litteraux de chaines inseres dans le DOM ---
-for (const match of appJs.matchAll(/"((?:[^"\\\n]|\\.)*)"/g)) record(match[1], "app.js");
-for (const match of appJs.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)) record(match[1], "app.js");
-// Fragments de gabarits : on prend les portions litterales entre ${...}
-for (const match of appJs.matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
-  for (const piece of match[1].split(/\$\{[^}]*\}/)) record(piece, "app.js (gabarit)");
+//
+// Un litteral de app.js n est pas forcement une chaine affichee telle quelle :
+// beaucoup contiennent du HTML. On les passe alors au meme tokeniseur que
+// index.html, pour ne retenir que les vrais noeuds de texte et les attributs
+// traduits — sinon on compte un bloc `<div>...<small>...</small></div>` comme
+// une seule chaine introuvable dans le dictionnaire.
+
+// Chaines destinees a la console ou au shim CLI : elles ne passent jamais par
+// le DOM, donc jamais par l observateur de i18n.js. Les compter fausserait la
+// couverture.
+const HORS_DOM = /\\[nrt]/;
+
+// Scripts PowerShell construits en chaines JS : ils partent vers l hote, pas
+// vers le DOM. Reperables a leurs sous-expressions `$(...)` et a leurs
+// variables automatiques.
+const POWERSHELL =
+  /\$\(|\$LASTEXITCODE|\$ErrorActionPreference|\$env:|-ErrorAction\b|\bJoin-Path\b|\b(?:Get|Set|New|Remove|Clear|Test|Start|Stop)-[A-Z][A-Za-z]+\b/;
+
+/**
+ * Parcourt le JavaScript une fois et renvoie ses litteraux de chaines.
+ *
+ * Un simple `matchAll` sur les guillemets se trompe des qu une apostrophe
+ * francaise apparait dans une chaine a guillemets doubles : "n'a pas ... l'app"
+ * fait croire a un litteral simple quote « a pas ... l ». Il faut donc suivre l
+ * etat du source : commentaires, litteraux, echappements, et litteraux
+ * reguliers (qui peuvent contenir des guillemets).
+ */
+function scanJsLiterals(source) {
+  const out = [];
+  let i = 0;
+  let precedent = ""; // dernier caractere significatif, pour distinguer / regex et / division
+  while (i < source.length) {
+    const c = source[i];
+
+    if (c === "/" && source[i + 1] === "/") {
+      const fin = source.indexOf("\n", i);
+      i = fin < 0 ? source.length : fin;
+      continue;
+    }
+    if (c === "/" && source[i + 1] === "*") {
+      const fin = source.indexOf("*/", i + 2);
+      i = fin < 0 ? source.length : fin + 2;
+      continue;
+    }
+    // Litteral regulier : seulement la ou une valeur peut commencer.
+    if (c === "/" && /[(,=:[!&|?{};+\-*%~^]|^$/.test(precedent)) {
+      i++;
+      let classe = false;
+      while (i < source.length) {
+        const d = source[i];
+        if (d === "\\") i += 2;
+        else if (d === "[") ((classe = true), i++);
+        else if (d === "]") ((classe = false), i++);
+        else if (d === "/" && !classe) {
+          i++;
+          break;
+        } else if (d === "\n") break;
+        else i++;
+      }
+      precedent = "/";
+      continue;
+    }
+
+    if (c === '"' || c === "'" || c === "`") {
+      const quote = c;
+      const debut = ++i;
+      let profondeur = 0;
+      let contenu = "";
+      while (i < source.length) {
+        const d = source[i];
+        if (d === "\\") {
+          contenu += source.slice(i, i + 2);
+          i += 2;
+          continue;
+        }
+        if (quote === "`" && d === "$" && source[i + 1] === "{") {
+          profondeur++;
+          contenu += "${";
+          i += 2;
+          continue;
+        }
+        if (quote === "`" && profondeur > 0) {
+          if (d === "{") profondeur++;
+          else if (d === "}") profondeur--;
+          contenu += d;
+          i++;
+          continue;
+        }
+        if (d === quote) {
+          i++;
+          break;
+        }
+        if (d === "\n" && quote !== "`") break; // chaine non terminee : on abandonne
+        contenu += d;
+        i++;
+      }
+      out.push({ quote, contenu, debut });
+      precedent = quote;
+      continue;
+    }
+
+    if (!/\s/.test(c)) precedent = c;
+    i++;
+  }
+  return out;
+}
+
+function recordLiteral(value, origin) {
+  if (HORS_DOM.test(value) || POWERSHELL.test(value)) return;
+  if (!value.includes("<")) {
+    record(value, origin);
+    return;
+  }
+  const { texts, attributes } = extractFromHtml(value);
+  for (const text of texts) record(text, origin);
+  for (const attribute of attributes) {
+    const text = cleanAttribute(attribute);
+    if (isCandidate(text) && !found.has(text)) found.set(text, `${origin} (attribut)`);
+  }
+}
+
+// Gabarits : sans interpolation, le litteral est la chaine finale. Avec
+// interpolation, le noeud de texte rendu est la CONCATENATION des morceaux et
+// des valeurs injectees : aucune cle exacte ne peut correspondre. Ces cas
+// relevent d un motif dans `englishPatterns` (ou d une restructuration du
+// code), pas d une entree de dictionnaire — on les compte a part.
+const INTERPOLATION = /\$\{(?:[^{}]|\{[^}]*\})*\}/g;
+// Deux sondes suffisent a couvrir les motifs existants : un compteur et un nom
+// d application.
+const SONDES = ["1", "Chrome"];
+const interpolated = new Set();
+
+for (const { quote, contenu } of scanJsLiterals(appJs)) {
+  if (quote !== "`") {
+    recordLiteral(contenu, "app.js");
+    continue;
+  }
+  if (!contenu.includes("${")) {
+    recordLiteral(contenu, "app.js");
+    continue;
+  }
+  if (HORS_DOM.test(contenu) || POWERSHELL.test(contenu)) continue;
+  // On INSTANCIE le gabarit au lieu de le decouper : le noeud de texte rendu
+  // est la concatenation des morceaux et des valeurs, et c est cette chaine
+  // complete que i18n.js soumet a `englishPatterns`. Un fragment isole ferait
+  // croire a un trou alors que le motif « ^Desinstaller (.+)$ » couvre le cas.
+  // Deux instanciations suffisent a couvrir les motifs existants : une valeur
+  // numerique (compteurs) et un nom d application.
+  for (const valeur of SONDES) {
+    const rendu = contenu.replace(INTERPOLATION, valeur);
+    const candidats = rendu.includes("<") ? extractFromHtml(rendu).texts : [rendu];
+    for (const brut of candidats) {
+      const text = clean(brut);
+      if (!isCandidate(text) || text.length < 12) continue;
+      if (translated.has(text) || isCoveredByPattern(text)) continue;
+      // On compte des FORMES, pas des instanciations : les deux sondes
+      // produiraient sinon deux entrees pour un meme gabarit.
+      interpolated.add(text.replaceAll(valeur, "%s"));
+    }
+  }
 }
 
 const missing = [...found.entries()]
@@ -251,7 +416,13 @@ const percent = total ? Math.round((covered / total) * 100) : 100;
 if (process.argv.includes("--json")) {
   console.log(
     JSON.stringify(
-      { total, covered, percent, missing: missing.map(([text, from]) => ({ text, from })) },
+      {
+        total,
+        covered,
+        percent,
+        missing: missing.map(([text, from]) => ({ text, from })),
+        interpolated: [...interpolated].sort((a, b) => a.localeCompare(b, "fr")),
+      },
       null,
       2
     )
@@ -264,16 +435,34 @@ if (process.argv.includes("--json")) {
       console.log(`  [${origin}] ${text.length > 90 ? text.slice(0, 90) + "…" : text}`);
     }
   }
+  if (interpolated.size) {
+    console.log(
+      `\n${interpolated.size} portion(s) de gabarit interpole : le noeud rendu melange texte et` +
+        ` valeurs, il faut un motif dans englishPatterns (ou restructurer l appel).`
+    );
+  }
 }
 
-// --check ne gate que index.html : l extraction des litteraux de app.js ramene
-// aussi des chaines qui n atteignent jamais le DOM (journaux, fragments
-// PowerShell), ce qui rendrait la porte inutilisable.
-const blocking = missing.filter(([, origin]) => origin.startsWith("index.html"));
+// --check gate desormais index.html ET app.js.
+//
+// La porte ne couvrait que index.html tant que l extraction de app.js ramenait
+// des chaines qui n atteignent jamais le DOM. Ce n est plus le cas : les
+// litteraux sont lus par un vrai scanner JS, le HTML qu ils contiennent passe
+// par le tokeniseur, et les scripts PowerShell comme les sorties console sont
+// ecartes. La couverture exacte etant a 100 %, la porte protege l acquis.
+//
+// Les gabarits interpoles restent HORS de la porte : leur noeud rendu melange
+// texte et valeurs, ils relevent de `englishPatterns` et non du dictionnaire.
 if (process.argv.includes("--check")) {
-  if (blocking.length) {
-    console.error(`\n${blocking.length} chaine(s) de index.html sans traduction anglaise.`);
+  if (missing.length) {
+    console.error(`\n${missing.length} chaine(s) sans traduction anglaise.`);
     process.exit(1);
   }
-  console.log("index.html : couverture anglaise complete.");
+  console.log(`Couverture anglaise complete (${total} chaines).`);
+  if (interpolated.size) {
+    console.log(
+      `Rappel : ${interpolated.size} chaine(s) construite(s) par interpolation restent a couvrir` +
+        ` par un motif (hors porte).`
+    );
+  }
 }
