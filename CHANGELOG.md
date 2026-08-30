@@ -1,5 +1,48 @@
 # Historique des versions
 
+## [4.0.0-beta.47] - 2026-08-30
+
+### Lot 6 — contrastes WCAG AA
+
+L'interface a été mesurée à l'écran sur les **quatre combinaisons de thème**
+(clair et sombre, chacun avec et sans contraste renforcé), au seuil WCAG AA de
+4,5:1 (3:1 pour le grand texte). Sur 3 947 éléments porteurs de texte,
+**132 couleurs distinctes passaient sous le seuil**.
+
+La cause n'était pas une couleur mal choisie ici ou là : la feuille de style
+improvisait **une nuance de gris par règle** — 90 gris différents pour dire
+« texte secondaire » — au lieu du token `--muted` déjà prévu pour ça. Chaque
+nuance devait donc être corrigée séparément, dans chaque thème.
+
+Le correctif rebranche ces textes sur des **tokens** :
+
+- `--muted` pour les textes secondaires ;
+- `--text-blue`, `--text-cyan`, `--text-green`, `--text-danger` et
+  `--text-warn` pour les textes de couleur. Ils sont **distincts** de
+  `--blue`, `--cyan` et `--green`, qui servent aussi aux fonds et aux bordures
+  et ne peuvent donc pas être assombris librement.
+
+Chaque token est redéfini par thème avec une valeur garantie au-dessus de
+4,5:1 sur toutes les surfaces de ce thème. **216 déclarations** de couleur ont
+été converties.
+
+Trois défauts n'étaient pas des problèmes de couleur mais de support :
+
+- **`.btn.ghost`** (le bouton « Parcourir… » du sélecteur de dossier) n'était
+  déclaré nulle part : le navigateur lui appliquait sa face de bouton native
+  (`#f0f0f0`), donc un texte clair sur fond clair en thème sombre. Il a
+  désormais son propre fond, tiré des tokens.
+- Le **« / 100 »** des jauges se superposait au remplissage : selon le
+  pourcentage, son support était le panneau, le bleu ou le vert. Il reçoit un
+  fond opaque pour que son contraste ne dépende plus du remplissage.
+- La **barre de sélection** et le **badge d'étape** héritaient de `--text` sur
+  un bleu plein — texte sombre sur fond bleu en thème clair.
+
+Un test verrouille l'invariant (`beta/test/contrast.test.js`) : il recalcule le
+contraste de chaque token de texte sur chaque surface des quatre thèmes, et
+refuse le retour des 132 littéraux connus comme non conformes dans une
+déclaration `color:`.
+
 ## [4.0.0-beta.46] - 2026-08-29
 
 ### Lot 6 — accessibilité au clavier
