@@ -229,8 +229,9 @@ commande, sans analyseur ni découpage.
    règles écartées), validé par cinq sabotages.
 
    **Reste** : adopter le `.csproj` comme chemin de build officiel — aujourd'hui
-   il est construit *à côté* de `build.ps1`, pas *à la place* — et `dotnet
-   format` en CI.
+   il est construit _à côté_ de `build.ps1`, pas _à la place_ — et `dotnet
+format` en CI.
+
 2. Découper `WebAppForm` par responsabilité (fichiers `partial` puis classes
    dédiées) : `Ipc/` (routage `OnWebMessage`), `Winget/` (invocations + parsing
    colonnes), `Cleanup/`, `Security/`, `Process/` (élévation, jetons),
@@ -271,6 +272,7 @@ commande, sans analyseur ni découpage.
    ont été audités — aucune injection possible aujourd'hui, mais par accident
    plutôt que par construction. Échapper les valeurs interpolées à la
    construction reste à faire.
+
 4. **Corrections de sécurité ciblées :**
    - [x] refuser un identifiant commençant par un non-alphanumérique — regex
          passée à `^[A-Za-z0-9][A-Za-z0-9.+_-]*$` dans `app.js`, `OwlSetupWebView.cs`
@@ -314,15 +316,15 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
 
 1. **JS unitaires** : poursuivre la couverture Vitest au fil du lot 2.
 2. [x] _(4.0.0-beta.53, beta.54)_ **PowerShell** : les **quatre** scripts
-   d'opération exposent leur logique en **fonctions importables** (`-AsModule`
-   charge sans rien exécuter), couvertes par une suite **Pester de 37 tests**
-   (`tests/Pester/`, lancée par `tests/Test-OperationScripts.ps1`). Un seul
-   fichier par script : pas de module séparé à embarquer, donc rien de neuf
-   dans le chemin d'exécution élevé à ACL stricte. `winget` est **simulé** par
-   `Mock` sur une fonction d'enveloppe, ce qui couvre la branche « winget
-   absent » sans toucher la machine. Un test tient ensemble le préfixe de
-   quarantaine produit par le script et celui que `RestoreQuarantine` relit
-   côté C#. La suite est validée en **cassant volontairement** le code.
+       d'opération exposent leur logique en **fonctions importables** (`-AsModule`
+       charge sans rien exécuter), couvertes par une suite **Pester de 37 tests**
+       (`tests/Pester/`, lancée par `tests/Test-OperationScripts.ps1`). Un seul
+       fichier par script : pas de module séparé à embarquer, donc rien de neuf
+       dans le chemin d'exécution élevé à ACL stricte. `winget` est **simulé** par
+       `Mock` sur une fonction d'enveloppe, ce qui couvre la branche « winget
+       absent » sans toucher la machine. Un test tient ensemble le préfixe de
+       quarantaine produit par le script et celui que `RestoreQuarantine` relit
+       côté C#. La suite est validée en **cassant volontairement** le code.
 3. [~] _(4.0.0-beta.62)_ **e2e — le démarrage graphique est couvert.**
    `tests/Test-InterfaceStartup.ps1` lance le vrai binaire et exerce ce qu'aucun
    autre test n'atteignait : `Bootstrap.Main`, l'extraction des ressources
@@ -357,6 +359,7 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
    faille (le contenu servi est toujours celui de l'assembly), mais le message
    « L'interface locale a été modifiée ou endommagée » promet plus que ce que le
    contrôle vérifie.
+
 4. Garder les tests « garde-fou » utiles (catalogue, logos, CSP) mais les
    étiqueter `lint` et non `test`.
 
