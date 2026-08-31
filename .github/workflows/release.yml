@@ -56,6 +56,13 @@ jobs:
       - name: Compiler OwlSetup
         shell: powershell
         run: ./build.ps1 -AppVersion 0.0.0 -Channel stable
+      # Le seul test qui lance l'interface graphique. Il doit tourner APRES la
+      # compilation : avant, l'executable n'existe pas et le test se contenterait
+      # de passer en silence. -Requis fait echouer si le binaire manque, pour que
+      # cette etape ne puisse pas devenir un controle vide.
+      - name: Démarrage réel de l'interface
+        shell: powershell
+        run: ./tests/Test-InterfaceStartup.ps1 -Requis
       - name: Installer Inno Setup
         shell: powershell
         run: choco install innosetup --no-progress --yes
