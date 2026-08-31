@@ -61,7 +61,25 @@ endommagée » laisse croire à une vérification qui ne peut échouer que sur u
 La 4.0.0-beta.61 avait créé un second « Lot 7 » dans le plan, en collision avec
 le mode CLI. La traduction de l'hôte devient le **lot 8**.
 
-**Vérifié :** 243 tests JavaScript, 57 fichiers de tests PowerShell, démarrage
+### Le contrôle qualité était rouge depuis des semaines
+
+En vérifiant la CI de cette PR, le workflow `quality` a échoué sur **prettier**.
+Il échouait déjà sur `main`, et depuis au moins six commits — donc bien avant
+ces lots.
+
+J'avais affirmé en 4.0.0-beta.58 que « prettier n'est branché sur aucun
+workflow ». C'était faux : mon `grep` était sensible à la casse et a manqué
+l'étape `Prettier` de `quality.yml`. Sur cette base, deux fichiers non formatés
+sont entrés au dépôt (`test/package-id.test.js` en beta.59,
+`PLAN-AMELIORATION.md` ici), en plus des quatre qui échouaient déjà
+(`ci/quality.yml`, `scripts/audit-i18n.mjs`, `build-catalog.mjs`,
+`build-js.mjs`).
+
+Un contrôle rouge en permanence n'apprend plus rien à personne. Les six fichiers
+sont formatés, et `prettier --check` passe. Le reformatage est vérifié neutre :
+les scripts régénèrent `app.js` et `catalog.generated.js` **au bit près**.
+
+**Vérifié :** 243 tests JavaScript, 57 fichiers de tests PowerShell, `prettier --check` au vert, démarrage
 graphique réel validé par trois sabotages.
 
 
