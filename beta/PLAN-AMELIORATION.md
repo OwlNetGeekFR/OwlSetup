@@ -167,6 +167,40 @@ métier écrite à la main dans un fichier de 4 000 lignes, couverture ≥ 70 % 
 
 ---
 
+## Lot 7 — Traduction anglaise de l'hôte C#
+
+**Pourquoi :** `audit-i18n.mjs` annonçait **1227/1227, 100 %** en ne scannant que
+`index.html` et `app.js`. L'hôte C# produit lui aussi du texte affiché, et n'était
+lu nulle part : la couverture réelle est de **84 %**.
+
+**Étapes :**
+
+1. ✅ _(4.0.0-beta.61)_ **L'hôte est dans l'audit.** Scanner C# (littéraux `"…"`
+   et `@"…"`), avec exclusion de ce qui ne va pas au DOM : arguments de
+   `Contains`/`StartsWith` (OwlSetup y reconnaît la sortie de winget, y compris
+   ses variantes abîmées), sorties `Console.*` du shim CLI, préfixes de noms de
+   journaux.
+2. ✅ _(4.0.0-beta.61)_ **33 chaînes réaccentuées.** Elles étaient montrées aux
+   utilisateurs français sans leurs accents. Vérifié au préalable qu'aucune
+   contrainte d'encodage ne les justifiait : les deux compilateurs produisent
+   des accents corrects. Trois chaînes non accentuées sont conservées — ce sont
+   des motifs comparés à la sortie de winget, pas des messages.
+3. ✅ _(4.0.0-beta.61)_ **Décomposition de fragment de tête.** Un littéral qui
+   finit par une espace est un préfixe par construction ; la valeur qui suit
+   passe par le dictionnaire en correspondance exacte seulement. Une règle au
+   lieu d'une expression régulière par message. Miroir dans l'audit.
+4. ✅ _(4.0.0-beta.61)_ **Dette déclarée à cliquet** (`beta/i18n-dette.json`) :
+   `--check` échoue si une chaîne s'ajoute, ET si une chaîne traduite y reste.
+   La dette ne peut que diminuer. Trois sabotages la valident.
+5. **Reste : les 234 traductions.** À faire par tranches, en régénérant la dette
+   à chaque fois (`node beta/scripts/audit-i18n.mjs --dette`).
+6. **Reste :** une poignée de messages en trois morceaux
+   (`"…cette " + operation + ". Le rapport…"`) qui demandent un motif dans
+   `englishPatterns` plutôt qu'un fragment de tête.
+
+**Risque :** faible. Le cliquet empêche toute régression, et chaque tranche est
+vérifiable seule.
+
 ## Lot 3 — Durcissement de l'hôte C#
 
 **Pourquoi :** un fichier de 3 852 lignes compilé par `csc.exe` en ligne de

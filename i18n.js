@@ -1816,6 +1816,35 @@
   // puisque la décomposition exige que CHAQUE partie soit couverte.
   const VALUE_ONLY = /^[\d\s.,:%/+-]*\d[\d\s.,:%/+-]*(?:\s*(?:o|K?o|Mo|Go|To|B|[KMGT]B|h|min|s))?$/i;
 
+  /**
+   * Fragment de tete du dictionnaire, suivi d'une valeur produite a l'execution.
+   *
+   * L'hote construit beaucoup de messages par concatenation : « Emplacement
+   * demandé : » + un chemin, « Analyse de » + un nom + « ... ». Le litteral C#
+   * finit alors par une espace, et c'est exactement ce qui le distingue d'une
+   * phrase complete — une phrase ne finit jamais par une espace. Ces fragments
+   * sont donc des cles du dictionnaire AVEC leur espace finale, et ne peuvent
+   * pas se confondre avec un message entier.
+   *
+   * La valeur, elle, passe par le dictionnaire en correspondance EXACTE
+   * seulement — meme regle que les groupes captures des motifs : on ne fabrique
+   * jamais une phrase a moitie traduite. On retient le fragment le plus long,
+   * pour que « Vérification après installation : » l'emporte sur « Vérification ».
+   */
+  function translateFragmentPrefix(source) {
+    const dictionnaire = translations[currentLanguage];
+    if (!dictionnaire) return null;
+    let meilleure = null;
+    for (const cle in dictionnaire) {
+      if (cle.length >= source.length || !/\s$/.test(cle)) continue;
+      if (!source.startsWith(cle)) continue;
+      if (!meilleure || cle.length > meilleure.length) meilleure = cle;
+    }
+    if (!meilleure) return null;
+    const reste = source.slice(meilleure.length);
+    return dictionnaire[meilleure] + (dictionnaire[reste] ?? reste);
+  }
+
   function translateFragment(source, depth) {
     const exact = translations[currentLanguage]?.[source];
     if (exact) return exact;
@@ -1836,6 +1865,9 @@
         });
       });
     }
+
+    const prefixe = translateFragmentPrefix(source);
+    if (prefixe) return prefixe;
 
     if (depth >= 2) return null;
 

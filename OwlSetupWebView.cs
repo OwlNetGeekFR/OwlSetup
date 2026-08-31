@@ -174,7 +174,7 @@ internal sealed class WebAppForm : Form
             string userData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCSetup", "WebView2Data");
             var environment = await CoreWebView2Environment.CreateAsync(null, userData);
             await webView.EnsureCoreWebView2Async(environment);
-            if(!VerifyInterfaceIntegrity())throw new InvalidDataException("L'interface locale de OwlSetup a ete modifiee ou endommagee.");
+            if(!VerifyInterfaceIntegrity())throw new InvalidDataException("L'interface locale de OwlSetup a été modifiée ou endommagée.");
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.CoreWebView2.Settings.AreHostObjectsAllowed = false;
@@ -252,7 +252,7 @@ internal sealed class WebAppForm : Form
         string action = "unknown";
         try
         {
-            if(!IsTrustedUiUri(e.Source) || !VerifyInterfaceIntegrity())throw new UnauthorizedAccessException("Commande refusee : origine ou integrite de l'interface invalide.");
+            if(!IsTrustedUiUri(e.Source) || !VerifyInterfaceIntegrity())throw new UnauthorizedAccessException("Commande refusée : origine ou intégrité de l'interface invalide.");
             if(String.IsNullOrEmpty(e.WebMessageAsJson) || e.WebMessageAsJson.Length>1024*1024)throw new InvalidDataException("Commande trop volumineuse ou vide.");
             var message = json.DeserializeObject(e.WebMessageAsJson) as Dictionary<string, object>;
             if (message == null || !message.ContainsKey("action")) throw new InvalidOperationException("Commande invalide.");
@@ -390,7 +390,7 @@ internal sealed class WebAppForm : Form
     {
         var packages = ReadArray(payload, "packages").Where(x => IsValidPackageId(x)).Distinct().Take(100).ToArray();
         if(packages.Any(id=>String.Equals(id,"VMware.WorkstationPro",StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException("VMware Workstation Pro necessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidee depuis sa carte.");
+            throw new InvalidOperationException("VMware Workstation Pro nécessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidée depuis sa carte.");
         var catalog=ReadCatalog(payload);
         var portablePackages=ReadPortableCatalog(payload);
         string shortcutPreference=payload!=null&&payload.ContainsKey("shortcut")?Convert.ToString(payload["shortcut"]):"start";
@@ -728,7 +728,7 @@ internal sealed class WebAppForm : Form
     void InspectPackageProcesses(Dictionary<string,object> payload)
     {
         var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
-        if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a examiner.");
+        if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide à examiner.");
         Task.Run(delegate
         {
             var known=KnownPackageProcesses();
@@ -744,8 +744,8 @@ internal sealed class WebAppForm : Form
         var packages=ReadArray(payload,"packages").Where(x=>IsValidPackageId(x)).Distinct(StringComparer.OrdinalIgnoreCase).Take(10).ToArray();
         bool force=payload!=null&&payload.ContainsKey("force")&&Convert.ToBoolean(payload["force"]);
         bool confirmed=payload!=null&&payload.ContainsKey("confirmed")&&Convert.ToBoolean(payload["confirmed"]);
-        if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide a traiter.");
-        if(force&&!confirmed)throw new InvalidOperationException("La fermeture forcee doit etre confirmee explicitement.");
+        if(packages.Length==0)throw new InvalidOperationException("Aucun paquet valide à traiter.");
+        if(force&&!confirmed)throw new InvalidOperationException("La fermeture forcée doit être confirmée explicitement.");
         Task.Run(delegate
         {
             var processes=ResolvePackageProcesses(packages);int requested=processes.Count,closed=0;
@@ -830,7 +830,7 @@ internal sealed class WebAppForm : Form
                         .FirstOrDefault();
                     if(safeCandidates.Count>1 && !String.IsNullOrEmpty(executable) && PortableExecutableScore(executable,wanted,idName)<70)
                     {
-                        report.AppendLine("Plusieurs executables portables ambigus ont ete trouves : aucun raccourci automatique n'est cree.");
+                        report.AppendLine("Plusieurs exécutables portables ambigus ont été trouvés : aucun raccourci automatique n'est créé.");
                         executable=null;
                     }
                     if(!String.IsNullOrEmpty(executable))
@@ -909,17 +909,17 @@ internal sealed class WebAppForm : Form
                 Directory.CreateDirectory(Path.GetDirectoryName(shortcut));
                 if(!File.Exists(shortcut))
                 {
-                    if(!CreateShortcut(shortcut,target,appName+" - application portable geree par OwlSetup",report))
-                        report.AppendLine("Le raccourci n'a pas pu etre cree : "+shortcut);
+                    if(!CreateShortcut(shortcut,target,appName+" - application portable gérée par OwlSetup",report))
+                        report.AppendLine("Le raccourci n'a pas pu être créé : "+shortcut);
                 }
                 if(File.Exists(shortcut))report.AppendLine("Raccourci portable : "+shortcut);
             }
-            if(preference=="none")report.AppendLine(appName+" est disponible sans raccourci supplementaire.");
+            if(preference=="none")report.AppendLine(appName+" est disponible sans raccourci supplémentaire.");
             return true;
         }
         catch(Exception ex)
         {
-            report.AppendLine(appName+" est installe, mais le raccourci n'a pas pu etre cree : "+ex.Message);
+            report.AppendLine(appName+" est installé, mais le raccourci n'a pas pu être créé : "+ex.Message);
             return true;
         }
     }
@@ -1041,14 +1041,14 @@ internal sealed class WebAppForm : Form
                 .FirstOrDefault(path=>NormalizeSoftwareName(Path.GetFileNameWithoutExtension(path)).Contains(normalized) || normalized.Contains(NormalizeSoftwareName(Path.GetFileNameWithoutExtension(path))));
             if(String.IsNullOrEmpty(source))
             {
-                report.AppendLine("Aucun raccourci existant trouve pour creer un acces Bureau : "+appName);
+                report.AppendLine("Aucun raccourci existant trouvé pour créer un accès Bureau : "+appName);
                 return;
             }
             string destination=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),Path.GetFileName(source));
             File.Copy(source,destination,true);
             report.AppendLine("Raccourci Bureau : "+destination);
         }
-        catch(Exception ex){report.AppendLine("Creation du raccourci Bureau impossible pour "+appName+" : "+ex.Message);}
+        catch(Exception ex){report.AppendLine("Création du raccourci Bureau impossible pour "+appName+" : "+ex.Message);}
     }
 
     void LaunchInstalledApplication(string packageId,string appName,bool portable,StringBuilder report)
@@ -1057,9 +1057,9 @@ internal sealed class WebAppForm : Form
         {
             if(!portable)return;
             string target=ResolvePortableExecutable(packageId,appName,report);
-            if(String.IsNullOrEmpty(target)||!File.Exists(target)){report.AppendLine("Lancement impossible : executable portable introuvable.");return;}
+            if(String.IsNullOrEmpty(target)||!File.Exists(target)){report.AppendLine("Lancement impossible : exécutable portable introuvable.");return;}
             Process.Start(new ProcessStartInfo{FileName=target,UseShellExecute=true});
-            report.AppendLine(appName+" a ete lance apres l'installation.");
+            report.AppendLine(appName+" a été lancé après l'installation.");
         }
         catch(Exception ex){report.AppendLine("Lancement automatique impossible : "+ex.Message);}
     }
@@ -1176,19 +1176,19 @@ internal sealed class WebAppForm : Form
         LogElevation(fileName,arguments,"demande");
         try
         {
-            report.AppendLine("Autorisation administrateur demandee uniquement pour cette operation.");
+            report.AppendLine("Autorisation administrateur demandée uniquement pour cette opération.");
             using(var process=new Process())
             {
                 process.StartInfo=new ProcessStartInfo{FileName=fileName,Arguments=arguments,UseShellExecute=true,Verb="runas",WindowStyle=ProcessWindowStyle.Hidden};
                 process.Start();process.WaitForExit();
-                report.AppendLine("Code de l'operation elevee : "+process.ExitCode);
+                report.AppendLine("Code de l'opération élevée : "+process.ExitCode);
                 LogElevation(fileName,arguments,"code="+process.ExitCode);
                 return process.ExitCode;
             }
         }
         catch(System.ComponentModel.Win32Exception ex)
         {
-            if(ex.NativeErrorCode==1223){report.AppendLine("Autorisation administrateur annulee par l'utilisateur.");LogElevation(fileName,arguments,"refus UAC");return 1223;}
+            if(ex.NativeErrorCode==1223){report.AppendLine("Autorisation administrateur annulée par l'utilisateur.");LogElevation(fileName,arguments,"refus UAC");return 1223;}
             report.AppendLine("Elevation impossible : "+ex.Message);
             LogElevation(fileName,arguments,"echec Win32 "+ex.NativeErrorCode);
             return ex.NativeErrorCode;
@@ -1630,7 +1630,7 @@ internal sealed class WebAppForm : Form
                 string iconData=ReadInstalledIconData(match.Item.Item2);
                 if(!String.IsNullOrWhiteSpace(iconData))package["iconData"]=iconData;
             }
-            catch(Exception ex){report.AppendLine("Icone locale ignoree : "+ex.Message);}
+            catch(Exception ex){report.AppendLine("Icône locale ignorée : "+ex.Message);}
         }
     }
 
@@ -1874,7 +1874,7 @@ internal sealed class WebAppForm : Form
             DetectInstalledFromRegistry(catalog,requested,installed);
             return installed.Contains(packageId);
         }
-        catch(Exception ex){report.AppendLine("Verification du registre impossible : "+ex.Message);return true;}
+        catch(Exception ex){report.AppendLine("Vérification du registre impossible : "+ex.Message);return true;}
     }
 
     int RunUninstallWithFallbacks(string packageId,StringBuilder report)
@@ -1914,7 +1914,7 @@ internal sealed class WebAppForm : Form
     {
         var exactIdReport=new StringBuilder();
         int exactIdCode=RunWingetCli("list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",exactIdReport);
-        report.AppendLine("Resolution par identifiant exact : "+exactIdCode);
+        report.AppendLine("Résolution par identifiant exact : "+exactIdCode);
         report.Append(exactIdReport.ToString());
         var exactIds=ParseWingetListPackageIds(exactIdReport.ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         string exactId=exactIds.FirstOrDefault(value=>String.Equals(value,packageId,StringComparison.OrdinalIgnoreCase));
@@ -1924,7 +1924,7 @@ internal sealed class WebAppForm : Form
         var exactNameReport=new StringBuilder();
         string safeName=appName.Replace("\"","").Trim();
         int exactNameCode=RunWingetCli("list --name \""+safeName+"\" --exact --accept-source-agreements --disable-interactivity",exactNameReport);
-        report.AppendLine("Resolution par nom exact : "+exactNameCode);
+        report.AppendLine("Résolution par nom exact : "+exactNameCode);
         report.Append(exactNameReport.ToString());
         var nameIds=ParseWingetListPackageIds(exactNameReport.ToString()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if(exactNameCode==0 && nameIds.Length==1)return nameIds[0];
@@ -1933,10 +1933,10 @@ internal sealed class WebAppForm : Form
 
     string ExplainWingetFailure(int code,string output,string operation)
     {
-        if(code==0)return "Operation terminee avec succes.";
+        if(code==0)return "Opération terminée avec succès.";
         string text=(output??"").ToLowerInvariant();
         if(code==unchecked((int)0x8A150101) || code==unchecked((int)0x8A150103) || code==unchecked((int)0x8A150111))
-            return "L'application ou l'un de ses fichiers est encore utilise. Fermez-la completement, y compris depuis la zone de notification, puis relancez uniquement cette mise a jour.";
+            return "L'application ou l'un de ses fichiers est encore utilisé. Fermez-la complètement, y compris depuis la zone de notification, puis relancez uniquement cette mise à jour.";
         if(code==unchecked((int)0x8A150061))
             return "L'installateur s'est terminé, mais OwlSetup ne retrouve pas l'application. Relancez la détection ou consultez le rapport avant de recommencer.";
         if(code==5 || code==unchecked((int)0x80070005))
@@ -1944,26 +1944,26 @@ internal sealed class WebAppForm : Form
         if(code==6 || text.Contains("currently used by another application") || text.Contains("files modified by the installer are currently in use") || text.Contains("fichiers sont actuellement utilisés"))
             return "Des fichiers sont encore utilisés. Fermez complètement l'application (y compris dans la zone de notification), puis réessayez.";
         if(code==1223 || text.Contains("operation was canceled") || text.Contains("operation cancelled") || text.Contains("annulee par l'utilisateur") || text.Contains("annulÃ©e par l'utilisateur"))
-            return "L'autorisation Windows a ete annulee. Relancez l'operation puis acceptez la demande de securite.";
+            return "L'autorisation Windows a été annulée. Relancez l'opération puis acceptez la demande de sécurité.";
         if(code==unchecked((int)0x8A15007D) || text.Contains("installed for user scope cannot be uninstalled") || text.Contains("installe pour l'utilisateur") || text.Contains("installÃ© pour l'utilisateur"))
-            return "Cette application appartient a votre compte Windows. OwlSetup doit effectuer l'operation sans elevation administrateur.";
+            return "Cette application appartient à votre compte Windows. OwlSetup doit effectuer l'opération sans élévation administrateur.";
         if(code==1618 || text.Contains("another installation is already in progress") || text.Contains("une autre installation est en cours"))
-            return "Une autre installation Windows est deja en cours. Attendez sa fin puis recommencez.";
+            return "Une autre installation Windows est déjà en cours. Attendez sa fin puis recommencez.";
         if(code==1603 || text.Contains("installer failed with exit code: 1603"))
-            return "L'installateur de l'editeur a rencontre une erreur. Fermez l'application concernee puis recommencez.";
+            return "L'installateur de l'éditeur a rencontré une erreur. Fermez l'application concernée puis recommencez.";
         if(code==3010 || text.Contains("restart required") || text.Contains("reboot required") || text.Contains("redemarrage requis") || text.Contains("redÃ©marrage requis"))
-            return "L'operation est terminee mais le PC doit etre redemarre pour que Windows l'applique completement.";
+            return "L'opération est terminée mais le PC doit être redémarré pour que Windows l'applique complètement.";
         if(text.Contains("no package found") || text.Contains("no package was found") || text.Contains("aucun package trouve") || text.Contains("aucun package trouvÃ©") || text.Contains("aucun logiciel trouve") || text.Contains("aucun logiciel trouvÃ©"))
             return "Le logiciel n'a pas ete trouve dans les sources WinGet. Actualisez les sources puis reessayez.";
         if(text.Contains("hash mismatch") || text.Contains("hash does not match") || text.Contains("hachage") && text.Contains("ne correspond"))
-            return "Le controle de securite du fichier a echoue : son empreinte ne correspond pas au manifeste. L'installation a ete bloquee.";
+            return "Le contrôle de sécurité du fichier a échoué : son empreinte ne correspond pas au manifeste. L'installation a été bloquée.";
         if(text.Contains("already installed") || text.Contains("deja installe") || text.Contains("dÃ©jÃ  installÃ©"))
-            return "Le logiciel est deja installe. Utilisez plutot Mettre a jour ou Reparer.";
+            return "Le logiciel est déjà installé. Utilisez plutôt Mettre à jour ou Réparer.";
         if(text.Contains("access is denied") || text.Contains("acces refuse") || text.Contains("accÃ¨s refusÃ©"))
-            return "Windows a refuse l'acces. Fermez le logiciel concerne et acceptez la demande d'autorisation si elle apparait.";
+            return "Windows a refusé l'accès. Fermez le logiciel concerné et acceptez la demande d'autorisation si elle apparaît.";
         if(text.Contains("network") || text.Contains("internet") || text.Contains("connection") || text.Contains("connexion"))
-            return "Le telechargement n'a pas abouti. Verifiez la connexion Internet puis recommencez.";
-        return "WinGet n'a pas pu terminer cette "+operation+". Le rapport contient les details techniques (code "+code+").";
+            return "Le téléchargement n'a pas abouti. Vérifiez la connexion Internet puis recommencez.";
+        return "WinGet n'a pas pu terminer cette "+operation+". Le rapport contient les détails techniques (code "+code+").";
     }
 
     bool IsNoApplicableUpdateCode(int code)
@@ -2123,11 +2123,11 @@ internal sealed class WebAppForm : Form
                 {
                     for(int attempt=0;attempt<5 && IsPackageStillInstalled(resolvedPackageId,report);attempt++)Thread.Sleep(750);
                     success=!IsPackageStillInstalled(resolvedPackageId,report);
-                    if(!success)report.AppendLine("Le logiciel est encore detecte apres la desinstallation.");
+                    if(!success)report.AppendLine("Le logiciel est encore détecté après la désinstallation.");
                 }
                 else if(!IsPackageStillInstalled(resolvedPackageId,report))
                 {
-                    report.AppendLine("Le logiciel n'est plus detecte malgre le code de sortie retourne.");
+                    report.AppendLine("Le logiciel n'est plus détecté malgré le code de sortie retourné.");
                     success=true;
                 }
                 if(success)
@@ -2159,7 +2159,7 @@ internal sealed class WebAppForm : Form
             {
                 try { File.WriteAllText(logPath,report.ToString(),Encoding.UTF8); } catch { }
                 uninstallRunning=false;
-                SendToWeb(new { type="uninstall-complete", id=packageId, success=success, code=code, errorMessage=success?"":ExplainWingetFailure(code,report.ToString(),"desinstallation"), logName=logName, residueToken=residueToken, residueSize=FormatBytes(residues.Sum(item=>item.Bytes)), residues=residues.Select(item=>new {name=item.Name,display=item.Display,size=FormatBytes(item.Bytes),files=item.Files}).ToArray() });
+                SendToWeb(new { type="uninstall-complete", id=packageId, success=success, code=code, errorMessage=success?"":ExplainWingetFailure(code,report.ToString(),"désinstallation"), logName=logName, residueToken=residueToken, residueSize=FormatBytes(residues.Sum(item=>item.Bytes)), residues=residues.Select(item=>new {name=item.Name,display=item.Display,size=FormatBytes(item.Bytes),files=item.Files}).ToArray() });
             }
         });
     }
@@ -2381,7 +2381,7 @@ internal sealed class WebAppForm : Form
                         if(scanResidues)residues.AddRange(FindUninstallResidues(id,appName,report));
                     }
                     else failed++;
-                    SendToWeb(new { type="batch-uninstall-item",id=id,success=ok,index=i+1,total=packages.Length,code=code,errorMessage=ok?"":ExplainWingetFailure(code,itemOutput,"desinstallation") });
+                    SendToWeb(new { type="batch-uninstall-item",id=id,success=ok,index=i+1,total=packages.Length,code=code,errorMessage=ok?"":ExplainWingetFailure(code,itemOutput,"désinstallation") });
                 }
             }
             catch(Exception ex){failed++;report.AppendLine("ERREUR : "+ex.Message);}
@@ -2504,7 +2504,7 @@ internal sealed class WebAppForm : Form
     {
         if(installationRunning || uninstallRunning || repairRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         SendToWeb(new { type="winget-repair-start" });
-        SendToWeb(new { type="tool-progress", tool="winget", percent=10, status="Preparation de la reparation..." });
+        SendToWeb(new { type="tool-progress", tool="winget", percent=10, status="Préparation de la réparation..." });
         Task.Run(delegate {
             var report=new StringBuilder();int code=-1;string logName="PC-Setup-Reparation-WinGet-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
@@ -2533,9 +2533,9 @@ internal sealed class WebAppForm : Form
                     "if($custom.Count -gt 0){ Write-Output ('PCSETUP_WG|reset|restored='+$restored+'|failed='+($failed -join ',')) } else { Write-Output 'PCSETUP_WG|reset' };"+
                     "exit 0";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
-                SendToWeb(new { type="tool-progress", tool="winget", percent=35, status="Reenregistrement et actualisation des sources..." });
+                SendToWeb(new { type="tool-progress", tool="winget", percent=35, status="Réenregistrement et actualisation des sources..." });
                 code=RunHiddenProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
-                SendToWeb(new { type="tool-progress", tool="winget", percent=90, status="Verification du resultat..." });
+                SendToWeb(new { type="tool-progress", tool="winget", percent=90, status="Vérification du résultat..." });
                 string text=report.ToString();
                 if(text.Contains("PCSETUP_WG|updated"))sourcesNote="Sources actualisées sans réinitialisation.";
                 else
@@ -2566,7 +2566,7 @@ internal sealed class WebAppForm : Form
     void CreateRestorePoint()
     {
         SendToWeb(new { type="restore-point-start" });
-        SendToWeb(new { type="tool-progress", tool="restore", percent=10, status="Preparation du point..." });
+        SendToWeb(new { type="tool-progress", tool="restore", percent=10, status="Préparation du point..." });
         Task.Run(delegate {
             var report=new StringBuilder();int code=-1;string logName="PC-Setup-Point-Restauration-"+DateTime.Now.ToString("yyyy-MM-dd-HHmm")+".log";
             string logPath=Path.Combine(GetDataFolder("Logs"),logName);
@@ -2592,9 +2592,9 @@ internal sealed class WebAppForm : Form
                     "if($last){ $age=(New-TimeSpan -Start ([Management.ManagementDateTimeConverter]::ToDateTime($last.CreationTime)) -End (Get-Date)).TotalHours; if($age -lt 24){ Write-Output ('PCSETUP_SR|recent|'+[int]$age); exit 5 } };"+
                     "Write-Output 'PCSETUP_SR|not-created'; exit 4";
                 string encoded=Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
-                SendToWeb(new { type="tool-progress", tool="restore", percent=40, status="Creation par Windows..." });
+                SendToWeb(new { type="tool-progress", tool="restore", percent=40, status="Création par Windows..." });
                 code=RunElevatedProcess("powershell.exe","-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand "+encoded,report);
-                SendToWeb(new { type="tool-progress", tool="restore", percent=90, status="Verification du point..." });
+                SendToWeb(new { type="tool-progress", tool="restore", percent=90, status="Vérification du point..." });
                 Match m=Regex.Match(report.ToString(),@"PCSETUP_SR\|([a-z-]+)(?:\|(\d+))?");
                 if(m.Success)marker=m.Groups[1].Value;
                 if(m.Success && m.Groups[2].Success)Int32.TryParse(m.Groups[2].Value,out recentHours);
@@ -2882,12 +2882,12 @@ internal sealed class WebAppForm : Form
                     }
                 }catch{}
             }
-            SendToWeb(new { type="tool-progress", tool="startup", percent=65, status="Analyse des dossiers de demarrage..." });
+            SendToWeb(new { type="tool-progress", tool="startup", percent=65, status="Analyse des dossiers de démarrage..." });
             foreach(string folder in new[]{Environment.GetFolderPath(Environment.SpecialFolder.Startup),Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup)})
             {
                 try{foreach(string file in Directory.GetFiles(folder))items.Add(new {name=Path.GetFileNameWithoutExtension(file),command=file,source="Dossier Démarrage"});}catch{}
             }
-            SendToWeb(new { type="tool-progress", tool="startup", percent=100, status="Analyse terminee." });
+            SendToWeb(new { type="tool-progress", tool="startup", percent=100, status="Analyse terminée." });
             SendToWeb(new { type="startup-state",items=items.GroupBy(x=>Convert.ToString(x.GetType().GetProperty("name").GetValue(x,null)),StringComparer.OrdinalIgnoreCase).Select(x=>x.First()).ToArray() });
         });
     }
@@ -2919,7 +2919,7 @@ internal sealed class WebAppForm : Form
                     SendToWeb(new { type="tool-progress", tool="disk", percent=percent, status="Analyse de "+Path.GetFileName(folder)+"..." });
                 }
                 lock(diskScanTargets){diskScanTargets.Clear();foreach(var target in authorizedTargets)diskScanTargets[target.Key]=target.Value;}
-                SendToWeb(new { type="tool-progress", tool="disk", percent=100, status="Analyse terminee." });
+                SendToWeb(new { type="tool-progress", tool="disk", percent=100, status="Analyse terminée." });
                 SendToWeb(new { type="disk-scan-state",items=results.OrderByDescending(item=>Convert.ToInt64(item.GetType().GetProperty("bytes").GetValue(item,null))).Take(15).ToArray() });
             }
             catch(Exception ex){SendToWeb(new { type="tool-progress", tool="disk", percent=100, status="Analyse interrompue." });SendToWeb(new { type="disk-scan-error",message=ex.Message });}
@@ -2999,7 +2999,7 @@ internal sealed class WebAppForm : Form
             int windowsUpdateCount=-1,windowsDriverCount=0;
             try
             {
-                report.AppendLine("OWLSETUP - RAPPORT DE MISE A JOUR");
+                report.AppendLine("OWLSETUP - RAPPORT DE MISE À JOUR");
                 report.AppendLine("Date : "+DateTime.Now.ToString("G"));
                 report.AppendLine();
                 SendToWeb(new { type="update-stage", stage="sources", percent=10, title="Actualisation des sources", detail="Connexion au catalogue WinGet" });
@@ -3028,7 +3028,7 @@ internal sealed class WebAppForm : Form
                     if(lastCode!=0)
                     {
                         failed++;failedCode=lastCode;failedOutput=lastOutput;
-                        failedItems.Add(new Dictionary<string,object>{{"id",id},{"name",LoadApplicationName(id)},{"code",lastCode},{"kind",ClassifyWingetFailure(lastCode,lastOutput)},{"message",ExplainWingetFailure(lastCode,lastOutput,"mise a jour")}});
+                        failedItems.Add(new Dictionary<string,object>{{"id",id},{"name",LoadApplicationName(id)},{"code",lastCode},{"kind",ClassifyWingetFailure(lastCode,lastOutput)},{"message",ExplainWingetFailure(lastCode,lastOutput,"mise à jour")}});
                     }
                 }
 
@@ -3052,7 +3052,7 @@ internal sealed class WebAppForm : Form
                 }
                 if(selfManagedItems.Count>0)
                 {
-                    report.AppendLine("A MISE A JOUR INTEGREE (ouvrir le logiciel pour finaliser) : "+String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["id"]))));
+                    report.AppendLine("À MISE À JOUR INTÉGRÉE (ouvrir le logiciel pour finaliser) : "+String.Join(", ",selfManagedItems.Select(item=>Convert.ToString(item["id"]))));
                 }
 
                 SendToWeb(new { type="update-stage", stage="windows", percent=84, title="Analyse de Windows Update", detail="Recherche des composants et pilotes proposés par Microsoft" });
@@ -3093,7 +3093,7 @@ internal sealed class WebAppForm : Form
                 if(failed>0)
                 {
                     string failedNames=String.Join(", ",failedItems.Select(item=>Convert.ToString(item["name"])).Distinct().ToArray());
-                    errorMessage=ExplainWingetFailure(failedCode,failedOutput,"mise a jour");
+                    errorMessage=ExplainWingetFailure(failedCode,failedOutput,"mise à jour");
                     if(!String.IsNullOrWhiteSpace(failedNames))errorMessage=failedNames+" : "+errorMessage;
                 }
                 else if(remaining.Count>0)
@@ -4540,7 +4540,7 @@ internal sealed class WebAppForm : Form
         string root=Path.GetFullPath(allowedRoot).TrimEnd(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
         string candidate=Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
         if(!candidate.Equals(root,StringComparison.OrdinalIgnoreCase) && !candidate.StartsWith(root+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException("Chemin hors de la zone autorisee.");
+            throw new UnauthorizedAccessException("Chemin hors de la zone autorisée.");
         string current=root;
         if((Directory.Exists(current)||File.Exists(current))&&IsReparsePoint(current))throw new UnauthorizedAccessException("Lien symbolique refuse : "+current);
         string relative=candidate.Length==root.Length?"":candidate.Substring(root.Length+1);
@@ -4599,7 +4599,7 @@ internal sealed class WebAppForm : Form
             try
             {
                 string arguments="--elevated-cleanup \""+String.Join(",",choices)+"\" \""+logPath+"\"";
-                SendToWeb(new { type="cleanup-stage", id="elevation", label="Autorisation Windows et nettoyage securise", index=1, total=choices.Length, percent=35 });
+                SendToWeb(new { type="cleanup-stage", id="elevation", label="Autorisation Windows et nettoyage sécurisé", index=1, total=choices.Length, percent=35 });
                 code=RunElevatedProcess(Application.ExecutablePath,arguments,report);
                 try
                 {
@@ -5509,7 +5509,7 @@ internal static class Bootstrap
             int code=CliRunWinget(winget,"upgrade --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity",silent);
             // -1978335189 (0x8A15002B) : aucune mise a jour applicable pour ce paquet.
             if(code==0)CliOut("  OK");
-            else if(code==-1978335189)CliOut("  Deja a jour");
+            else if(code==-1978335189)CliOut("  Déjà à jour");
             else{CliErr("  Echec (code "+code+")");failures++;}
         }
         CliOut("");

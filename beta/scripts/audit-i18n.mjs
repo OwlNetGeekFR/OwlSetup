@@ -13,13 +13,31 @@
 // expressions regulieres : retirer les commentaires et les elements `script` /
 // `style` / `svg` a coups de `replace()` est fragile (une balise fermante
 // ecrite `</script >` echappe au motif) et CodeQL le signale a juste titre.
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const here = (relative) => fileURLToPath(new URL(relative, import.meta.url));
 const html = readFileSync(here("../../index.html"), "utf8");
 const appJs = readFileSync(here("../../app.js"), "utf8");
 const i18n = readFileSync(here("../../i18n.js"), "utf8");
+const natif = readFileSync(here("../../OwlSetupWebView.cs"), "utf8");
+
+/**
+ * Dette de traduction declaree.
+ *
+ * Le scan de l hote a revele d un coup 234 chaines sans traduction : les
+ * traduire toutes dans le meme lot aurait melange un changement de mecanisme et
+ * deux cents traductions relues a la va-vite. Elles sont donc ECRITES ICI, dans
+ * le depot, et `--check` sert de cliquet :
+ *
+ *   - une chaine non traduite qui n est PAS dans cette liste fait echouer ;
+ *   - une chaine de la liste qui est desormais traduite fait echouer aussi,
+ *     pour que le fichier soit reduit au fur et a mesure et ne dorme jamais.
+ *
+ * La dette ne peut donc que diminuer. `--dette` regenere le fichier.
+ */
+const detteFichier = here("../i18n-dette.json");
+const dette = new Set(JSON.parse(readFileSync(detteFichier, "utf8")).chaines);
 
 // Accents ou mots francais : suffisant pour distinguer une chaine d interface
 // d un identifiant technique ou d un nom de produit.
@@ -127,6 +145,7 @@ const TRAILING_COUNT = /^(.+?)\s*\((\d+)\)$/;
  */
 function feuillesManquantes(value, depth = 0, out = new Set()) {
   if (translated.has(value) || isCoveredByPattern(value) || VALUE_ONLY.test(value)) return out;
+  if (prefixeCouvert(value)) return out;
   if (depth >= 2) {
     out.add(value);
     return out;
@@ -149,9 +168,27 @@ function feuillesManquantes(value, depth = 0, out = new Set()) {
 // MIROIR de VALUE_ONLY dans i18n.js.
 const VALUE_ONLY = /^[\d\s.,:%/+-]*\d[\d\s.,:%/+-]*(?:\s*(?:o|K?o|Mo|Go|To|B|[KMGT]B|h|min|s))?$/i;
 
+// MIROIR de translateFragmentPrefix dans i18n.js.
+//
+// L hote construit beaucoup de messages par concatenation : « Emplacement
+// demandé : » + un chemin, « Analyse de » + un nom + « ... ». Le litteral C#
+// finit alors par une espace, et c est ce qui le distingue d une phrase
+// complete — une phrase ne finit jamais par une espace.
+//
+// Ces fragments sont donc gardes AVEC leur espace finale (voir recordNatif), et
+// une chaine d execution est couverte des qu un fragment du dictionnaire la
+// prefixe : le reste est une valeur, pas du texte a traduire.
+function prefixeCouvert(value) {
+  for (const cle of fragments) {
+    if (cle.length < value.length && value.startsWith(cle)) return true;
+  }
+  return false;
+}
+
 function estCouverte(value, depth = 0) {
   if (translated.has(value) || isCoveredByPattern(value)) return true;
   if (VALUE_ONLY.test(value)) return true;
+  if (prefixeCouvert(value)) return true;
   if (depth >= 2) return false;
 
   if (value.includes(SEGMENT_SEPARATOR)) {
@@ -210,7 +247,28 @@ function isCandidate(value) {
   return true;
 }
 
+// Cles du dictionnaire qui sont des fragments de tete (espace finale).
+const fragments = [...translated].filter((cle) => /\s$/.test(cle));
+
 const found = new Map(); // chaine -> origine
+
+/**
+ * Enregistre un litteral de l hote SANS le rogner.
+ *
+ * `record` normalise les espaces et rogne — ce qu il faut pour du HTML, mais qui
+ * ecraserait justement l espace finale qui fait d un litteral un fragment de
+ * tete plutot qu une phrase.
+ */
+function recordNatif(value, origin) {
+  // L espace FINALE est gardee : elle signe un fragment de tete. L espace
+  // INITIALE ne porte rien — un suffixe apres un compteur (« 3 échec(s) ») est
+  // deja decompose par LEADING_COUNT, qui cherche « échec(s) » sans espace.
+  const text = decodeEntities(value)
+    .replace(/[ \t]+/g, " ")
+    .replace(/^ /, "");
+  if (!isCandidate(text.trim())) return;
+  if (!found.has(text)) found.set(text, origin);
+}
 
 function record(value, origin) {
   const text = clean(value);
@@ -503,6 +561,66 @@ for (const { quote, contenu } of scanJsLiterals(appJs)) {
   }
 }
 
+// --- OwlSetupWebView.cs : messages envoyes par l hote ---
+//
+// L hote produit lui aussi du texte affiche : titres d etape, messages d erreur,
+// libelles de resultat. Ils arrivent dans le DOM par les messages postes a la
+// WebView, donc l observateur de i18n.js les voit — mais ils n etaient scannes
+// nulle part. L audit annoncait 100 % en ne regardant que index.html et app.js.
+//
+// Les litteraux C# se lisent en deux formes : "..." avec echappements, et @"..."
+// verbatim ou le guillemet se double.
+function scanCsharpLiterals(source) {
+  const out = [];
+  for (const m of source.matchAll(/@"((?:[^"]|"")*)"|"((?:[^"\\]|\\.)*)"/g)) {
+    const brut = m[1] !== undefined ? m[1].split('""').join('"') : m[2];
+    if (!brut) continue;
+    // Ce qui PRECEDE le litteral dit s il est affiche ou consomme.
+    if (ENTREE.test(source.slice(Math.max(0, m.index - 60), m.index))) continue;
+    out.push(brut);
+  }
+  return out;
+}
+
+// Un litteral passe a Contains/StartsWith/... est une ENTREE : OwlSetup y
+// reconnait la sortie de winget, y compris ses variantes francaises et leurs
+// versions abimees (« aucun package trouvÃ© »). Le traduire n aurait aucun sens
+// et ajouterait du mojibake au dictionnaire.
+//
+// Console.Write* part vers le shim CLI, jamais vers le DOM : meme raison que
+// HORS_DOM cote app.js.
+const ENTREE =
+  /\.(?:Contains|StartsWith|EndsWith|IndexOf|LastIndexOf|Equals|Split)\s*\(\s*$|Console\.(?:Out\.|Error\.)?(?:Write|WriteLine|Error)[^;]*$/;
+
+// Ce qui ne part pas vers l interface : chemins, cles de registre, arguments de
+// ligne de commande, fragments PowerShell, noms de fichiers. Les compter
+// gonflerait l audit de chaines qu aucun utilisateur ne lit.
+const NATIF_TECHNIQUE =
+  /^(https?:|HKEY|SOFTWARE\\|Software\\|[A-Za-z]:\\|\\\\|\/|--|-[A-Za-z]|\{|\[|%|\$)|\.(exe|dll|ps1|log|json|txt|ico|png|css|js|html)$|winget|powershell|cmd\.exe|\$env:/i;
+
+// Prefixe de nom de fichier journal (« PC-Setup-Nettoyage- » + horodatage +
+// « .log ») : le tiret final le signe. Ces noms ne sont jamais affiches.
+const NATIF_NOM_DE_FICHIER = /^[A-Za-z][\w]*(?:-[\w]+)+-$/;
+
+// Chaines qui partent dans un journal, pas dans le DOM, et que rien dans leur
+// forme ne distingue. Les lister explicitement vaut mieux qu une heuristique
+// large qui masquerait de vrais messages.
+const NATIF_JOURNAL = new Set([
+  // SummarizeElevationArguments : trace du journal d elevation.
+  "(sans argument)",
+]);
+
+for (const brut of scanCsharpLiterals(natif)) {
+  if (NATIF_NOM_DE_FICHIER.test(brut) || NATIF_JOURNAL.has(brut)) continue;
+  // Les sauts de ligne echappes signent un message console ou une boite native,
+  // pas un noeud du DOM.
+  if (HORS_DOM.test(brut)) continue;
+  if (POWERSHELL.test(brut)) continue;
+  if (NATIF_TECHNIQUE.test(brut)) continue;
+  if (/[{}]/.test(brut)) continue;
+  recordNatif(brut, "OwlSetupWebView.cs");
+}
+
 const missing = [...found.entries()]
   .filter(([text]) => !estCouverte(text))
   .sort((a, b) => a[0].localeCompare(b[0], "fr"));
@@ -559,10 +677,40 @@ if (process.argv.includes("--json")) {
 // Les gabarits interpoles sont DANS la porte depuis la 4.0.0-beta.50 : ils sont
 // tous couverts, soit par un motif, soit par la decomposition (compteur en tete,
 // compteur final, segments « · ») dont ce script reproduit la logique.
+if (process.argv.includes("--dette")) {
+  writeFileSync(
+    detteFichier,
+    JSON.stringify(
+      {
+        commentaire:
+          "Chaines de OwlSetupWebView.cs qui attendent leur traduction anglaise. Cette liste ne peut que diminuer : audit-i18n.mjs --check echoue si une chaine s y ajoute, ET si une chaine traduite y reste. Regenerer avec : node beta/scripts/audit-i18n.mjs --dette",
+        chaines: missing.map(([text]) => text),
+      },
+      null,
+      2
+    ) + "\n"
+  );
+  console.log(`Dette ecrite : ${missing.length} chaine(s).`);
+}
+
 if (process.argv.includes("--check")) {
-  if (missing.length) {
-    console.error(`\n${missing.length} chaine(s) sans traduction anglaise.`);
+  const nouvelles = missing.filter(([text]) => !dette.has(text));
+  if (nouvelles.length) {
+    console.error(`\n${nouvelles.length} nouvelle(s) chaine(s) sans traduction anglaise :`);
+    for (const [text, origin] of nouvelles) console.error(`  [${origin}] ${text}`);
     process.exit(1);
+  }
+  const encoreListees = new Set(missing.map(([text]) => text));
+  const resolues = [...dette].filter((text) => !encoreListees.has(text));
+  if (resolues.length) {
+    console.error(
+      `\n${resolues.length} chaine(s) de la dette sont traduites : regenerez beta/i18n-dette.json` +
+        ` (node beta/scripts/audit-i18n.mjs --dette).`
+    );
+    process.exit(1);
+  }
+  if (dette.size) {
+    console.log(`Dette de traduction : ${dette.size} chaine(s) de l hote, aucune nouvelle.`);
   }
   if (interpolated.size) {
     console.error(
@@ -571,5 +719,14 @@ if (process.argv.includes("--check")) {
     for (const value of interpolated) console.error(`  ${value}`);
     process.exit(1);
   }
-  console.log(`Couverture anglaise complete (${total} chaines, interpolations comprises).`);
+  // Ne pas annoncer « complete » tant que la dette existe : c est exactement le
+  // genre de message rassurant qui avait laisse croire a 100 % de couverture
+  // pendant que l hote n etait pas scanne.
+  if (dette.size) {
+    console.log(
+      `Aucune regression (${total - dette.size}/${total} chaines traduites, ${dette.size} en dette declaree).`
+    );
+  } else {
+    console.log(`Couverture anglaise complete (${total} chaines, interpolations comprises).`);
+  }
 }

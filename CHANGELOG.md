@@ -1,5 +1,84 @@
 # Historique des versions
 
+## [4.0.0-beta.61] - 2026-08-31
+
+### i18n — l'audit annonçait 100 % parce qu'il ne regardait pas l'hôte
+
+`audit-i18n.mjs` scannait `index.html` et `app.js`, et affichait
+**1227/1227 chaînes, 100 %**. Il ne lisait pas `OwlSetupWebView.cs`.
+
+Or l'hôte C# produit lui aussi du texte affiché — titres d'étape, messages
+d'erreur, libellés de résultat — qui arrive dans le DOM par les messages postés
+à la WebView. Une fois l'hôte scanné, la couverture réelle est de **84 %**, et
+**234 chaînes** attendent leur traduction. Un utilisateur anglophone voit
+l'interface en anglais et tout ce qui vient du natif en français.
+
+### Le français, d'abord
+
+Plus gênant que l'anglais manquant : **33 chaînes montrées aux utilisateurs
+français avec des accents manquants**, à côté de 159 correctement accentuées.
+« Operation terminee avec succes. », « Le logiciel est deja installe. Utilisez
+plutot Mettre a jour ou Reparer. », « Windows a refuse l'acces. » — dans la
+langue principale de l'application.
+
+Une hypothèse était à écarter avant de corriger : une contrainte d'encodage
+aurait pu justifier de les éviter, `csc.exe` du .NET Framework ne lisant l'UTF-8
+que s'il y a un BOM, et `OwlSetupWebView.cs` n'en a pas. Vérification faite sur
+les deux binaires — celui de `build.ps1` et celui du `.csproj` — les accents
+sont corrects dans les deux. Pas de contrainte : juste une incohérence. Les 33
+sont corrigées.
+
+**Trois chaînes non accentuées sont volontairement laissées telles quelles.**
+Ce ne sont pas des messages : `text.Contains("aucun package trouve")` compare la
+sortie française de winget, et le code gère déjà ses deux formes, accentuée et
+abîmée (`aucun package trouvÃ©`). Les corriger casserait la détection.
+
+### Un mécanisme au lieu de cent règles
+
+L'hôte construit ses messages par concaténation : `"Emplacement demandé : "` +
+un chemin, `"Analyse de "` + un nom + `"..."`. Le littéral n'est alors qu'un
+fragment de tête, et la chaîne réelle n'existe dans aucun dictionnaire.
+
+Traiter ces cas un par un aurait demandé une expression régulière par message.
+`i18n.js` gagne à la place une décomposition générale : **un littéral qui finit
+par une espace est un fragment de tête**, par construction — une phrase ne finit
+jamais par une espace. Ces fragments sont donc des clés du dictionnaire avec
+leur espace finale, ne peuvent pas se confondre avec un message entier, et la
+valeur qui suit passe par le dictionnaire en correspondance exacte seulement,
+comme les groupes capturés des motifs existants. Jamais de phrase à moitié
+traduite.
+
+L'audit reçoit le miroir exact de cette règle, comme pour les décompositions
+précédentes.
+
+### Une dette écrite, qui ne peut que baisser
+
+Traduire les 234 chaînes dans le même lot aurait mélangé un changement de
+mécanisme et deux cents traductions relues à la va-vite. Elles sont donc
+**écrites dans `beta/i18n-dette.json`**, et `--check` sert de cliquet :
+
+- une chaîne non traduite absente de la liste fait échouer ;
+- une chaîne de la liste désormais traduite fait échouer aussi, pour que le
+  fichier soit réduit au fur et à mesure et ne dorme jamais.
+
+Validé par trois sabotages : nouvelle chaîne française dans l'hôte, chaîne de la
+dette traduite sans régénérer le fichier, dette vidée sans rien traduire —
+**les trois échouent**.
+
+Le message de fin ne dit plus « couverture complète » tant que la dette existe,
+mais « aucune régression (1232/1466, 234 en dette déclarée) ». C'est exactement
+le genre de message rassurant qui avait laissé croire à 100 %.
+
+### Ce qui reste
+
+Les 234 traductions, et une poignée de messages en trois morceaux
+(`"…cette " + operation + ". Le rapport…"`) qui demanderont un motif plutôt
+qu'un fragment de tête. Le mécanisme est en place pour les recevoir.
+
+**Vérifié :** 243 tests JavaScript, 56 fichiers de tests PowerShell, hôte C#
+recompilé (0 avertissement).
+
+
 ## [4.0.0-beta.60] - 2026-08-31
 
 ### Lot 3 — l'analyse de sécurité activée en beta.56 ne tournait nulle part
