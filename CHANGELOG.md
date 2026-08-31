@@ -1,5 +1,65 @@
 # Historique des versions
 
+## [4.0.0-beta.60] - 2026-08-31
+
+### Lot 3 — l'analyse de sécurité activée en beta.56 ne tournait nulle part
+
+La 4.0.0-beta.56 annonçait « analyse de sécurité activée » : `EnableNETAnalyzers`,
+`AnalysisModeSecurity=All`, et neuf règles `CA5xxx` traitées en erreur dans
+`beta/csharp/OwlSetup.csproj`. Tout cela était exact — et **sans effet**.
+
+- `build.ps1`, qui produit le binaire livré, compile avec **`csc.exe` du .NET
+  Framework**. Ce compilateur ne connaît pas les analyseurs Roslyn.
+- `quality.yml` dit lui-même « ici on ne compile rien » : front-end seulement.
+- `release.yml` n'appelait que `build.ps1`.
+
+Le `.csproj` n'était donc construit par **aucune** CI. Il portait d'ailleurs sa
+propre mise en garde : « Etat : traduction fidèle de build.ps1, **à valider par
+un premier build côté mainteneur** ».
+
+C'est le même défaut que celui corrigé à la beta.59, sous une autre forme : une
+barrière qui a l'apparence d'une barrière et ne barre rien.
+
+### Ce qui change
+
+`release.yml` construit désormais le `.csproj` avant le build de production, sur
+les PR touchant l'hôte, `build.ps1`, ou `beta/csharp/**`. Le projet compile en
+**10 secondes, 0 avertissement, 0 erreur** — la barrière part d'une base propre.
+
+**La preuve qu'elle barre :** en retirant un seul des quinze attributs
+`[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]` posés en beta.56,
+le build échoue sur `error CA5392`. Avant ce lot, exactement la même
+modification passait en silence.
+
+### Deux descriptions du même build
+
+L'analyse ne vaut que si le `.csproj` compile bien **la même chose** que
+`build.ps1`. Rien ne le garantissait : ce sont deux descriptions parallèles,
+maintenues à la main, et une seule était vérifiée.
+
+`tests/Test-BuildParity.ps1` les tient désormais ensemble — 15 ressources
+embarquées comparées par leur nom logique (celui que `GetManifestResourceStream`
+utilise), les références non implicites, la cible de compilation, et le fait que
+la barrière de sécurité reste armée. Le `NoWarn` est compté : passer de deux
+règles écartées à trois fait échouer le test, parce que chaque exclusion demande
+une justification écrite.
+
+Validé par cinq sabotages : ressource retirée du `.csproj`, ressource ajoutée à
+`build.ps1` seulement, cible passée en `net472`, étape de CI vidée, déclencheur
+`beta/csharp/**` retiré — **les cinq échouent**.
+
+### Un test qui se laissait satisfaire par un commentaire
+
+Le contrôle « la CI construit bien ce projet » cherchait la chaîne
+`beta/csharp/OwlSetup.csproj` dans le workflow. En vidant l'étape pour la
+tester, elle a continué de passer : le **commentaire** au-dessus de l'étape
+mentionne le projet, et cela suffisait. Le motif vise maintenant la commande
+elle-même. Sans le sabotage, ce test serait entré au dépôt en paraissant bon.
+
+**Vérifié :** 243 tests JavaScript, 56 fichiers de tests PowerShell, `.csproj`
+construit localement (0 avertissement).
+
+
 ## [4.0.0-beta.59] - 2026-08-30
 
 ### Lot 3 — le front ne disait plus la même règle que l'hôte, et le test qui devait s'en apercevoir mentait
