@@ -8,7 +8,9 @@ import {
 } from "../src/modules/package-id.js";
 
 const native = readFileSync(new URL("../../OwlSetupWebView.cs", import.meta.url), "utf8");
-const catalogue = JSON.parse(readFileSync(new URL("../catalog/apps.json", import.meta.url), "utf8"));
+const catalogue = JSON.parse(
+  readFileSync(new URL("../catalog/apps.json", import.meta.url), "utf8")
+);
 const applications = catalogue.applications || catalogue;
 
 /**

@@ -1,5 +1,53 @@
 # Historique des versions
 
+## [4.0.0-beta.63] - 2026-08-31
+
+### Le contrôle qualité était rouge depuis neuf commits, et c'était moi
+
+En vérifiant la CI de la 4.0.0-beta.62, le workflow `quality` a échoué sur
+**prettier**. Il échouait déjà, et pas depuis peu :
+
+| Commit | Date | `quality` |
+| --- | --- | --- |
+| `e6a947e` | 30/08 09:40 | ✅ dernier vert |
+| `03fa776` | 30/08 09:46 | ❌ |
+| … neuf commits … | | ❌ |
+| `a81ec09` (beta.62) | 31/08 | ❌ |
+
+La cause est **`beta/PLAN-AMELIORATION.md`**, rejoint en beta.59 par
+`beta/test/package-id.test.js`. Deux fichiers que j'écris à chaque lot, jamais
+passés au formateur du dépôt.
+
+### Pourquoi je ne l'ai pas vu
+
+En 4.0.0-beta.58 j'ai écrit que « prettier n'est branché sur aucun workflow ».
+C'était faux : mon `grep` était sensible à la casse et a manqué l'étape
+`Prettier` de `quality.yml`, dont le nom commence par une majuscule. J'ai ensuite
+travaillé neuf lots durant sur cette conclusion erronée, en lançant mes propres
+contrôles au lieu de ceux du dépôt.
+
+### Une seconde erreur, dans le diagnostic
+
+En cherchant l'étendue du problème, `prettier --check` local a signalé **six**
+fichiers, et j'en ai conclu que quatre échouaient avant moi. C'était faux aussi :
+ce dépôt est en `core.autocrlf=true`, donc ma copie de travail est en CRLF, que
+prettier refuse — alors que la CI, sous Linux, les voit en LF. Le journal de la
+CI ne listait bien que **mes deux** fichiers.
+
+Les deux sont formatés, `prettier --check` passe, et le reformatage est vérifié
+neutre : les scripts régénèrent `app.js` et `catalog.generated.js` au bit près.
+
+### Ce que j'en retiens
+
+Un contrôle rouge en permanence n'apprend plus rien à personne — c'est le même
+défaut que les trois lots précédents ont corrigé ailleurs, sauf qu'ici il était
+visible depuis le début. Et un `grep` n'est pas une vérification : lancer les
+contrôles du dépôt aurait donné la réponse en dix secondes.
+
+**Vérifié :** 243 tests JavaScript, 57 fichiers de tests PowerShell,
+`prettier --check` au vert.
+
+
 ## [4.0.0-beta.62] - 2026-08-31
 
 ### Lot 4 — le premier test qui lance vraiment l'interface
