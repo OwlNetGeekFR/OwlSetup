@@ -179,8 +179,24 @@ commande, sans analyseur ni découpage.
    reste informatif. `TreatWarningsAsErrors` global reste hors de portée —
    l'analyse complète lève **plus de 1 250 avertissements** sur ce fichier, dont
    390 `catch` génériques et 300 appels sans `IFormatProvider`. Deux règles sont
-   écartées avec justification écrite (CA5386, CA2322). **Reste** : adopter le
-   `.csproj` comme chemin de build officiel, et `dotnet format` en CI.
+   écartées avec justification écrite (CA5386, CA2322).
+
+   **Corrigé en 4.0.0-beta.60 — ces réglages ne s'appliquaient nulle part.**
+   `build.ps1` compile avec `csc.exe` du .NET Framework, qui ne connaît pas les
+   analyseurs Roslyn ; `quality.yml` ne compile rien ; `release.yml` n'appelait
+   que `build.ps1`. Le `.csproj` n'était donc construit par aucune CI — il
+   portait lui-même la mention « à valider par un premier build côté
+   mainteneur ». `release.yml` le construit désormais (10 s, 0 avertissement),
+   et retirer un seul `[DefaultDllImportSearchPaths]` fait maintenant échouer le
+   build sur `CA5392`.
+
+   `tests/Test-BuildParity.ps1` tient les deux descriptions du build ensemble
+   (ressources par nom logique, références, cible, barrière armée, nombre de
+   règles écartées), validé par cinq sabotages.
+
+   **Reste** : adopter le `.csproj` comme chemin de build officiel — aujourd'hui
+   il est construit *à côté* de `build.ps1`, pas *à la place* — et `dotnet
+   format` en CI.
 2. Découper `WebAppForm` par responsabilité (fichiers `partial` puis classes
    dédiées) : `Ipc/` (routage `OnWebMessage`), `Winget/` (invocations + parsing
    colonnes), `Cleanup/`, `Security/`, `Process/` (élévation, jetons),
