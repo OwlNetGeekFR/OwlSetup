@@ -167,7 +167,7 @@ métier écrite à la main dans un fichier de 4 000 lignes, couverture ≥ 70 % 
 
 ---
 
-## Lot 7 — Traduction anglaise de l'hôte C#
+## Lot 8 — Traduction anglaise de l'hôte C#
 
 **Pourquoi :** `audit-i18n.mjs` annonçait **1227/1227, 100 %** en ne scannant que
 `index.html` et `app.js`. L'hôte C# produit lui aussi du texte affiché, et n'était
@@ -323,9 +323,40 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
    absent » sans toucher la machine. Un test tient ensemble le préfixe de
    quarantaine produit par le script et celui que `RestoreQuarantine` relit
    côté C#. La suite est validée en **cassant volontairement** le code.
-3. **e2e** : conteneur/VM Windows jetable + WebView2, script qui lance
-   `OwlSetup.exe`, pilote l'IPC et vérifie les parcours clés (install simulé,
-   scan, nettoyage annulé). Cible : GitHub Actions `windows-latest` nocturne.
+3. [~] _(4.0.0-beta.62)_ **e2e — le démarrage graphique est couvert.**
+   `tests/Test-InterfaceStartup.ps1` lance le vrai binaire et exerce ce qu'aucun
+   autre test n'atteignait : `Bootstrap.Main`, l'extraction des ressources
+   embarquées, la résolution des assemblies WebView2, l'initialisation de
+   `CoreWebView2`, le contrôle d'intégrité, la création de la fenêtre.
+
+   Le signal de réussite est le **processus enfant `msedgewebview2`**, pas la
+   fenêtre : quand le démarrage échoue, l'hôte affiche une `MessageBox` qui,
+   aucune `Form` n'existant encore, devient la fenêtre principale du processus —
+   un test basé sur `MainWindowHandle` aurait réussi sur un démarrage raté.
+   Constaté en le sabotant.
+
+   Le test compare aussi les ressources extraites aux fichiers du dépôt : si
+   `build.ps1` échouait à régénérer `app.js` ou `styles.css`, le binaire
+   servirait une interface périmée sans que rien ne le signale.
+
+   Lancé en CI **après** `build.ps1`, avec `-Requis` pour qu'il ne puisse pas
+   se contenter de passer en silence quand l'exécutable manque.
+
+   **Reste** : piloter l'IPC et vérifier des parcours (install simulé, scan,
+   nettoyage annulé). C'est plus dur qu'il n'y paraît — l'hôte refuse les objets
+   hôtes, désactive les DevTools et n'accepte que les messages venant de
+   `pcsetup.local`, donc il n'existe pas de porte d'entrée pour un pilote
+   externe. Il faudra soit un mode de test explicite dans l'hôte, soit
+   l'automatisation de l'interface Windows (UIA).
+
+   **Note relevée en chemin :** `Extract` réécrit les ressources depuis
+   l'assembly à **chaque** lancement (`FileMode.Create`), juste avant
+   `VerifyInterfaceIntegrity`. La protection contre une interface locale
+   modifiée vient donc de l'écrasement, pas du hachage — le contrôle
+   d'intégrité ne peut échouer que sur une écriture corrompue. Ce n'est pas une
+   faille (le contenu servi est toujours celui de l'assembly), mais le message
+   « L'interface locale a été modifiée ou endommagée » promet plus que ce que le
+   contrôle vérifie.
 4. Garder les tests « garde-fou » utiles (catalogue, logos, CSP) mais les
    étiqueter `lint` et non `test`.
 

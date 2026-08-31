@@ -1,5 +1,70 @@
 # Historique des versions
 
+## [4.0.0-beta.62] - 2026-08-31
+
+### Lot 4 — le premier test qui lance vraiment l'interface
+
+Neuf fichiers de tests exécutaient déjà le binaire, mais tous par le **mode
+CLI**, qui rend la main avant même d'extraire les ressources. Le chemin
+**graphique** n'était couvert par rien : `Bootstrap.Main`, l'extraction des
+ressources embarquées, la résolution des assemblies WebView2, l'initialisation
+de `CoreWebView2`, le contrôle d'intégrité, la création de la fenêtre. C'est
+exactement le chemin qu'un mainteneur ne peut valider qu'en cliquant — et c'est
+ainsi que la RC a été validée.
+
+`tests/Test-InterfaceStartup.ps1` lance le vrai binaire, attend que l'interface
+soit chargée, vérifie les ressources, puis referme proprement.
+
+### Le piège que le sabotage a révélé
+
+Ma première version attendait une **fenêtre** (`MainWindowHandle`). Elle aurait
+réussi sur un démarrage raté : quand `InitializeWebView` échoue, l'hôte affiche
+une `MessageBox` — et comme aucune `Form` n'existe encore, cette boîte **devient
+la fenêtre principale du processus**.
+
+Le signal retenu est donc le **processus enfant `msedgewebview2`** : il n'existe
+que si `CoreWebView2` s'est réellement initialisé, et il ne dépend ni de la
+version ni du canal.
+
+Vérifié en compilant un binaire **privé de `styles.css`** : le test échoue bien
+sur « OwlSetup s'est arrêté pendant le démarrage ». Deux autres sabotages
+passent aussi — dépôt désynchronisé du binaire, exécutable absent en mode
+`-Requis`.
+
+### Le binaire embarque-t-il l'interface courante ?
+
+Le test compare les ressources extraites aux fichiers du dépôt. Si `build.ps1`
+échouait à régénérer `app.js` ou `styles.css`, l'exécutable servirait une
+interface périmée sans que rien ne le signale. Rien ne le vérifiait.
+
+### En CI, après la compilation
+
+L'étape est placée **après** `build.ps1` : avant, l'exécutable n'existe pas et
+le test se contenterait de passer en silence. `-Requis` le fait échouer si le
+binaire manque, pour que cette étape ne puisse pas devenir un contrôle vide.
+
+### Relevé en chemin : le contrôle d'intégrité promet plus qu'il ne vérifie
+
+`Extract` réécrit les cinq ressources depuis l'assembly à **chaque** lancement
+(`FileMode.Create`), quelques millisecondes avant que
+`VerifyInterfaceIntegrity` ne compare ces mêmes fichiers à ces mêmes ressources.
+
+Modifier `%LOCALAPPDATA%\PCSetup\App2\app.js` entre deux sessions n'a donc aucun
+effet : le fichier est écrasé avant d'être lu. **Ce n'est pas une faille** — le
+contenu servi est toujours celui de l'assembly, et la protection vient de
+l'écrasement. Mais le message « L'interface locale de OwlSetup a été modifiée ou
+endommagée » laisse croire à une vérification qui ne peut échouer que sur une
+écriture corrompue. C'est noté au plan, pas corrigé ici.
+
+### Correction de numérotation
+
+La 4.0.0-beta.61 avait créé un second « Lot 7 » dans le plan, en collision avec
+le mode CLI. La traduction de l'hôte devient le **lot 8**.
+
+**Vérifié :** 243 tests JavaScript, 57 fichiers de tests PowerShell, démarrage
+graphique réel validé par trois sabotages.
+
+
 ## [4.0.0-beta.61] - 2026-08-31
 
 ### i18n — l'audit annonçait 100 % parce qu'il ne regardait pas l'hôte
