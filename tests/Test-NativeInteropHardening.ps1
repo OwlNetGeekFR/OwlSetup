@@ -38,7 +38,12 @@ if ($nbPInvoke -lt 10) { throw "Trop peu de P/Invoke detectes ($nbPInvoke) : le 
 # 2) Les DLL hors KnownDLLs sont bien celles qu'on croit : si une nouvelle
 #    apparait, on veut le savoir plutot que de la couvrir par inadvertance.
 $dlls = [regex]::Matches($native, 'DllImport\("([^"]+)"') | ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() -replace '\.dll$', '' } | Sort-Object -Unique
-$attendues = @("advapi32", "dwmapi", "kernel32", "userenv", "wscapi")
+#
+#    user32 rejoint la liste en 4.1.0-beta.6, pour le garde d'instance unique :
+#    SetForegroundWindow, ShowWindow et IsIconic ramenent au premier plan la
+#    fenetre deja ouverte. C'est une KnownDLL, donc protegee du detournement,
+#    et l'attribut est pose malgre tout comme sur toutes les autres.
+$attendues = @("advapi32", "dwmapi", "kernel32", "user32", "userenv", "wscapi")
 $inconnues = $dlls | Where-Object { $attendues -notcontains $_ }
 if ($inconnues) { throw "Nouvelle DLL importee, a revoir : $($inconnues -join ', ')" }
 
