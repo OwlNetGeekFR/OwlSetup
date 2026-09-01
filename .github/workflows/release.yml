@@ -177,7 +177,12 @@ jobs:
           if (-not (Test-Path -LiteralPath $notesFile)) { $notesFile = "RELEASE-NOTES-$env:RELEASE_VERSION.md" }
           # Une preversion (X.Y.Z-(alpha|beta|rc).N) est publiee en prerelease et
           # n'est jamais marquee "latest".
-          $prereleaseFlags = if ($env:RELEASE_IS_PRERELEASE -eq "true") { @("--prerelease", "--latest=false") } else { @("--latest") }
+          # [string[]] n est pas decoratif : sans lui, la branche stable renvoie UN
+          # SEUL element, que PowerShell deroule en CHAINE. Le splat la decoupe alors
+          # caractere par caractere et gh recoit "-" comme motif de fichier :
+          # « no matches found for `-` ». Les preversions, a deux elements, restaient
+          # un tableau — le defaut n a donc surgi qu a la premiere stable.
+          [string[]]$prereleaseFlags = if ($env:RELEASE_IS_PRERELEASE -eq "true") { @("--prerelease", "--latest=false") } else { @("--latest") }
           $previousErrorActionPreference = $ErrorActionPreference
           $ErrorActionPreference = "Continue"
           gh release view "$env:RELEASE_TAG" --json tagName 2>$null | Out-Null

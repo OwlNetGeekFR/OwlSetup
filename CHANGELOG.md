@@ -1,5 +1,55 @@
 # Historique des versions
 
+## [4.0.0] - 2026-09-01
+
+Première version **stable** de la ligne 4.0. Les notes destinées aux
+utilisateurs sont dans `RELEASE-NOTES-4.0.0.md`.
+
+### Le workflow ne savait pas publier une version stable
+
+Le premier tag `v4.0.0` a échoué à la dernière étape, sur
+`no matches found for `-``. La compilation, le contrôle du binaire et
+l'installateur étaient passés : seule la création de la Release a cédé.
+
+La cause n'était pas `gh` mais **PowerShell** :
+
+```powershell
+$prereleaseFlags = if ($estPreversion) { @("--prerelease", "--latest=false") } else { @("--latest") }
+```
+
+La branche stable ne renvoie **qu'un seul élément**. PowerShell déroule alors le
+tableau, et `$prereleaseFlags` devient une **chaîne**. Le splat `@prereleaseFlags`
+découpe une chaîne **caractère par caractère** : `gh` reçoit `-`, `-`, `l`, `a`,
+… et prend le premier `-` pour un motif de fichier.
+
+La branche préversion, elle, a deux éléments : elle reste un tableau et
+fonctionne. **Le défaut dormait depuis son introduction et ne pouvait surgir
+qu'à la première version stable publiée par ce workflow** — la 3.7.0 avait été
+publiée avec le code précédent.
+
+Une contrainte de type explicite (`[string[]]`) suffit à l'empêcher.
+
+### Un test qui exécute la ligne du workflow
+
+`tests/Test-ReleaseFlags.ps1` n'inspecte pas le texte du fichier : il **extrait
+l'affectation réelle**, l'exécute pour les deux branches, et observe ce que le
+splat produit. Un argument d'un seul caractère est la signature exacte du
+défaut. Le test vérifie aussi qu'une stable est marquée `--latest` et qu'une
+préversion ne peut jamais l'être.
+
+Validé par trois sabotages : contrainte de type retirée, stable qui n'est plus
+`--latest`, préversion qui le deviendrait.
+
+**Deux pièges rencontrés en écrivant ce test**, tous deux dus à une frontière de
+fonction, et notés dans le fichier : `return $tableau` déroule à son tour un
+tableau à un seul élément — le test devenait victime du défaut qu'il surveille
+et échouait sur un workflow pourtant correct. Et une fonction auxiliaire nommée
+`R` était résolue comme l'alias `Invoke-History`, les alias primant sur les
+fonctions. Tout se passe désormais au niveau du script.
+
+**Vérifié :** 58 fichiers de tests PowerShell, 248 tests JavaScript.
+
+
 ## [4.0.0-beta.65] - 2026-09-01
 
 ### Lot 8 — l'interface anglaise est complète
