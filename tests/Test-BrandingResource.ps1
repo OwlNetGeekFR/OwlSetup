@@ -1,7 +1,10 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $index = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
-$build = Get-Content -Raw -LiteralPath (Join-Path $root 'build.ps1')
+# Depuis la 4.1.0-beta.4, build.ps1 ne liste plus les ressources : il delegue a
+# beta/csharp/OwlSetup.csproj, seule description du build. C'est donc lui qu'il
+# faut interroger.
+$projet = Get-Content -Raw -LiteralPath (Join-Path $root 'beta\csharp\OwlSetup.csproj')
 $hostSource = Get-Content -Raw -LiteralPath (Join-Path $root 'OwlSetupWebView.cs')
 
 $expectedWebPath = 'assets/branding/owlsetup-logo.png'
@@ -13,7 +16,7 @@ if ($references.Count -ne 1 -or $references[0] -ne $expectedWebPath) {
     throw "Les vues OwlSetup ne ciblent pas toutes $expectedWebPath. Références: $($references -join ', ')"
 }
 
-if ($build -notmatch [regex]::Escape('/resource:assets\branding\owlsetup-logo-512.png,app-logo.png')) {
+if ($projet -notmatch [regex]::Escape('..\..\assets\branding\owlsetup-logo-512.png"><LogicalName>app-logo.png')) {
     throw 'Le logo source OwlSetup n’est pas embarqué sous la ressource app-logo.png.'
 }
 

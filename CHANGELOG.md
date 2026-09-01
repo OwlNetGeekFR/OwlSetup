@@ -1,5 +1,56 @@
 # Historique des versions
 
+## [4.1.0-beta.4] - 2026-09-01
+
+### Une seule description du build
+
+`build.ps1` listait lui-même les références et les ressources à passer à
+`csc.exe`. `beta/csharp/OwlSetup.csproj` répétait la même chose pour les
+analyseurs Roslyn. Deux descriptions du même programme, tenues en phase à la
+main — et la 4.1.0-beta.3 avait montré ce que ça coûte : le projet avait perdu
+cinq attributs d'assembly sans que personne le voie.
+
+`build.ps1` compile désormais **via le projet**, ici comme en CI. Il y perd
+55 lignes : la liste des ressources, celle des références, la génération
+manuelle des attributs d'assembly, et le téléchargement à la main du paquet
+NuGet WebView2 — que le projet restaure tout seul.
+
+Conséquences :
+
+- les **analyseurs de sécurité portent sur le binaire réellement livré**, plus
+  sur une copie censée lui ressembler ;
+- l'étape « Analyse de sécurité » disparaît de la CI : elle faisait doublon avec
+  la compilation ;
+- **le SDK .NET devient nécessaire** pour construire l'application. `build.ps1`
+  le dit explicitement s'il manque.
+
+Le shim console `.com` reste compilé par `csc.exe`, et c'est assumé : c'est un
+exécutable d'une page, sans ressource ni dépendance.
+
+### Un test de parité qui n'a plus de parité à vérifier
+
+`tests/Test-BuildParity.ps1` existait pour comparer les deux descriptions. Il
+n'y en a plus qu'une, donc la comparaison n'a plus d'objet — et son garde-fou
+l'a signalé de lui-même : « extraction des ressources cassée (0 trouvées), le
+test ne prouverait rien ».
+
+Il garde maintenant quelque chose de plus utile : les ressources **déclarées par
+le projet** contre celles que **l'hôte extrait réellement** au démarrage. Deux
+côtés genuinement différents — le build et le code qui le consomme — là où une
+oubliée d'un côté fait échouer l'autre au lancement. Il vérifie aussi que
+`build.ps1` ne se remet pas à compiler l'application lui-même.
+
+Validé par quatre sabotages : délégation retirée, retour à `csc` pour
+l'application, ressource retirée du projet, attribut d'assembly perdu.
+
+`tests/Test-BrandingResource.ps1` lisait lui aussi les arguments `csc` : il
+interroge désormais le projet.
+
+**Vérifié :** 60 fichiers de tests PowerShell, 248 tests JavaScript, binaire
+reconstruit par le nouveau chemin — 123 ressources, version 4.1.0.0, société
+renseignée — puis démarrage graphique, mode CLI et aller-retour d'installation.
+
+
 ## [4.1.0-beta.3] - 2026-09-01
 
 ### Le second chemin de build produisait un binaire sans identité
