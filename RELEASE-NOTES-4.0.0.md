@@ -61,6 +61,10 @@ La validation des identifiants de paquet était recopiée à trente et un endroi
 - l'interface n'accepte ses commandes internes que depuis son origine locale ;
 - les ressources de l'interface sont **réécrites depuis l'exécutable à chaque démarrage**, puis leur empreinte SHA-256 est vérifiée. Une copie locale modifiée est donc remplacée avant d'être servie.
 
+### Un nettoyage qui se défait
+
+OwlSetup ne propose jamais la suppression directe d'un dossier personnel arbitraire. Les dossiers Documents, Bureau et Téléchargements sont exclus, et un cache nettoyé est placé en **quarantaine réversible** avant toute suppression définitive : il se restaure à son emplacement d'origine depuis l'application, tant qu'il n'a pas été purgé.
+
 ## Confidentialité
 
 Inchangée. Les préférences et l'historique restent sur le PC. Aucun diagnostic n'est envoyé sans choix explicite. Les rapports facultatifs n'incluent ni nom, ni adresse e-mail, ni chemin personnel, ni liste complète des logiciels.

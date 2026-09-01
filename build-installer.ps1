@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "3.7.0",
+    [string]$Version = "4.0.0",
     [switch]$SkipApplicationBuild
 )
 
