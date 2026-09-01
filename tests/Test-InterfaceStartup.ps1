@@ -52,7 +52,8 @@ try {
     # affiche une MessageBox, qui EST une fenetre — et comme aucune Form n'existe
     # encore, elle devient la fenetre principale du processus. Le test aurait
     # donc reussi sur un demarrage rate. Constate en le sabotant.
-    $limite = (Get-Date).AddSeconds(90)
+    $depart = Get-Date
+    $limite = $depart.AddSeconds(90)
     $moteur = 0
     while ((Get-Date) -lt $limite) {
         if ($process.HasExited) { break }
@@ -65,7 +66,22 @@ try {
     if ($process.HasExited) {
         # InitializeWebView affiche une MessageBox puis appelle Close() : une
         # sortie pendant le demarrage est le symptome d'un echec.
-        throw "OwlSetup s'est arrete pendant le demarrage (code $($process.ExitCode)). L'interface n'a pas pu etre chargee."
+        #
+        # Un echec de ce test a ete observe UNE fois, puis jamais reproduit en
+        # onze lancements : sortie immediate, code 0, sans message. La cause
+        # reste inconnue — ni instance concurrente (il n'y a pas de verrou
+        # d'instance unique), ni bascule en mode CLI (elle exige un argument),
+        # ni copie fraiche du binaire (5 essais sur 5 demarrent en 0,4 s).
+        #
+        # Aucune reprise automatique n'est ajoutee : elle masquerait le
+        # symptome. Le message porte donc de quoi trancher a la prochaine
+        # occurrence, plutot que de laisser recommencer l'enquete a zero.
+        $duree = [math]::Round(((Get-Date) - $depart).TotalSeconds, 1)
+        $voisins = @(Get-Process OwlSetup -ErrorAction SilentlyContinue).Count
+        $moteurs = @(Get-Process msedgewebview2 -ErrorAction SilentlyContinue).Count
+        throw ("OwlSetup s'est arrete pendant le demarrage apres $duree s (code $($process.ExitCode)). " +
+            "Autres processus OwlSetup a cet instant : $voisins ; processus msedgewebview2 sur la machine : $moteurs. " +
+            "Une sortie en moins d'une seconde avec le code 0 designe le lancement lui-meme, pas l'initialisation de WebView2.")
     }
     if ($moteur -eq 0) {
         $process.Refresh()

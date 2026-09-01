@@ -136,8 +136,29 @@
       <_IsBeta Condition="'$(Channel)' == 'stable'">false</_IsBeta>
       <_BuildInfoFile>$(IntermediateOutputPath)PCSetup.BuildInfo.g.cs</_BuildInfoFile>
     </PropertyGroup>
+    <!--
+      Les attributs d'assembly sont emis ICI, et non par MSBuild : le projet
+      pose GenerateAssemblyInfo=false pour ne pas entrer en conflit avec ce
+      fichier genere.
+
+      Consequence longtemps passee inapercue : les proprietes Company, Product,
+      Description, FileVersion et AssemblyVersion declarees plus haut etaient
+      DECORATIVES. Le binaire produit par ce projet sortait en 0.0.0.0, sans
+      societe — la ou build.ps1, qui genere les memes attributs a la main, les
+      renseignait correctement. Le defaut n'a pas ete vu parce que ce projet ne
+      servait qu'a l'analyse Roslyn, jamais a produire le binaire livre.
+
+      La liste ci-dessous doit rester identique a celle de build.ps1 ;
+      tests/Test-BuildParity.ps1 compare les deux.
+    -->
     <ItemGroup>
       <_BuildInfoLines Include="using System.Reflection%3B" />
+      <_BuildInfoLines Include="[assembly: AssemblyTitle(&quot;$(Product)&quot;)]" />
+      <_BuildInfoLines Include="[assembly: AssemblyProduct(&quot;$(Product)&quot;)]" />
+      <_BuildInfoLines Include="[assembly: AssemblyDescription(&quot;$(Description)&quot;)]" />
+      <_BuildInfoLines Include="[assembly: AssemblyCompany(&quot;$(Company)&quot;)]" />
+      <_BuildInfoLines Include="[assembly: AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
+      <_BuildInfoLines Include="[assembly: AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
       <_BuildInfoLines Include="[assembly: AssemblyInformationalVersion(&quot;$(DisplayVersion)&quot;)]" />
       <_BuildInfoLines Include="internal static class BuildInfo {" />
       <_BuildInfoLines Include="    public const string Channel = &quot;$(Channel)&quot;%3B" />

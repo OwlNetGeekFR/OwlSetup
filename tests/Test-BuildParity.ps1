@@ -88,6 +88,27 @@ if ($csproj -notmatch 'Microsoft\.Web\.WebView2') {
     throw "Le .csproj ne reference plus WebView2, que build.ps1 embarque."
 }
 
+# --- 2b) Memes attributs d assembly -----------------------------------------
+#
+# build.ps1 genere PCSetup.BuildInfo.cs avec sept attributs ; le .csproj fait
+# la meme chose dans sa cible GenerateBuildInfo. Il en avait perdu CINQ : le
+# binaire qu il produit sortait en 0.0.0.0, sans societe ni produit.
+#
+# Personne ne l avait vu parce que ce projet ne servait qu a l analyse Roslyn,
+# jamais a produire le binaire livre. Le jour ou il deviendra le chemin de
+# build officiel, cette divergence aurait expedie une version sans identite.
+$attributs = @("AssemblyTitle", "AssemblyProduct", "AssemblyDescription", "AssemblyCompany",
+    "AssemblyVersion", "AssemblyFileVersion", "AssemblyInformationalVersion")
+foreach ($attribut in $attributs) {
+    $motif = [regex]::Escape("assembly: $attribut(")
+    if ($build -notmatch $motif) {
+        throw "build.ps1 n emet plus l attribut $attribut."
+    }
+    if ($csproj -notmatch $motif) {
+        throw "Le .csproj n emet pas l attribut $attribut : son binaire perdrait cette metadonnee."
+    }
+}
+
 # --- 3) Meme cible de compilation -------------------------------------------
 
 if ($csproj -notmatch '<TargetFramework>net462</TargetFramework>') {
