@@ -1,5 +1,50 @@
 # Historique des versions
 
+## [4.0.0-beta.64] - 2026-09-01
+
+### Les cinq alertes de sécurité ne touchaient pas le produit livré
+
+GitHub signalait **5 vulnérabilités** sur `main` — une critique, une haute, trois
+moyennes. Vérification faite avant de toucher quoi que ce soit : **aucune
+n'atteint `OwlSetup.exe`**.
+
+| Paquet | Portée | Ce qui est visé |
+| --- | --- | --- |
+| `vitest` (critique) | `development` | le serveur de l'UI Vitest, quand il écoute |
+| `vite` (haute + 2 moyennes) | `development` | le serveur de développement |
+| `esbuild` (moyenne) | `development` | le serveur de développement |
+
+Les trois sont des dépendances de test. Le chemin de build livré n'en utilise
+aucune : `build-js.mjs` et `build-css.mjs` concatènent avec Node seul, il n'y a
+pas de bundler, et `build.ps1` enchaîne ces scripts puis `csc.exe`. Le dépôt ne
+lance ni `vitest --ui` ni serveur de développement — `npm test` est
+`vitest run`.
+
+L'exposition réelle était donc nulle. Le bruit, lui, était réel : cinq alertes
+permanentes finissent par masquer celle qui comptera.
+
+### Ce qui change
+
+`vitest` et `@vitest/coverage-v8` passent de **2.1.9 à 4.1.11**, ce qui entraîne
+`vite` en 8.2.2 et fait **disparaître `esbuild`** de l'arbre. `npm audit`
+rapporte désormais **0 vulnérabilité**.
+
+Les majeures d'`eslint` (9 → 10) et de `globals` (15 → 17) sont **laissées de
+côté** : elles n'ont aucun rapport avec ces alertes et toucheraient la
+configuration de lint. Un lot de sécurité ne doit pas emporter une migration
+d'outillage au passage.
+
+### Épingles d'actions alignées
+
+Les workflows utilisaient `actions/checkout` en **v4 dans `quality.yml` et v6
+dans `release.yml`** — deux workflows qui ne récupèrent pas le dépôt de la même
+façon. Tout est aligné sur les majeures courantes : `checkout@v7`,
+`setup-node@v7`.
+
+**Vérifié :** 243 tests JavaScript avec la version du dépôt (et non celle du
+cache `npx`), 57 fichiers de tests PowerShell, `npm audit` à zéro.
+
+
 ## [4.0.0-beta.63] - 2026-08-31
 
 ### Le contrôle qualité était rouge depuis neuf commits, et c'était moi
