@@ -1,21 +1,17 @@
 $ErrorActionPreference = "Stop"
 
-# Parite entre les deux descriptions du build (lot 3 - 4.0.0-beta.60).
+# Une seule description du build (4.1.0-beta.4).
 #
-# `build.ps1` compile avec csc.exe : c'est le build qui PRODUIT le binaire
-# livre. `beta/csharp/OwlSetup.csproj` est une seconde description du meme
-# programme, et c'est la seule que les analyseurs Roslyn savent lire - csc.exe
-# du .NET Framework ne connait pas les analyseurs.
+# Ce test comparait deux descriptions du meme programme : les arguments csc de
+# `build.ps1` et `beta/csharp/OwlSetup.csproj`. Elles ont fusionne — `build.ps1`
+# delegue desormais au projet, qui compile ici comme en CI. La duplication a
+# disparu, donc la comparaison n'a plus d'objet.
 #
-# L'analyse de securite n'a donc de valeur que si le .csproj compile bien LA
-# MEME CHOSE que build.ps1. Rien ne le garantissait : le .csproj portait meme
-# la mention "a valider par un premier build cote mainteneur", et aucune CI ne
-# le construisait. Deux descriptions du meme build, dont une seule verifiee.
-#
-# Ce test compare ce qui peut l'etre mecaniquement : les ressources embarquees
-# (par leur nom logique, celui que GetManifestResourceStream utilise), les
-# references non implicites, et la cible de compilation. Il verifie aussi que la
-# barriere de securite du .csproj est toujours armee.
+# Ce qu'il garde maintenant est plus utile : les ressources declarees par le
+# projet, comparees a celles que l'hote EXTRAIT reellement au demarrage. Ce sont
+# deux cotes genuinement differents — le build et le code qui le consomme — et
+# une ressource oubliee d'un cote fait echouer l'autre au lancement
+# (« Ressource manquante : ... »).
 #
 # Assertions en ASCII seulement : PowerShell 5.1 decode mal les accents dans un
 # .ps1 sans BOM.
@@ -23,110 +19,79 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $build = Get-Content -LiteralPath (Join-Path $root "build.ps1") -Raw -Encoding UTF8
 $csproj = Get-Content -LiteralPath (Join-Path $root "beta\csharp\OwlSetup.csproj") -Raw -Encoding UTF8
+$natif = Get-Content -LiteralPath (Join-Path $root "OwlSetupWebView.cs") -Raw -Encoding UTF8
 
-# --- 1) Ressources embarquees ------------------------------------------------
+# --- 1) build.ps1 delegue bien au projet ------------------------------------
 #
-# Les logos sont ajoutes en boucle des deux cotes (Get-ChildItem ici, joker
-# MSBuild la-bas) : on ramene les deux formes a un meme marqueur plutot que de
-# comparer une syntaxe a l'autre.
-
-function Get-BuildResources([string]$Text) {
-    $noms = [regex]::Matches($Text, '/resource:[^",]*,([^"]+)') | ForEach-Object { $_.Groups[1].Value }
-    $noms | ForEach-Object { if ($_ -like "logos.*") { "logos.*" } else { $_ } } | Sort-Object -Unique
+# Le retour en arriere serait silencieux : une liste de `/resource:` reapparait
+# dans build.ps1, et le binaire livre cesse d'etre celui que les analyseurs
+# examinent.
+if ($build -notmatch 'dotnet build \$projet') {
+    throw "build.ps1 ne compile plus via beta/csharp/OwlSetup.csproj : la duplication des descriptions de build est revenue."
+}
+if ($build -match '/resource:') {
+    throw "build.ps1 liste a nouveau des ressources pour csc : le projet n'est plus la seule description du build."
+}
+if ($build -match '/target:winexe') {
+    throw "build.ps1 compile a nouveau l'application avec csc au lieu du projet."
+}
+# Le shim .com reste compile par csc, et c'est assume.
+if ($build -notmatch '/target:exe') {
+    throw "Le shim console (.com) n'est plus compile."
 }
 
-function Get-CsprojResources([string]$Text) {
-    $noms = [regex]::Matches($Text, '<LogicalName>([^<]+)</LogicalName>') | ForEach-Object { $_.Groups[1].Value }
-    $noms | ForEach-Object { if ($_ -like "logos.*") { "logos.*" } else { $_ } } | Sort-Object -Unique
+# --- 2) Le projet declare ce que l'hote extrait ------------------------------
+$declarees = @([regex]::Matches($csproj, '<LogicalName>([^<]+)</LogicalName>') |
+        ForEach-Object { $_.Groups[1].Value } |
+        ForEach-Object { if ($_ -like "logos.*") { "logos.*" } else { $_ } } |
+        Sort-Object -Unique)
+
+$extraites = @([regex]::Matches($natif, 'Extract\("([^"]+)"') |
+        ForEach-Object { $_.Groups[1].Value } |
+        Sort-Object -Unique)
+
+if ($extraites.Count -lt 10) {
+    throw "Extraction des appels Extract() cassee ($($extraites.Count) trouves) : le test ne prouverait rien."
 }
 
-$aBuild = @(Get-BuildResources $build)
-$aCsproj = @(Get-CsprojResources $csproj)
-
-if ($aBuild.Count -lt 10) {
-    throw "Extraction des ressources de build.ps1 cassee ($($aBuild.Count) trouvees) : le test ne prouverait rien."
+$absentes = @($extraites | Where-Object { $declarees -notcontains $_ })
+if ($absentes.Count -gt 0) {
+    throw "L'hote extrait des ressources que le projet n'embarque pas : $($absentes -join ', '). L'application echouerait au demarrage sur « Ressource manquante »."
 }
 
-$manquantes = @($aBuild | Where-Object { $aCsproj -notcontains $_ })
-$enTrop = @($aCsproj | Where-Object { $aBuild -notcontains $_ })
+# Les logos sont extraits en boucle, par prefixe : les deux cotes doivent garder
+# ce mecanisme, sinon la comparaison ci-dessus passerait sans que les icones
+# soient embarquees.
+if ($natif -notmatch 'StartsWith\("logos\.') { throw "L'hote n'extrait plus les logos par prefixe." }
+if ($declarees -notcontains "logos.*") { throw "Le projet n'embarque plus les logos." }
 
-if ($manquantes.Count -gt 0) {
-    throw "Ressources presentes dans build.ps1 mais absentes du .csproj : $($manquantes -join ', '). L'analyse porterait sur un binaire different de celui qui est livre."
-}
-if ($enTrop.Count -gt 0) {
-    throw "Ressources presentes dans le .csproj mais absentes de build.ps1 : $($enTrop -join ', ')."
-}
-
-# Le mecanisme des logos doit rester en place des deux cotes : sans lui, la
-# comparaison ci-dessus passerait alors que les icones auraient disparu.
-if ($build -notmatch 'assets\\logos') { throw "build.ps1 n'embarque plus les logos." }
-if ($csproj -notmatch 'assets\\logos\\\*\.\*') { throw "Le .csproj n'embarque plus les logos." }
-
-# --- 2) References non implicites -------------------------------------------
+# --- 3) Les attributs d'assembly --------------------------------------------
 #
-# Les references de build.ps1 ne se transposent pas une a une : le SDK apporte
-# System.Core, et `UseWindowsForms` apporte System.Windows.Forms et
-# System.Drawing. Seules les autres doivent apparaitre explicitement.
-
-$implicites = @("System.Core.dll", "System.Windows.Forms.dll", "System.Drawing.dll")
-$refsBuild = [regex]::Matches($build, '/reference:(System\.[^",]+\.dll)') |
-    ForEach-Object { $_.Groups[1].Value } |
-    Where-Object { $implicites -notcontains $_ } |
-    Sort-Object -Unique
-
-foreach ($ref in $refsBuild) {
-    $nom = $ref -replace '\.dll$', ''
-    if ($csproj -notmatch [regex]::Escape("<Reference Include=`"$nom`"")) {
-        throw "build.ps1 reference $ref, pas le .csproj : les deux builds ne compilent pas la meme chose."
-    }
-}
-
-if ($csproj -notmatch '<UseWindowsForms>true</UseWindowsForms>') {
-    throw "UseWindowsForms a disparu : System.Windows.Forms et System.Drawing ne seraient plus references."
-}
-if ($csproj -notmatch 'Microsoft\.Web\.WebView2') {
-    throw "Le .csproj ne reference plus WebView2, que build.ps1 embarque."
-}
-
-# --- 2b) Memes attributs d assembly -----------------------------------------
-#
-# build.ps1 genere PCSetup.BuildInfo.cs avec sept attributs ; le .csproj fait
-# la meme chose dans sa cible GenerateBuildInfo. Il en avait perdu CINQ : le
-# binaire qu il produit sortait en 0.0.0.0, sans societe ni produit.
-#
-# Personne ne l avait vu parce que ce projet ne servait qu a l analyse Roslyn,
-# jamais a produire le binaire livre. Le jour ou il deviendra le chemin de
-# build officiel, cette divergence aurait expedie une version sans identite.
+# Le projet pose GenerateAssemblyInfo=false et emet lui-meme les attributs ; il
+# en avait perdu CINQ, et son binaire sortait en 0.0.0.0 sans societe. Le defaut
+# est reste invisible tant que ce projet ne servait qu'a l'analyse — il aurait
+# ete livre le jour de la bascule.
 $attributs = @("AssemblyTitle", "AssemblyProduct", "AssemblyDescription", "AssemblyCompany",
     "AssemblyVersion", "AssemblyFileVersion", "AssemblyInformationalVersion")
 foreach ($attribut in $attributs) {
-    $motif = [regex]::Escape("assembly: $attribut(")
-    if ($build -notmatch $motif) {
-        throw "build.ps1 n emet plus l attribut $attribut."
-    }
-    if ($csproj -notmatch $motif) {
-        throw "Le .csproj n emet pas l attribut $attribut : son binaire perdrait cette metadonnee."
+    if ($csproj -notmatch [regex]::Escape("assembly: $attribut(")) {
+        throw "Le projet n'emet pas l'attribut $attribut : le binaire livre perdrait cette metadonnee."
     }
 }
 
-# --- 3) Meme cible de compilation -------------------------------------------
+# --- 4) Meme cible de compilation -------------------------------------------
 
-if ($csproj -notmatch '<TargetFramework>net462</TargetFramework>') {
-    throw "Le .csproj ne cible plus net462, alors que build.ps1 compile avec le csc de v4.0.30319."
+if ($csproj -notmatch '<TargetFramework>net462</TargetFramework>') { throw "Le projet ne cible plus net462." }
+if ($csproj -notmatch '<PlatformTarget>x64</PlatformTarget>') { throw "Le projet ne cible plus x64." }
+if ($csproj -notmatch '<OutputType>WinExe</OutputType>') { throw "Le projet ne produit plus un WinExe." }
+if ($csproj -notmatch '<UseWindowsForms>true</UseWindowsForms>') {
+    throw "UseWindowsForms a disparu : System.Windows.Forms et System.Drawing ne seraient plus references."
 }
-if ($build -notmatch '/platform:x64') { throw "build.ps1 ne compile plus en x64." }
-if ($csproj -notmatch '<PlatformTarget>x64</PlatformTarget>') {
-    throw "Le .csproj ne cible plus x64, contrairement a build.ps1."
-}
-if ($build -notmatch '/target:winexe') { throw "build.ps1 ne produit plus un winexe." }
-if ($csproj -notmatch '<OutputType>WinExe</OutputType>') {
-    throw "Le .csproj ne produit plus un WinExe, contrairement a build.ps1."
-}
+if ($csproj -notmatch 'Microsoft\.Web\.WebView2') { throw "Le projet ne reference plus WebView2." }
 
-# --- 4) La barriere de securite reste armee ---------------------------------
+# --- 5) La barriere de securite reste armee ---------------------------------
 #
-# Tout l'interet du .csproj est la : c'est le seul chemin qui fait tourner les
-# analyseurs. Le desarmer sans le dire viderait la CI de sa substance.
+# Elle porte desormais sur le binaire REELLEMENT livre, et plus sur une copie.
 
 if ($csproj -notmatch '<AnalysisModeSecurity>All</AnalysisModeSecurity>') {
     throw "AnalysisModeSecurity n'est plus a All : l'analyse de securite ne serait plus complete."
@@ -143,26 +108,22 @@ foreach ($regle in @("CA5392", "CA5387", "CA5388", "CA5389", "CA5390", "CA5391",
 # Les deux regles ecartees doivent l'etre avec leur justification ecrite : un
 # NoWarn qui s'allonge en silence est exactement ce qu'on veut voir venir.
 $ecartees = [regex]::Match($csproj, '<NoWarn>\$\(NoWarn\)([^<]*)</NoWarn>')
-if (-not $ecartees.Success) { throw "Le bloc NoWarn du .csproj est introuvable." }
+if (-not $ecartees.Success) { throw "Le bloc NoWarn du projet est introuvable." }
 $listeEcartees = @($ecartees.Groups[1].Value -split ';' | Where-Object { $_ -match '\S' })
 if ($listeEcartees.Count -ne 2) {
-    throw "Le .csproj ecarte maintenant $($listeEcartees.Count) regles au lieu de 2 ($($listeEcartees -join ', ')) : chaque exclusion demande une justification ecrite."
+    throw "Le projet ecarte maintenant $($listeEcartees.Count) regles au lieu de 2 ($($listeEcartees -join ', ')) : chaque exclusion demande une justification ecrite."
 }
 
-# --- 5) La CI construit bien ce projet --------------------------------------
+# --- 6) Modifier le projet declenche bien la CI -----------------------------
 #
-# Un .csproj correct qu'aucune CI ne construit ne garde rien : c'etait l'etat
-# entre la 4.0.0-beta.56 et la beta.60.
-
+# Le projet est maintenant LE build : une modification qui ne declencherait
+# aucun controle serait pire qu'avant.
 $workflow = Get-Content -LiteralPath (Join-Path $root ".github\workflows\release.yml") -Raw -Encoding UTF8
-# Le motif vise la COMMANDE, pas une mention : chercher simplement le nom du
-# projet laissait passer un job vide, le commentaire au-dessus de l'etape
-# suffisant a satisfaire la recherche. Constate en sabotant ce test.
-if ($workflow -notmatch 'run:\s*dotnet build\s+beta/csharp/OwlSetup\.csproj') {
-    throw "Aucun job de la CI ne construit beta/csharp/OwlSetup.csproj : les analyseurs ne tournent nulle part."
-}
 if ($workflow -notmatch 'beta/csharp/\*\*') {
-    throw "Les modifications du .csproj ne declenchent pas la CI de build."
+    throw "Les modifications du projet ne declenchent pas la CI de build."
+}
+if ($workflow -notmatch 'run:\s*\./build\.ps1') {
+    throw "La CI n'appelle plus build.ps1 : les analyseurs ne tourneraient nulle part."
 }
 
-Write-Host ("Parite de build : {0} ressources communes, references, cible et barriere de securite verifiees." -f $aBuild.Count) -ForegroundColor Green
+Write-Host ("Description unique du build : {0} ressources declarees couvrent les {1} extraites par l'hote, attributs et barriere de securite verifies." -f $declarees.Count, $extraites.Count) -ForegroundColor Green

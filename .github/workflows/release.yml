@@ -44,15 +44,9 @@ jobs:
       - name: Contrôles de préparation
         shell: powershell
         run: ./tests/Test-ReleaseCandidateReadiness.ps1
-      # csc.exe du .NET Framework, utilise par build.ps1, ne connait pas les
-      # analyseurs Roslyn. beta/csharp/OwlSetup.csproj decrit le meme programme
-      # et les fait tourner : la categorie securite y est traitee en erreur.
-      # Sans cette etape, les reglages d'analyse ajoutes en 4.0.0-beta.56 ne
-      # s'appliquaient nulle part. tests/Test-BuildParity.ps1 garde les deux
-      # descriptions du build equivalentes.
-      - name: Analyse de sécurité (analyseurs Roslyn)
-        shell: powershell
-        run: dotnet build beta/csharp/OwlSetup.csproj -c Release -p:AppVersion=0.0.0 -p:Channel=stable --nologo
+      # L etape d analyse separee a disparu en 4.1.0-beta.4 : build.ps1 compile
+      # desormais via beta/csharp/OwlSetup.csproj, donc les analyseurs Roslyn
+      # tournent sur le binaire REELLEMENT livre, et non plus sur une copie.
       - name: Compiler OwlSetup
         shell: powershell
         run: ./build.ps1 -AppVersion 0.0.0 -Channel stable
