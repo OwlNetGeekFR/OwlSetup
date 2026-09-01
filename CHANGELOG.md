@@ -1,5 +1,69 @@
 # Historique des versions
 
+## [4.1.0-beta.5] - 2026-09-01
+
+### Rien ne vérifiait qu'un logiciel du catalogue existe encore
+
+Le catalogue propose 93 applications. Si un paquet est renommé ou retiré du
+dépôt WinGet, OwlSetup continue de l'afficher comme installable, et
+l'installation échoue chez l'utilisateur. Aucun contrôle ne le voyait venir — et
+sur 93 entrées, ce n'est qu'une question de temps.
+
+`tools/check-winget-ids.mjs` interroge `microsoft/winget-pkgs`, la source dont
+WinGet lui-même se sert. Pas `winget.exe` : il n'est pas disponible de façon
+fiable sur un runner GitHub.
+
+**80/80** aujourd'hui. La base est donc propre, et le premier échec sera un vrai
+signal.
+
+Le premier essai en avait signalé **douze** de plus. C'étaient des faux
+positifs : les entrées `manualInstall` — installation guidée vers le site de
+l'éditeur (`guided.RustDesk`, `VMware.WorkstationPro`) ou application web
+(`web.GoogleGemini`) — portent un identifiant interne à OwlSetup qui n'a jamais
+existé chez WinGet. Avec l'entrée Microsoft Store, treize entrées sont écartées,
+et le contrôle porte sur les 80 qui passent réellement par WinGet.
+
+Validé par deux sabotages : un identifiant WinGet inventé, et une entrée guidée
+privée de son drapeau — donc interrogée à tort.
+
+### Le contrôle du catalogue ne surveillait pas le catalogue
+
+`catalog-health.yml` se déclenchait sur `app.js`, les logos et son propre
+script. Mais **la source de vérité est `beta/catalog/apps.json` depuis la
+4.0.0-beta.11**, et ce chemin n'a jamais figuré dans ses déclencheurs. Corriger
+un identifiant ou une URL ne lançait donc aucun contrôle.
+
+Les déclencheurs couvrent désormais `beta/catalog/**` et
+`catalog.generated.js`. Le workflow tourne aussi **une fois par semaine** : un
+paquet disparaît de WinGet sans qu'on ait rien changé, et aucun déclencheur lié
+au dépôt ne peut l'attraper.
+
+### L'échec intermittent est expliqué
+
+La 4.1.0-beta.3 laissait une question ouverte : le test de démarrage graphique
+avait échoué une fois, sortie immédiate et code 0, sans que j'en trouve la
+cause.
+
+La voici. **WebView2 verrouille son dossier de données.** Une seconde instance
+lancée pendant qu'une première tourne échoue à créer son environnement et sort
+aussitôt. Or `Test-ReleaseCandidateReadiness.ps1` rejoue toute la suite : lors
+d'une passe complète, ce test s'exécute deux fois de suite. Mesuré : sur trois
+lancements rapprochés, deux ont vu une instance sortir immédiatement.
+
+Le test attend maintenant que la place soit libre. Ce n'est pas une reprise
+déguisée — la cause est connue et l'attente porte précisément sur elle.
+
+### Ce que ça révèle du produit, et qui reste à corriger
+
+OwlSetup n'a **aucun garde d'instance unique**. Un utilisateur qui lance
+l'application une seconde fois voit une fenêtre disparaître sans explication, ou
+une boîte d'erreur. C'est un défaut visible, distinct du test, et il mérite son
+propre lot : soit ramener au premier plan l'instance déjà ouverte, soit le dire
+clairement.
+
+**Vérifié :** 60 fichiers de tests PowerShell (passe complète, zéro échec),
+248 tests JavaScript, 80 identifiants contrôlés en 53 secondes.
+
 ## [4.1.0-beta.4] - 2026-09-01
 
 ### Une seule description du build

@@ -40,6 +40,26 @@ function Get-Sha256([string]$Path) {
     (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
 }
 
+# WebView2 verrouille son dossier de donnees (%LOCALAPPDATA%\PCSetup\WebView2Data)
+# : une seconde instance lancee pendant qu une premiere tourne echoue a creer son
+# environnement, et sort immediatement avec le code 0.
+#
+# Ce n est pas theorique. Ce test a echoue une fois sans explication ; la cause
+# est celle-la. Test-ReleaseCandidateReadiness.ps1 rejoue TOUS les tests, donc
+# celui-ci s execute deux fois de suite lors d une passe complete, et la seconde
+# tombe si la premiere instance n a pas fini de rendre le verrou. Mesure : sur
+# trois lancements rapproches, deux ont vu une instance sortir aussitot.
+#
+# On attend donc que la place soit libre. Ce n est pas une reprise deguisee :
+# la cause est connue et l attente porte sur elle.
+$attente = (Get-Date).AddSeconds(30)
+while ((Get-Date) -lt $attente -and @(Get-Process OwlSetup -ErrorAction SilentlyContinue).Count -gt 0) {
+    Start-Sleep -Milliseconds 500
+}
+if (@(Get-Process OwlSetup -ErrorAction SilentlyContinue).Count -gt 0) {
+    throw "Une instance d'OwlSetup tourne encore apres 30 s : le verrou WebView2 ferait echouer ce test pour une raison etrangere au binaire."
+}
+
 $process = $null
 try {
     $process = Start-Process -FilePath $exe -PassThru -ErrorAction Stop
@@ -67,15 +87,11 @@ try {
         # InitializeWebView affiche une MessageBox puis appelle Close() : une
         # sortie pendant le demarrage est le symptome d'un echec.
         #
-        # Un echec de ce test a ete observe UNE fois, puis jamais reproduit en
-        # onze lancements : sortie immediate, code 0, sans message. La cause
-        # reste inconnue — ni instance concurrente (il n'y a pas de verrou
-        # d'instance unique), ni bascule en mode CLI (elle exige un argument),
-        # ni copie fraiche du binaire (5 essais sur 5 demarrent en 0,4 s).
-        #
-        # Aucune reprise automatique n'est ajoutee : elle masquerait le
-        # symptome. Le message porte donc de quoi trancher a la prochaine
-        # occurrence, plutot que de laisser recommencer l'enquete a zero.
+        # CAUSE IDENTIFIEE (4.1.0-beta.5) : deux instances lancees coup sur
+        # coup se disputent le dossier de donnees de WebView2, et l'une sort
+        # aussitot avec le code 0. L'attente placee avant le lancement l'evite.
+        # Si le symptome revient malgre elle, il vient d'ailleurs — le message
+        # ci-dessous porte de quoi le dire.
         $duree = [math]::Round(((Get-Date) - $depart).TotalSeconds, 1)
         $voisins = @(Get-Process OwlSetup -ErrorAction SilentlyContinue).Count
         $moteurs = @(Get-Process msedgewebview2 -ErrorAction SilentlyContinue).Count
