@@ -1,5 +1,70 @@
 # Historique des versions
 
+## [4.0.0-beta.65] - 2026-09-01
+
+### Lot 8 — l'interface anglaise est complète
+
+Les **256 chaînes** de `OwlSetupWebView.cs` qui restaient en français sont
+traduites. L'audit passe de 84 % à **1488/1488, 100 %**, et la dette déclarée en
+4.0.0-beta.61 est vidée : `beta/i18n-dette.json` ne contient plus rien.
+
+Un anglophone ne voit plus de français dans les messages de l'hôte.
+
+### Le filtre qui masquait 29 chaînes — et des fautes de français
+
+En vérifiant un message construit en trois morceaux, une chaîne d'interface est
+apparue qui n'était **ni traduite ni signalée** : `"WinGet n'a pas pu terminer
+cette "`. Le filtre technique de l'audit écartait tout littéral contenant le mot
+`winget`, pour éviter de compter les lignes de commande. Il écartait donc aussi
+tout **message affiché** mentionnant WinGet.
+
+Vingt-neuf chaînes étaient masquées, dont « Contrôle de WinGet », « Mettre
+WinGet à jour » ou « WinGet est indisponible ». Le filtre ne s'applique
+désormais qu'au nom de l'outil **suivi d'un verbe ou d'un drapeau**.
+
+La même heuristique servait à chercher les accents manquants : **huit fautes
+supplémentaires** étaient donc cachées aux utilisateurs français, comme
+« Verification WinGet apres desinstallation » ou « Le logiciel n'a pas ete
+trouve dans les sources WinGet ». Corrigées, avec les 33 de la beta.61.
+
+### Un message en trois morceaux
+
+`"WinGet n'a pas pu terminer cette "` + l'opération + `". Le rapport contient
+les détails techniques (code "` + le code. La règle de fragment de tête aurait
+traduit le début et laissé le reste en français — une phrase à moitié traduite,
+exactement ce qu'on veut éviter. Un motif `englishPatterns` s'en charge, et la
+valeur capturée passe par le dictionnaire : « mise à jour » devient bien
+« update ». Vérifié sur les trois opérations possibles.
+
+### Huit messages sortis de l'audit
+
+`CliOut` et `CliErr` écrivent sur la console du shim CLI, jamais dans le DOM.
+L'audit réclamait une traduction anglaise pour huit messages que l'observateur
+de `i18n.js` ne verra jamais. Ils sont exclus, comme l'étaient déjà les appels
+`Console.Write*`.
+
+### Un garde sur l'espace finale
+
+Les 46 fragments de tête (`"Dossier restauré : "`) doivent garder leur espace
+finale **des deux côtés**. Une traduction qui la perd produit
+« Folder restored:C:\Temp » — un défaut discret que personne ne signale.
+`beta/test/i18n-fragments.test.js` l'interdit, dans les deux sens : une espace
+perdue comme une espace ajoutée à une phrase complète. Validé par trois
+sabotages.
+
+### Ne pas passer i18n.js à prettier
+
+Ce fichier est hors du périmètre de `npm run format:check`, qui tourne depuis
+`beta/`. Le formater retire les guillemets des clés qui sont des identifiants
+valides (`Accueil:` au lieu de `"Accueil":`), et l'audit ne les reconnaît plus.
+C'est arrivé deux fois — la seconde a produit un diff de 2 533 lignes, annulé en
+rejouant les scripts d'insertion. L'avertissement est désormais en tête du
+fichier.
+
+**Vérifié :** 248 tests JavaScript, 57 fichiers de tests PowerShell,
+`prettier --check` au vert, audit i18n à 100 %, hôte C# recompilé.
+
+
 ## [4.0.0-beta.64] - 2026-09-01
 
 ### Les cinq alertes de sécurité ne touchaient pas le produit livré

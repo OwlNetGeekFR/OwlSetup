@@ -192,11 +192,10 @@ lu nulle part : la couverture réelle est de **84 %**.
 4. ✅ _(4.0.0-beta.61)_ **Dette déclarée à cliquet** (`beta/i18n-dette.json`) :
    `--check` échoue si une chaîne s'ajoute, ET si une chaîne traduite y reste.
    La dette ne peut que diminuer. Trois sabotages la valident.
-5. **Reste : les 234 traductions.** À faire par tranches, en régénérant la dette
+5. ✅ _(4.0.0-beta.65)_ **Les 256 chaînes sont traduites**, la dette est vidée.
    à chaque fois (`node beta/scripts/audit-i18n.mjs --dette`).
-6. **Reste :** une poignée de messages en trois morceaux
-   (`"…cette " + operation + ". Le rapport…"`) qui demandent un motif dans
-   `englishPatterns` plutôt qu'un fragment de tête.
+6. ✅ _(4.0.0-beta.65)_ **Message en trois morceaux** couvert par un motif `englishPatterns` : la règle de fragment de tête aurait laissé
+   la seconde moitié en français.
 
 **Risque :** faible. Le cliquet empêche toute régression, et chaque tranche est
 vérifiable seule.

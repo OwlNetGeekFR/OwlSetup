@@ -587,16 +587,25 @@ function scanCsharpLiterals(source) {
 // versions abimees (« aucun package trouvÃ© »). Le traduire n aurait aucun sens
 // et ajouterait du mojibake au dictionnaire.
 //
-// Console.Write* part vers le shim CLI, jamais vers le DOM : meme raison que
-// HORS_DOM cote app.js.
+// CliOut / CliErr et Console.Write* ecrivent sur la console du shim CLI, jamais
+// dans le DOM : meme raison que HORS_DOM cote app.js. Les oublier faisait
+// reclamer une traduction anglaise pour huit messages que l observateur de
+// i18n.js ne verra jamais.
 const ENTREE =
-  /\.(?:Contains|StartsWith|EndsWith|IndexOf|LastIndexOf|Equals|Split)\s*\(\s*$|Console\.(?:Out\.|Error\.)?(?:Write|WriteLine|Error)[^;]*$/;
+  /\.(?:Contains|StartsWith|EndsWith|IndexOf|LastIndexOf|Equals|Split)\s*\(\s*$|(?:CliOut|CliErr|Console\.(?:Out\.|Error\.)?(?:Write|WriteLine|Error))[^;]*$/;
 
 // Ce qui ne part pas vers l interface : chemins, cles de registre, arguments de
 // ligne de commande, fragments PowerShell, noms de fichiers. Les compter
 // gonflerait l audit de chaines qu aucun utilisateur ne lit.
+// Le nom d un outil ne suffit PAS a faire une ligne de commande : « Contrôle de
+// WinGet » ou « Mettre WinGet à jour » sont des messages affiches. Exclure sur
+// le seul mot « winget » masquait 17 chaines d interface a l audit — et, comme
+// la meme heuristique servait a chercher les accents manquants, il y masquait
+// aussi des fautes vues par les utilisateurs francais.
+//
+// On n ecarte donc que le nom de l outil SUIVI d un verbe ou d un drapeau.
 const NATIF_TECHNIQUE =
-  /^(https?:|HKEY|SOFTWARE\\|Software\\|[A-Za-z]:\\|\\\\|\/|--|-[A-Za-z]|\{|\[|%|\$)|\.(exe|dll|ps1|log|json|txt|ico|png|css|js|html)$|winget|powershell|cmd\.exe|\$env:/i;
+  /^(https?:|HKEY|SOFTWARE\\|Software\\|[A-Za-z]:\\|\\\\|\/|--|-[A-Za-z]|\{|\[|%|\$)|\.(exe|dll|ps1|log|json|txt|ico|png|css|js|html)$|\b(?:winget|powershell)(?:\.exe)?\s+(?:install|uninstall|upgrade|search|list|show|source|export|import|features|settings|-)|cmd\.exe|\$env:/i;
 
 // Prefixe de nom de fichier journal (« PC-Setup-Nettoyage- » + horodatage +
 // « .log ») : le tiret final le signe. Ces noms ne sont jamais affiches.
