@@ -24,40 +24,9 @@ if ($PrereleaseLabel -and $PrereleaseLabel -notmatch '^[A-Za-z0-9.-]+$') {
 
 $displayVersion = if ($Channel -ne "stable") { "$AppVersion-$PrereleaseLabel" } else { $AppVersion }
 $assemblyVersion = "$AppVersion.0"
-$buildInfo = Join-Path $root "obj\PCSetup.BuildInfo.cs"
 $outputPath = if ([IO.Path]::IsPathRooted($Output)) { $Output } else { Join-Path $root $Output }
-New-Item -ItemType Directory -Force -Path (Split-Path $buildInfo), (Split-Path $outputPath) | Out-Null
+New-Item -ItemType Directory -Force -Path (Split-Path $outputPath) | Out-Null
 
-$isBetaLiteral = if ($Channel -ne "stable") { "true" } else { "false" }
-@"
-using System.Reflection;
-[assembly: AssemblyTitle("OwlSetup")]
-[assembly: AssemblyProduct("OwlSetup")]
-[assembly: AssemblyDescription("Installation, mise a jour et entretien de Windows")]
-[assembly: AssemblyCompany("OwlNetGeekFR")]
-[assembly: AssemblyVersion("$assemblyVersion")]
-[assembly: AssemblyFileVersion("$assemblyVersion")]
-[assembly: AssemblyInformationalVersion("$displayVersion")]
-internal static class BuildInfo
-{
-    public const string Channel = "$Channel";
-    public const string DisplayVersion = "$displayVersion";
-    public static readonly bool IsBeta = $isBetaLiteral;
-}
-"@ | Set-Content -LiteralPath $buildInfo -Encoding UTF8
-
-if (-not (Test-Path (Join-Path $packageRoot "lib\net462\Microsoft.Web.WebView2.Core.dll"))) {
-    New-Item -ItemType Directory -Force -Path (Split-Path $nupkg) | Out-Null
-    Invoke-WebRequest "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/$webViewVersion" -OutFile $nupkg
-    $zip = [IO.Path]::ChangeExtension($nupkg, ".zip")
-    Copy-Item $nupkg $zip -Force
-    Expand-Archive $zip -DestinationPath $packageRoot -Force
-    Remove-Item $zip -Force
-}
-
-$core = Join-Path $packageRoot "lib\net462\Microsoft.Web.WebView2.Core.dll"
-$forms = Join-Path $packageRoot "lib\net462\Microsoft.Web.WebView2.WinForms.dll"
-$loader = Join-Path $packageRoot "runtimes\win-x64\native\WebView2Loader.dll"
 $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 
 # Catalogue externalise : regenere catalog.generated.js depuis beta/catalog/apps.json
@@ -110,39 +79,42 @@ if ($stampedHtml -ne $indexHtml) {
     Write-Host "index.html : jeton anti-cache mis a jour (?v=$displayVersion)"
 }
 
-$arguments = @(
-    "/nologo", "/target:winexe", "/optimize+", "/platform:x64",
-    "/out:$outputPath", "/win32manifest:OwlSetup.manifest", "/win32icon:OwlSetup.ico",
-    "/reference:System.Windows.Forms.dll", "/reference:System.Drawing.dll",
-    "/reference:System.Core.dll", "/reference:System.Web.Extensions.dll",
-    "/reference:System.IO.Compression.dll", "/reference:System.IO.Compression.FileSystem.dll",
-    "/reference:$core", "/reference:$forms",
-    "/resource:index.html,index.html", "/resource:i18n.js,i18n.js", "/resource:catalog.generated.js,catalog.generated.js", "/resource:app.js,app.js", "/resource:styles.css,styles.css",
-    "/resource:Mettre-a-jour-mon-PC.ps1,Mettre-a-jour-mon-PC.ps1",
-    "/resource:Liberer-espace-disque.ps1,Liberer-espace-disque.ps1",
-    "/resource:Nettoyer-residus-applications.ps1,Nettoyer-residus-applications.ps1",
-    "/resource:Installer-selection.ps1,Installer-selection.ps1",
-    "/resource:assets\branding\owlsetup-logo-512.png,app-logo.png",
-    "/resource:OwlSetup.ico,app-icon.ico",
-    "/resource:$core,wv2core", "/resource:$forms,wv2forms", "/resource:$loader,wv2loader"
-)
-
-Get-ChildItem (Join-Path $root "assets\logos") -File | ForEach-Object {
-    $arguments += "/resource:$($_.FullName),logos.$($_.Name)"
+# Compilation : UNE SEULE description du build.
+#
+# Jusqu'a la 4.1.0-beta.4, ce script listait lui-meme les references et les
+# ressources a passer a csc.exe, et beta/csharp/OwlSetup.csproj repetait la meme
+# chose pour les analyseurs Roslyn. Deux descriptions du meme programme, tenues
+# en phase a la main : le .csproj avait deja perdu cinq attributs d'assembly
+# sans que personne le voie.
+#
+# C'est desormais le .csproj qui compile, ici comme en CI. Le SDK .NET devient
+# donc necessaire pour construire l'application.
+$projet = Join-Path $root "beta\csharp\OwlSetup.csproj"
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+    throw "Le SDK .NET est requis pour compiler OwlSetup. Installez-le avec : winget install Microsoft.DotNet.SDK.8"
 }
-$arguments += "OwlSetupWebView.cs"
-$arguments += $buildInfo
 
 Push-Location $root
 try {
-    & $csc $arguments
-    if ($LASTEXITCODE -ne 0) { throw "La compilation a échoué avec le code $LASTEXITCODE." }
+    & dotnet build $projet -c Release --nologo -v minimal `
+        -p:AppVersion=$AppVersion -p:Channel=$Channel -p:PrereleaseLabel=$PrereleaseLabel -p:DisplayVersion=$displayVersion
+    if ($LASTEXITCODE -ne 0) { throw "La compilation a echoue avec le code $LASTEXITCODE." }
+
+    $produit = Join-Path $root "beta\csharp\bin\Release\OwlSetup.exe"
+    if (-not (Test-Path -LiteralPath $produit)) { throw "Le projet n'a pas produit OwlSetup.exe." }
+    Copy-Item -LiteralPath $produit -Destination $outputPath -Force
+
     $hash = Get-FileHash $outputPath -Algorithm SHA256
     Write-Host "Compilation terminée : $outputPath" -ForegroundColor Green
     Write-Host "Canal : $Channel | Version : $displayVersion"
     Write-Host "SHA-256 : $($hash.Hash)"
 
     # Shim console (.com) : « OwlSetup --install X » scriptable depuis PowerShell.
+    #
+    # Celui-ci reste compile par csc.exe : c'est un executable console d'une
+    # seule page, sans ressource ni dependance. Lui donner son propre projet
+    # couterait plus que cela ne rapporterait.
+    $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
     $shimSource = Join-Path $root "OwlSetupCli.cs"
     if (Test-Path $shimSource) {
         $shimOut = [IO.Path]::ChangeExtension($outputPath, ".com")
