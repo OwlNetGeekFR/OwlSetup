@@ -57,6 +57,13 @@ jobs:
       - name: Démarrage réel de l'interface
         shell: powershell
         run: ./tests/Test-InterfaceStartup.ps1 -Requis
+      # Deux instances se disputaient le dossier de donnees de WebView2, et
+      # celle qui mourait pouvait etre la PREMIERE : l utilisateur voyait sa
+      # fenetre disparaitre. Ce test verifie que la seconde rend la main et que
+      # la fenetre existante revient au premier plan.
+      - name: Garde d'instance unique
+        shell: powershell
+        run: ./tests/Test-SingleInstance.ps1 -Requis
       - name: Installer Inno Setup
         shell: powershell
         run: choco install innosetup --no-progress --yes
@@ -126,6 +133,20 @@ jobs:
       - name: Compiler OwlSetup
         shell: powershell
         run: ./build.ps1 -AppVersion $env:RELEASE_VERSION -Channel $env:RELEASE_CHANNEL -PrereleaseLabel $env:RELEASE_PRERELEASE_LABEL
+
+      # Ces deux tests ne tournaient que sur les propositions de modification :
+      # le chemin de PUBLICATION etait donc moins verifie que celui des PR, et
+      # un tag pouvait livrer un binaire dont l interface ne demarre pas.
+      - name: Démarrage réel de l'interface
+        shell: powershell
+        run: ./tests/Test-InterfaceStartup.ps1 -Requis
+      # Deux instances se disputaient le dossier de donnees de WebView2, et
+      # celle qui mourait pouvait etre la PREMIERE : l utilisateur voyait sa
+      # fenetre disparaitre. Ce test verifie que la seconde rend la main et que
+      # la fenetre existante revient au premier plan.
+      - name: Garde d'instance unique
+        shell: powershell
+        run: ./tests/Test-SingleInstance.ps1 -Requis
 
       - name: Vérifier le binaire
         shell: powershell

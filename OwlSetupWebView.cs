@@ -4692,6 +4692,50 @@ internal static class Bootstrap
     [DllImport("kernel32", CharSet=CharSet.Unicode, SetLastError=true)]
     static extern bool SetDllDirectory(string lpPathName);
 
+    // Le verrou d'instance unique. Il porte sur la session Windows (prefixe
+    // « Local\ ») : deux utilisateurs connectes en parallele gardent chacun leur
+    // instance. Le champ est statique pour que le verrou vive aussi longtemps
+    // que le processus — une variable locale serait ramassee par le GC, et le
+    // verrou libere alors que l'interface tourne encore.
+    static Mutex instanceUnique;
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr windowHandle);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr windowHandle, int command);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("user32.dll")] static extern bool IsIconic(IntPtr windowHandle);
+
+    const int RestaurerFenetre = 9; // SW_RESTORE
+
+    /// <summary>
+    /// Ramene au premier plan l'instance deja ouverte, plutot que de disparaitre
+    /// en silence. C'est ce que l'utilisateur attend d'un second lancement.
+    /// </summary>
+    static void RappelerInstanceExistante()
+    {
+        Process courant = Process.GetCurrentProcess();
+        // L'autre instance peut n'avoir pas encore de fenetre si elle demarre a
+        // peine : on lui laisse le temps plutot que de ne rien faire.
+        DateTime limite = DateTime.UtcNow.AddSeconds(10);
+        while(DateTime.UtcNow < limite)
+        {
+            foreach(Process autre in Process.GetProcessesByName(courant.ProcessName))
+            {
+                using(autre)
+                {
+                    if(autre.Id == courant.Id) continue;
+                    IntPtr fenetre = autre.MainWindowHandle;
+                    if(fenetre == IntPtr.Zero) continue;
+                    if(IsIconic(fenetre)) ShowWindow(fenetre, RestaurerFenetre);
+                    SetForegroundWindow(fenetre);
+                    return;
+                }
+            }
+            Thread.Sleep(200);
+        }
+    }
+
     static int RunElevatedCleanupWorker(string choicesValue,string logValue)
     {
         var principal=new WindowsPrincipal(WindowsIdentity.GetCurrent());
@@ -5576,6 +5620,30 @@ internal static class Bootstrap
                 finally{try{FreeConsole();}catch{}}
                 return;
             }
+
+            // --- Instance unique ---
+            //
+            // WebView2 verrouille son dossier de donnees. Une seconde instance
+            // echouait donc a creer son environnement et se fermait aussitot :
+            // l'utilisateur qui lancait OwlSetup une fois de trop voyait une
+            // fenetre disparaitre sans explication.
+            //
+            // Le garde est place AVANT l'extraction des ressources : inutile de
+            // reecrire une vingtaine de fichiers pour rendre la main juste
+            // apres, et cela evite que deux processus y ecrivent en meme temps.
+            //
+            // Il ne concerne QUE le mode graphique. Les verbes en ligne de
+            // commande et les relais eleves sont rendus plus haut : lancer
+            // « OwlSetup --update » pendant que l'interface est ouverte reste
+            // possible, et ne touche pas a WebView2.
+            bool premiereInstance;
+            instanceUnique = new Mutex(true, @"Local\OwlSetup.InstanceUnique", out premiereInstance);
+            if(!premiereInstance)
+            {
+                RappelerInstanceExistante();
+                return;
+            }
+
             AppRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCSetup", "App2");
             RuntimeRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCSetup", "Runtime");
             Directory.CreateDirectory(AppRoot);

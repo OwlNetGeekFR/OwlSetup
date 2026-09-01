@@ -1,5 +1,63 @@
 # Historique des versions
 
+## [4.1.0-beta.6] - 2026-09-01
+
+### Lancer OwlSetup deux fois ne fait plus disparaître une fenêtre
+
+WebView2 verrouille son dossier de données. Une seconde instance échouait donc à
+créer son environnement et se fermait aussitôt — et **pas toujours la
+seconde** : sur trois lancements rapprochés mesurés en 4.1.0-beta.5, deux ont vu
+une instance sortir immédiatement, parfois la première. Un double-clic de trop
+suffisait à faire disparaître la fenêtre sans un mot.
+
+Un verrou nommé, posé **avant l'extraction des ressources**, règle les deux
+problèmes : la seconde instance rend la main tout de suite, et elle **ramène au
+premier plan la fenêtre déjà ouverte** — en la restaurant si elle était réduite.
+Placer le garde avant l'extraction évite aussi que deux processus écrivent en
+même temps dans les mêmes fichiers.
+
+Le verrou porte sur la session Windows : deux utilisateurs connectés en
+parallèle gardent chacun leur instance.
+
+**Le mode ligne de commande n'est pas concerné.** Les verbes CLI et les relais
+élevés rendent la main avant le garde : lancer `OwlSetup --update` pendant que
+l'interface est ouverte reste possible, et le test le vérifie.
+
+### Un test qui avait l'air bon et ne validait rien
+
+La première version de `tests/Test-SingleInstance.ps1` vérifiait que la seconde
+instance sort proprement et que la première survit. Elle passait — et elle
+passait **aussi sur un binaire dont le garde avait été retiré**, trois fois sur
+trois.
+
+La raison est instructive : sans garde, WebView2 fait échouer la seconde
+instance, qui sort elle aussi avec le code 0. Le comportement observable était
+identique. Ce que le garde apporte, c'est le **retour au premier plan** — et
+c'est la seule chose qui le distingue.
+
+Le test réduit donc d'abord la fenêtre existante, puis vérifie qu'elle est
+restaurée et remise devant. Retirer le garde le fait maintenant échouer trois
+fois sur trois, avec le bon message.
+
+### Le chemin de publication était moins vérifié que celui des propositions
+
+`Test-InterfaceStartup.ps1` ne tournait que dans le job des pull requests. Un
+tag pouvait donc publier un binaire dont l'interface ne démarre pas. Le
+démarrage graphique et le garde d'instance tournent désormais dans **les deux
+jobs**.
+
+### Une nouvelle bibliothèque native, déclarée
+
+`Test-NativeInteropHardening.ps1` tient la liste des DLL importées et exige un
+examen à chaque ajout. Il a signalé `user32` de lui-même. Elle rejoint la liste
+avec sa justification : `SetForegroundWindow`, `ShowWindow` et `IsIconic`
+servent à rappeler la fenêtre existante. C'est une KnownDLL, donc protégée du
+détournement, et l'attribut de recherche est posé malgré tout comme sur toutes
+les autres.
+
+**Vérifié :** 61 fichiers de tests PowerShell, 248 tests JavaScript, hôte
+recompilé sans avertissement, garde éprouvé par trois sabotages.
+
 ## [4.1.0-beta.5] - 2026-09-01
 
 ### Rien ne vérifiait qu'un logiciel du catalogue existe encore
