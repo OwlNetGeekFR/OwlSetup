@@ -4,15 +4,26 @@ on:
   push:
     branches: [main, "codex/**"]
     paths:
+      - beta/catalog/**
+      - catalog.generated.js
       - app.js
       - assets/logos/**
       - tools/check-catalog.mjs
+      - tools/check-winget-ids.mjs
       - .github/workflows/catalog-health.yml
   pull_request:
     paths:
+      - beta/catalog/**
+      - catalog.generated.js
       - app.js
       - assets/logos/**
       - tools/check-catalog.mjs
+      - tools/check-winget-ids.mjs
+      - .github/workflows/catalog-health.yml
+  # Un paquet disparait de WinGet sans qu on ait rien change : le controle des
+  # identifiants doit donc tourner meme quand le depot ne bouge pas.
+  schedule:
+    - cron: "0 6 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -29,3 +40,11 @@ jobs:
           node-version: 22
       - name: Vérifier les identifiants, sites et logos
         run: node tools/check-catalog.mjs
+      # Seul controle du depot qui depende du reseau : il interroge
+      # microsoft/winget-pkgs, la source dont winget lui-meme se sert. Un
+      # identifiant renomme ou retire reste sinon affiche comme installable, et
+      # l installation echoue chez l utilisateur.
+      - name: Les identifiants existent encore chez WinGet
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/check-winget-ids.mjs --check
