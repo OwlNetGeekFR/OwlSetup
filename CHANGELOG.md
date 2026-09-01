@@ -1,5 +1,65 @@
 # Historique des versions
 
+## [4.1.0-beta.3] - 2026-09-01
+
+### Le second chemin de build produisait un binaire sans identité
+
+Le plan prévoit d'adopter `beta/csharp/OwlSetup.csproj` comme chemin de build
+officiel. Avant de basculer, il fallait vérifier que son binaire remplace
+vraiment celui de `build.ps1`. Mesure faite :
+
+| | `build.ps1` (csc) | `.csproj` (msbuild) |
+| --- | --- | --- |
+| Ressources embarquées | 123 | 123, **contenu identique au bit près** |
+| Version produit | 4.1.0-beta.2 | 4.1.0-beta.2 |
+| Version fichier | 4.1.0.0 | **0.0.0.0** |
+| Société | OwlNetGeekFR | **(vide)** |
+
+Le projet déclare pourtant `Company`, `Product`, `Description`, `FileVersion` et
+`AssemblyVersion`. Mais il pose aussi `GenerateAssemblyInfo=false`, pour ne pas
+entrer en conflit avec le fichier qu'il génère lui-même — si bien que **ces cinq
+propriétés étaient décoratives**. MSBuild ne les émettait nulle part.
+
+Personne ne l'avait vu : ce projet ne servait qu'à l'analyse Roslyn, jamais à
+produire le binaire livré. Le jour de la bascule, il aurait expédié une version
+sans identité.
+
+Sa cible `GenerateBuildInfo` émet désormais les **sept** attributs que
+`build.ps1` génère à la main, et les deux binaires portent les mêmes
+métadonnées. `tests/Test-BuildParity.ps1` compare la liste des deux côtés —
+validé en retirant `AssemblyCompany` puis `AssemblyFileVersion`.
+
+**La bascule n'est pas faite pour autant.** L'équivalence avait un trou, il est
+bouché ; changer de chemin de build mérite son propre lot, avec le binaire
+msbuild passé au crible des mêmes essais.
+
+### Un test qui punissait l'usage normal
+
+`Test-InstallerRoundTrip.ps1` refusait de tourner si un OwlSetup était installé
+— l'`AppId` étant partagé, il écraserait son entrée de désinstallation. Mais il
+le faisait en **échouant**, ce qui mettait toute la suite au rouge chez
+quiconque utilise OwlSetup sur sa machine de développement.
+
+C'est le cas normal, et c'est arrivé dès la première fois. Le test s'abstient
+désormais avec un message clair. Le trou reste fermé là où il compte : la CI
+passe `-Requis`, et son runner n'a jamais d'installation.
+
+### Un échec intermittent, non reproduit et non masqué
+
+Le test de démarrage graphique a échoué **une fois** — sortie immédiate, code 0,
+sans message — puis jamais en onze lancements. Les pistes examinées sont
+écartées : pas de verrou d'instance unique, le mode CLI exige un argument, et
+copier le binaire juste avant de le lancer réussit cinq fois sur cinq.
+
+Aucune reprise automatique n'a été ajoutée : elle masquerait le symptôme. Le
+message d'échec porte maintenant la durée avant sortie, le code, et le nombre
+de processus OwlSetup et WebView2 présents — de quoi trancher à la prochaine
+occurrence au lieu de recommencer l'enquête.
+
+**Vérifié :** 60 fichiers de tests PowerShell, 248 tests JavaScript, les deux
+binaires comparés ressource par ressource.
+
+
 ## [4.1.0-beta.2] - 2026-09-01
 
 ### L'installateur installe-t-il ? Personne ne le vérifiait
