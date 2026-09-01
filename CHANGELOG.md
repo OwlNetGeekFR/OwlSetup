@@ -1,5 +1,75 @@
 # Historique des versions
 
+## [4.1.0-beta.1] - 2026-09-01
+
+### L'assistant d'installation ne parlait que français
+
+La 4.0.0 a livré une interface anglaise complète — 1488 chaînes vérifiées à
+chaque build. Mais l'**assistant d'installation**, le premier écran que voit un
+nouvel utilisateur, ne déclarait que le français.
+
+L'anglais est ajouté, en tête pour servir de repli, avec
+`ShowLanguageDialog=auto` : un système français obtient le français, un système
+anglais l'anglais, et ni l'un ni l'autre ne voit de boîte de dialogue
+supplémentaire. Un système allemand ou espagnol tombe sur l'anglais plutôt que
+sur du français.
+
+Les libellés propres à OwlSetup — raccourci Bureau, commentaires d'icônes,
+proposition de lancement — étaient écrits en dur en français : ils seraient
+restés français dans un assistant anglais. Ils passent par `[CustomMessages]`,
+dans les deux langues.
+
+### Un `.iss` sans BOM
+
+`installer/OwlSetup.iss` était en UTF-8 **sans BOM**. Inno Setup lit alors le
+fichier dans la page de codes de la machine qui compile — CP1252 sur le runner
+GitHub — et « Créer » y devient « CrÃ©er ».
+
+**Je n'ai pas pu constater l'état d'avant :** Inno compresse ces libellés dans
+l'installateur, et seule la description de version, sans accent, est lisible en
+clair dans le binaire publié. Le BOM est ajouté parce que la documentation
+d'Inno l'exige, pas parce qu'un défaut a été observé. Les accents de l'assistant
+méritent un coup d'œil à la prochaine installation.
+
+### Les scripts de build se déclaraient encore en 3.7.0
+
+`build.ps1`, `build-installer.ps1` et `build-stable.ps1` gardaient `3.7.0`
+comme version par défaut, et `OwlSetup.iss` **3.6.0**. Compiler sans argument
+produisait donc un binaire qui s'annonçait 3.7.0, deux versions après.
+
+Ce n'était pas un oubli : `tests/Test-StableReleasePreparation.ps1` **exigeait**
+cette valeur en dur, et lisait les notes de la 3.7.0. Le test protégeait
+l'erreur qu'il aurait dû empêcher.
+
+Il dérive désormais la version courante du **CHANGELOG** et compare les trois
+valeurs par défaut à celle-ci. Il ne peut plus se périmer, et il vérifie les
+notes de la version réellement publiée.
+
+### Ce que ça a révélé dans les notes de la 4.0.0
+
+Dégelé, le test a immédiatement signalé que mes notes de la 4.0.0 **ne
+mentionnaient pas la quarantaine réversible** — une réassurance que les notes de
+la 3.7.0 donnaient, et qui compte pour une fonction dont le nom évoque la
+suppression. La section manquante est ajoutée.
+
+### Ce qui garde tout ça
+
+`tests/Test-InstallerPackage.ps1` vérifie le BOM, les deux langues,
+`ShowLanguageDialog=auto`, l'absence de libellé en dur, la présence de chaque
+message dans les deux langues, la validité de chaque `{cm:...}`, et que les
+quatre versions par défaut suivent le CHANGELOG.
+
+Validé par cinq sabotages : BOM retiré, anglais retiré, libellé remis en dur,
+message sans version anglaise, version par défaut périmée.
+
+**Reste à faire :** rien ne vérifie encore que l'installateur *installe*. La CI
+contrôle seulement qu'il pèse plus d'un méga-octet. Une installation silencieuse
+suivie d'une désinstallation, dans un dossier temporaire, est le prochain pas —
+elle demande Inno Setup, absent de la machine de développement.
+
+**Vérifié :** 59 fichiers de tests PowerShell, 248 tests JavaScript.
+
+
 ## [4.0.0] - 2026-09-01
 
 Première version **stable** de la ligne 4.0. Les notes destinées aux
