@@ -37,10 +37,21 @@ $appId = "{1D90DDA3-3A2E-41E7-84A8-AF8E8F90F9F7}"
 $cleDesinstallation = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\${appId}_is1"
 $raccourciMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\OwlSetup.lnk"
 
-# Refuser de tourner si une VRAIE installation existe : l'AppId etant partage,
-# le test en ecraserait l'entree de desinstallation.
+# Ne pas tourner si une VRAIE installation existe : l'AppId etant partage, le
+# test en ecraserait l'entree de desinstallation.
+#
+# C'est une raison de S ABSTENIR, pas d'echouer. La premiere version levait une
+# exception ici, et mettait donc toute la suite au rouge chez quiconque utilise
+# OwlSetup sur sa machine de developpement — ce qui est le cas normal, et ce qui
+# est arrive des la premiere fois. Le trou reste ferme la ou il compte : la CI
+# passe -Requis, et son runner n a jamais d installation.
 if (Test-Path $cleDesinstallation) {
-    throw "OwlSetup est deja installe sur cette machine. Ce test ecraserait son entree de desinstallation : desinstallez-le d'abord."
+    $installee = (Get-ItemProperty $cleDesinstallation).DisplayVersion
+    if ($Requis) {
+        throw "OwlSetup $installee est installe sur cette machine, alors que -Requis exige un environnement vierge."
+    }
+    Write-Host ("Aller-retour d'installation : ignore (OwlSetup {0} est installe ici ; le test ecraserait son entree de desinstallation)." -f $installee) -ForegroundColor Yellow
+    return
 }
 
 $cible = Join-Path ([System.IO.Path]::GetTempPath()) ("OwlSetup-essai-" + [Guid]::NewGuid().ToString("N").Substring(0, 8))
