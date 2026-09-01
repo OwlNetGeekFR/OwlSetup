@@ -806,7 +806,7 @@ internal sealed class WebAppForm : Form
                     .Where(path=>!IsReparsePoint(path))
                     .OrderByDescending(path=>NormalizeSoftwareName(Path.GetFileNameWithoutExtension(path)).Replace(" ","")==wanted)
                     .FirstOrDefault(path=>NormalizeSoftwareName(Path.GetFileNameWithoutExtension(path)).Replace(" ","").Contains(wanted) || wanted.Contains(NormalizeSoftwareName(Path.GetFileNameWithoutExtension(path)).Replace(" ","")));
-                if(!String.IsNullOrEmpty(alias)){report.AppendLine("Executable portable detecte via le lien WinGet : "+alias);return alias;}
+                if(!String.IsNullOrEmpty(alias)){report.AppendLine("Exécutable portable détecté via le lien WinGet : "+alias);return alias;}
             }
         }catch{}
         string packagesRoot=Path.Combine(local,"Microsoft","WinGet","Packages");
@@ -836,7 +836,7 @@ internal sealed class WebAppForm : Form
                     if(!String.IsNullOrEmpty(executable))
                     {
                         EnsureNoReparsePoints(executable,packagesRoot);
-                        report.AppendLine("Executable principal detecte dans le paquet portable WinGet : "+executable);
+                        report.AppendLine("Exécutable principal détecté dans le paquet portable WinGet : "+executable);
                         return executable;
                     }
                 }
@@ -1861,7 +1861,7 @@ internal sealed class WebAppForm : Form
             var wingetReport=new StringBuilder();
             int listCode=RunWingetCli("list --id \""+packageId+"\" --exact --accept-source-agreements --disable-interactivity",wingetReport);
             string listOutput=wingetReport.ToString();
-            report.AppendLine("Verification WinGet apres desinstallation : "+listCode);
+            report.AppendLine("Vérification WinGet après désinstallation : "+listCode);
             if(listCode==0 && WingetTableContainsId(listOutput,packageId))return true;
         }
         catch(Exception ex){report.AppendLine("Verification WinGet impossible : "+ex.Message);}
@@ -1954,7 +1954,7 @@ internal sealed class WebAppForm : Form
         if(code==3010 || text.Contains("restart required") || text.Contains("reboot required") || text.Contains("redemarrage requis") || text.Contains("redÃ©marrage requis"))
             return "L'opération est terminée mais le PC doit être redémarré pour que Windows l'applique complètement.";
         if(text.Contains("no package found") || text.Contains("no package was found") || text.Contains("aucun package trouve") || text.Contains("aucun package trouvÃ©") || text.Contains("aucun logiciel trouve") || text.Contains("aucun logiciel trouvÃ©"))
-            return "Le logiciel n'a pas ete trouve dans les sources WinGet. Actualisez les sources puis reessayez.";
+            return "Le logiciel n'a pas été trouvé dans les sources WinGet. Actualisez les sources puis réessayez.";
         if(text.Contains("hash mismatch") || text.Contains("hash does not match") || text.Contains("hachage") && text.Contains("ne correspond"))
             return "Le contrôle de sécurité du fichier a échoué : son empreinte ne correspond pas au manifeste. L'installation a été bloquée.";
         if(text.Contains("already installed") || text.Contains("deja installe") || text.Contains("dÃ©jÃ  installÃ©"))
@@ -2099,7 +2099,7 @@ internal sealed class WebAppForm : Form
         if(uninstallRunning) throw new InvalidOperationException("Une désinstallation est déjà en cours.");
         if(installationRunning || repairRunning || updateRunning || cleanupRunning) throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
         string resolvedPackageId=TakeResolvedUninstallPackage(packageId);
-        if(String.IsNullOrWhiteSpace(resolvedPackageId))throw new InvalidOperationException("WinGet n'a pas confirme un paquet unique a desinstaller.");
+        if(String.IsNullOrWhiteSpace(resolvedPackageId))throw new InvalidOperationException("WinGet n'a pas confirmé un paquet unique à désinstaller.");
         uninstallRunning=true;
         SendToWeb(new { type="uninstall-start", id=packageId });
         Task.Run(delegate {
@@ -2341,7 +2341,7 @@ internal sealed class WebAppForm : Form
         Dictionary<string,string> resolvedPackages;
         lock(resolvedBatchUninstallPackages)
         {
-            if(!resolvedBatchUninstallPackages.TryGetValue(simulationKey,out resolvedPackages))throw new InvalidOperationException("WinGet n'a pas confirme les paquets a desinstaller.");
+            if(!resolvedBatchUninstallPackages.TryGetValue(simulationKey,out resolvedPackages))throw new InvalidOperationException("WinGet n'a pas confirmé les paquets à désinstaller.");
             resolvedBatchUninstallPackages.Remove(simulationKey);
         }
         if(uninstallRunning || repairRunning || installationRunning || updateRunning || cleanupRunning)throw new InvalidOperationException("Attendez la fin de l'opération en cours.");
@@ -2421,7 +2421,7 @@ internal sealed class WebAppForm : Form
                     string resolvedId=ResolveInstalledWingetPackage(id,appName,report);
                     if(!String.IsNullOrWhiteSpace(resolvedId))resolved[id]=resolvedId;
                 }
-                if(resolved.Count==0)throw new InvalidOperationException("Aucun paquet unique n'a ete confirme par WinGet.");
+                if(resolved.Count==0)throw new InvalidOperationException("Aucun paquet unique n'a été confirmé par WinGet.");
                 string[] resolvedIds=packages.Where(id=>resolved.ContainsKey(id)).ToArray();
                 string resolvedKey=String.Join("|",resolvedIds.OrderBy(value=>value,StringComparer.OrdinalIgnoreCase));
                 lock(batchUninstallSimulations)batchUninstallSimulations[resolvedKey]=DateTime.UtcNow.AddMinutes(5);
@@ -3048,7 +3048,7 @@ internal sealed class WebAppForm : Form
                 if(stillProposed.Count>0)
                 {
                     report.AppendLine();
-                    report.AppendLine("ENCORE PROPOSEES PAR WINGET : "+String.Join(", ",stillProposed.Select(item=>Convert.ToString(item["id"]))));
+                    report.AppendLine("ENCORE PROPOSÉES PAR WINGET : "+String.Join(", ",stillProposed.Select(item=>Convert.ToString(item["id"]))));
                 }
                 if(selfManagedItems.Count>0)
                 {
@@ -5505,7 +5505,7 @@ internal static class Bootstrap
         int failures=0;
         foreach(string id in ids)
         {
-            CliOut("Mise a jour : "+id+" ...");
+            CliOut("Mise à jour : "+id+" ...");
             int code=CliRunWinget(winget,"upgrade --id \""+id+"\" --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity",silent);
             // -1978335189 (0x8A15002B) : aucune mise a jour applicable pour ce paquet.
             if(code==0)CliOut("  OK");
