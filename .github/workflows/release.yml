@@ -72,6 +72,14 @@ jobs:
           ./build-installer.ps1 -Version 0.0.0 -SkipApplicationBuild
           if ((Get-Item OwlSetup.exe).Length -lt 1MB) { throw "Binaire invalide." }
           if ((Get-Item artifacts/installer/OwlSetup-Setup.exe).Length -lt 1MB) { throw "Installateur invalide." }
+      # L'installateur n'etait verifie que par sa taille. Celui-ci l'installe
+      # vraiment, dans un dossier temporaire, controle ce qui a ete pose - dont
+      # les accents du raccourci francais - puis desinstalle et verifie que tout
+      # est parti. -Requis interdit qu'il passe en silence si l'installateur
+      # manque.
+      - name: Aller-retour d'installation
+        shell: powershell
+        run: ./tests/Test-InstallerRoundTrip.ps1 -Requis
 
   release:
     if: github.event_name != 'pull_request'
@@ -146,6 +154,14 @@ jobs:
       - name: Compiler l'installateur utilisateur
         shell: powershell
         run: ./build-installer.ps1 -Version $env:RELEASE_VERSION -SkipApplicationBuild
+      # L'installateur n'etait verifie que par sa taille. Celui-ci l'installe
+      # vraiment, dans un dossier temporaire, controle ce qui a ete pose - dont
+      # les accents du raccourci francais - puis desinstalle et verifie que tout
+      # est parti. -Requis interdit qu'il passe en silence si l'installateur
+      # manque.
+      - name: Aller-retour d'installation
+        shell: powershell
+        run: ./tests/Test-InstallerRoundTrip.ps1 -Requis
 
       - name: Préparer et vérifier les fichiers publiés
         shell: powershell

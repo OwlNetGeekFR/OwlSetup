@@ -1,5 +1,43 @@
 # Historique des versions
 
+## [4.1.0-beta.2] - 2026-09-01
+
+### L'installateur installe-t-il ? Personne ne le vérifiait
+
+La CI contrôlait que `OwlSetup-Setup.exe` pesait plus d'un méga-octet. Rien
+d'autre. C'est pourtant le fichier que télécharge un nouvel utilisateur, et un
+installateur cassé est le pire défaut possible juste après une publication.
+
+`tests/Test-InstallerRoundTrip.ps1` l'installe pour de bon dans un dossier
+temporaire, **en français puis en anglais**, et vérifie l'exécutable posé, le
+désinstalleur, l'entrée de désinstallation, le raccourci du menu Démarrer et son
+commentaire. Puis il désinstalle et vérifie que tout est parti — fichiers, clé
+de registre, raccourci.
+
+Il refuse de tourner si un OwlSetup est déjà installé : l'`AppId` étant partagé,
+il écraserait l'entrée de désinstallation de l'installation réelle.
+
+Validé par deux sabotages : libellé français désaccentué, raccourci du menu
+Démarrer retiré.
+
+### Le BOM ne corrigeait rien — mesure faite
+
+La 4.1.0-beta.1 ajoutait un BOM UTF-8 à `installer/OwlSetup.iss` en précisant
+qu'aucun défaut n'avait été observé. Maintenant qu'on sait installer, la
+question se tranche : **l'installateur recompilé sans BOM pose un raccourci
+français aux accents corrects.** Inno Setup 6.7.3 détecte l'UTF-8 tout seul.
+
+L'assistant de la 4.0.0 était donc intact. Le BOM reste — la documentation
+d'Inno le demande, et rien ne garantit sa version sur un autre poste — mais le
+commentaire du test dit désormais qu'il ne corrige aucun défaut constaté.
+
+Le vrai contrôle des accents est l'aller-retour, qui lit le commentaire du
+raccourci **réellement posé**.
+
+**Vérifié :** 60 fichiers de tests PowerShell, 248 tests JavaScript, aller-retour
+d'installation exécuté sur la machine de développement.
+
+
 ## [4.1.0-beta.1] - 2026-09-01
 
 ### L'assistant d'installation ne parlait que français
@@ -28,8 +66,13 @@ GitHub — et « Créer » y devient « CrÃ©er ».
 **Je n'ai pas pu constater l'état d'avant :** Inno compresse ces libellés dans
 l'installateur, et seule la description de version, sans accent, est lisible en
 clair dans le binaire publié. Le BOM est ajouté parce que la documentation
-d'Inno l'exige, pas parce qu'un défaut a été observé. Les accents de l'assistant
-méritent un coup d'œil à la prochaine installation.
+d'Inno l'exige, pas parce qu'un défaut a été observé.
+
+> **Suite en 4.1.0-beta.2 : il n'y avait pas de défaut.** L'installateur a été
+> recompilé sans BOM, installé, et le raccourci français affiche des accents
+> corrects. Inno Setup 6.7.3 détecte l'UTF-8 seul. L'assistant de la 4.0.0
+> était donc intact. Le BOM reste, par conformité à la documentation, mais il ne
+> corrigeait rien.
 
 ### Les scripts de build se déclaraient encore en 3.7.0
 

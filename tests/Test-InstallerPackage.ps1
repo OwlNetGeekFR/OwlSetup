@@ -18,9 +18,18 @@ $iss = Get-Content -LiteralPath $chemin -Raw -Encoding UTF8
 
 # --- 1) BOM UTF-8 ------------------------------------------------------------
 #
-# Inno Setup lit un .iss sans BOM comme de l'ANSI, dans la page de codes de la
-# machine qui COMPILE. Sur le runner GitHub (en-US, CP1252), les accents en
-# UTF-8 y deviendraient du mojibake : « Créer » -> « CrÃ©er ».
+# La documentation d'Inno Setup demande un BOM pour un .iss en UTF-8 : sans lui,
+# le fichier est cense etre lu dans la page de codes de la machine qui COMPILE,
+# et « Créer » deviendrait « CrÃ©er ».
+#
+# MESURE FAITE (4.1.0-beta.2) : ce n'est PAS le comportement d'Inno 6.7.3. Un
+# installateur recompile sans BOM pose un raccourci francais aux accents
+# corrects — l'assistant de la 4.0.0 etait donc intact. Le BOM reste par
+# conformite a la documentation, et parce que rien ne garantit la version d'Inno
+# sur un autre poste ; il ne corrige aucun defaut observe.
+#
+# Le vrai controle des accents est dans Test-InstallerRoundTrip.ps1, qui lit le
+# commentaire du raccourci REELLEMENT pose.
 $octets = [System.IO.File]::ReadAllBytes($chemin)
 if ($octets.Length -lt 3 -or $octets[0] -ne 0xEF -or $octets[1] -ne 0xBB -or $octets[2] -ne 0xBF) {
     throw "OwlSetup.iss n'a pas de BOM UTF-8 : Inno Setup le lirait en ANSI et abimerait les accents francais."
