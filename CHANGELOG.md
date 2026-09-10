@@ -1,5 +1,58 @@
 # Historique des versions
 
+## [4.1.0-beta.7] - 2026-09-10
+
+### OwlSetup se soumet tout seul à winget
+
+Le manifeste de la 4.0.0 a été écrit à la main et soumis dans
+`microsoft/winget-pkgs` ([PR #432216](https://github.com/microsoft/winget-pkgs/pull/432216)),
+où les dix étapes de validation sont passées — y compris l'installation réelle
+dans une machine virtuelle vierge et l'analyse antivirus, malgré un binaire non
+signé.
+
+Recommencer à la main à chaque version serait la garantie de ne plus le faire.
+`release.yml` gagne donc un job `winget` qui, après **chaque version stable**,
+laisse `komac` recopier le manifeste précédent en y remplaçant version, URL et
+empreinte, puis ouvre la pull request depuis le fork `OwlNetGeekFR/winget-pkgs`.
+
+**Les préversions en sont exclues.** winget ne distribue que des stables : une
+bêta poussée là-bas serait proposée à tous ses utilisateurs.
+
+### Le motif par défaut aurait déclaré trois installateurs
+
+L'action fournit un motif par défaut, `.(exe|msi|msix|appx)(bundle){0,1}$`, qui
+n'est **pas ancré**. Or la Release publie trois exécutables :
+`OwlSetup-Setup.exe`, `OwlSetup.exe` et `PC-Setup.exe`. Les trois auraient été
+déclarés comme installateurs du même paquet. Un seul en est un.
+
+`tests/Test-WingetSubmission.ps1` applique le motif à la liste réelle des
+fichiers publiés — extraite de `release.yml`, pas recopiée à côté — et exige
+exactement une correspondance. Avec le motif par défaut, il en compte trois et
+échoue.
+
+Il garde aussi trois pannes silencieuses, celles qui ne font pas rougir un job :
+
+- la condition `is-prerelease == 'false'` compare une **sortie de job**. Si
+  cette sortie disparaît, elle vaut la chaîne vide, la comparaison est fausse et
+  plus rien n'est jamais soumis — sans erreur, sans trace ;
+- l'identifiant `OwlNetGeekFR.OwlSetup` est confronté à l'identité que déclare
+  `installer/OwlSetup.iss`. C'est par lui que winget rattache une mise à jour à
+  l'installation existante : s'ils divergent, les utilisateurs cessent d'être
+  mis à jour ;
+- le jeton doit venir des secrets du dépôt.
+
+Sept sabotages, sept détections.
+
+### Ce qu'il reste à brancher
+
+Le job attend un secret `WINGET_TOKEN`, un jeton personnel de portée
+`public_repo`. **Son absence ne fait pas échouer la publication** : le job pose
+un avertissement et s'arrête là, parce que la Release, elle, est déjà valide.
+
+Il suppose aussi que le paquet **existe déjà** chez winget — l'action refuse de
+créer un premier manifeste. Il ne sera donc opérationnel qu'une fois la
+PR #432216 fusionnée par un modérateur.
+
 ## [4.1.0-beta.6] - 2026-09-01
 
 ### Lancer OwlSetup deux fois ne fait plus disparaître une fenêtre

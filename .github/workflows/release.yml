@@ -88,6 +88,13 @@ jobs:
       contents: write
     runs-on: windows-latest
     timeout-minutes: 30
+    # Ces sorties alimentent le job « winget ». Elles doivent exister : sans
+    # elles, la condition `is-prerelease == 'false'` compare une chaine vide et
+    # le job ne tourne JAMAIS, en silence. Test-WingetSubmission.ps1 le verifie.
+    outputs:
+      full-version: ${{ steps.version.outputs.full-version }}
+      tag: ${{ steps.version.outputs.tag }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
     env:
       RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
@@ -101,6 +108,7 @@ jobs:
         run: ./tests/Test-ReleaseCandidateReadiness.ps1
 
       - name: Valider la version et la branche
+        id: version
         shell: powershell
         run: |
           $full = "$env:RELEASE_VERSION".Trim().TrimStart("v")
@@ -129,6 +137,12 @@ jobs:
           "RELEASE_CHANNEL=$channel" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "RELEASE_PRERELEASE_LABEL=$prereleaseLabel" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "RELEASE_IS_PRERELEASE=$($isPrerelease.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          # Les memes valeurs, en SORTIES de job cette fois : GITHUB_ENV ne
+          # traverse pas la frontiere entre deux jobs, et le job winget en a
+          # besoin.
+          "full-version=$full" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=v$full" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "is-prerelease=$($isPrerelease.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Compiler OwlSetup
         shell: powershell
@@ -250,3 +264,53 @@ jobs:
           if (-not $release.prerelease -and $expectPrerelease) { throw "La preversion doit etre marquee comme telle sur GitHub." }
           $kind = if ($expectPrerelease) { "Preversion" } else { "Release stable" }
           "- $kind verifiee : [$($release.tag_name)]($($release.html_url))" | Out-File $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+  # Soumission automatique du manifeste a winget, apres une publication STABLE.
+  #
+  # Le premier manifeste (4.0.0) a ete ecrit a la main et soumis dans
+  # microsoft/winget-pkgs. Ce job prend le relais pour les versions suivantes :
+  # komac lit les assets de la Release, recopie le manifeste precedent en
+  # remplacant version, URL et empreinte, puis ouvre la PR depuis le fork
+  # OwlNetGeekFR/winget-pkgs.
+  #
+  # Il ne tourne PAS sur les preversions : winget ne distribue que des stables,
+  # et une beta publiee la-bas serait proposee a tout le monde.
+  #
+  # Prerequis : le paquet doit DEJA exister dans winget-pkgs — l'action echoue
+  # sinon — et le secret WINGET_TOKEN doit contenir un jeton personnel portant
+  # la portee public_repo.
+  winget:
+    needs: release
+    if: needs.release.outputs.is-prerelease == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+    steps:
+      # Le contexte `secrets` n'est pas lisible dans le `if` d'un job : on teste
+      # donc ici. Un avertissement plutot qu'un echec rouge, parce que la
+      # Release, elle, est deja publiee et valide.
+      - name: Vérifier la présence du jeton
+        id: jeton
+        run: |
+          if [ -z "$WINGET_TOKEN" ]; then
+            echo "::warning::Secret WINGET_TOKEN absent : soumission a winget ignoree."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Soumettre le manifeste à winget
+        if: steps.jeton.outputs.present == 'true'
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: OwlNetGeekFR.OwlSetup
+          version: ${{ needs.release.outputs.full-version }}
+          release-tag: ${{ needs.release.outputs.tag }}
+          release-notes-url: https://github.com/OwlNetGeekFR/OwlSetup/releases/tag/${{ needs.release.outputs.tag }}
+          # Le motif par defaut n'est pas ancre : il capturerait les TROIS
+          # executables de la Release, dont OwlSetup.exe et PC-Setup.exe, que
+          # winget prendrait alors pour des installateurs. Un seul l'est.
+          installers-regex: '^OwlSetup-Setup\.exe$'
+          fork-user: OwlNetGeekFR
+          token: ${{ secrets.WINGET_TOKEN }}

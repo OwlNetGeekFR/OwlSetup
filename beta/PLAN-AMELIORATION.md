@@ -407,6 +407,19 @@ manuelle = friction que tous les concurrents ont réglée.
        chaque bêta ; `build-beta.ps1` reste local.
 4. **Delta / silencieux** : `OwlSetup-Setup.exe /VERYSILENT` documenté pour le
    déploiement en parc.
+5. [x] _(4.1.0-beta.7)_ **Publication winget.** Manifeste 4.0.0 écrit à la main
+       et soumis dans `microsoft/winget-pkgs` (PR #432216 — dix étapes de
+       validation passées, dont l'installation réelle en machine virtuelle et
+       l'analyse antivirus sur un binaire non signé). `release.yml` gagne un job
+       `winget` : `winget-releaser` et `komac` ouvrent la PR après **chaque
+       stable**, jamais sur une préversion. Le motif d'installateurs est ancré —
+       celui de l'action, non ancré, aurait déclaré les trois exécutables de la
+       Release comme installateurs. `tests/Test-WingetSubmission.ps1` l'applique
+       à la liste réelle des fichiers publiés et garde les pannes silencieuses
+       (sortie de job absente, identifiant divergent de `OwlSetup.iss`).
+       **Reste à créer le secret `WINGET_TOKEN`** (jeton personnel `public_repo`)
+       et à attendre la fusion de la PR : l'action refuse de créer un premier
+       manifeste.
 
 **Effort :** 5–8 j (hors délai d'obtention du certificat). **Acceptation :**
 binaire signé (`Get-AuthenticodeSignature` = `Valid`), mise à jour in-app
