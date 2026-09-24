@@ -261,8 +261,8 @@ const echapper = (texte) =>
 /** Planche HTML autonome : pour chaque état capturé, avant/après et écarts. */
 function ecrirePlanche(bilan) {
   const pastille = (valeur) =>
-    /rgba?\(/.test(valeur)
-      ? `<i style="background:${echapper(valeur.match(/rgba?\([^)]*\)/)[0])}"></i>`
+    /rgba?\(|color\(srgb /.test(valeur)
+      ? `<i style="background:${echapper(valeur.match(/rgba?\([^)]*\)|color\(srgb [^)]*\)/)[0])}"></i>`
       : "";
   const sections = bilan.flatMap(({ etiquette, resultats }) =>
     resultats

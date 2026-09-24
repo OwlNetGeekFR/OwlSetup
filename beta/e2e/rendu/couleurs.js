@@ -9,13 +9,21 @@
  * (> 5).
  */
 
-const MOTIF_COULEUR = /rgba?\([^)]*\)/g;
+// Chromium calcule `rgb(…)`/`rgba(…)`, mais `color(srgb r g b / a)` (composantes
+// de 0 à 1) pour le résultat d'un color-mix().
+const MOTIF_COULEUR = /rgba?\([^)]*\)|color\(srgb [^)]*\)/g;
 
-/** `rgb(…)` / `rgba(…)` calculé → [r, g, b, a], ou null. */
+/** Couleur calculée → [r, g, b, a] (r, g, b de 0 à 255), ou null. */
 export function lireCouleur(texte) {
-  const nombres = texte.match(/[\d.]+/g)?.map(Number);
+  const nombres = texte.match(/-?[\d.]+(?:e-?\d+)?/g)?.map(Number);
   if (!nombres || nombres.length < 3) return null;
-  return [nombres[0], nombres[1], nombres[2], nombres.length > 3 ? nombres[3] : 1];
+  const echelle = texte.startsWith("color(") ? 255 : 1;
+  return [
+    nombres[0] * echelle,
+    nombres[1] * echelle,
+    nombres[2] * echelle,
+    nombres.length > 3 ? nombres[3] : 1,
+  ];
 }
 
 function versLab([r, g, b]) {
