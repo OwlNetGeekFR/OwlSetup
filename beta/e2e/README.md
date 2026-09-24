@@ -102,3 +102,31 @@ installation, l'interface redemande la détection : le test attend cette répons
 Les parcours sont validés en rafale (`--repeat-each=5`, plus de workers que de
 cœurs). Aucune nouvelle tentative n'est configurée : un test instable est un
 bug à comprendre.
+
+## Parité de rendu (refonte CSS)
+
+`npm run css:parite` s'appuie sur le même faux hôte. Il rejoue les parcours de
+`rendu/parcours.js` deux fois en parallèle : une fois avec la feuille d'un
+commit de référence (`--reference`, `HEAD` par défaut), une fois avec les
+partiels de `src/styles/` tels qu'ils sont sur le disque. À chaque
+`capturer(…)`, il compare tous les styles calculés (propriétés standard, sans
+les `--*`) de tous les éléments et de leurs `::before`/`::after`.
+
+```bash
+npm run css:parite                                  # tout, contre HEAD (≈ 4 min 30)
+npm run css:parite -- --reference origin/main
+npm run css:parite -- --parcours vues --variantes clair --largeurs 1500
+npm run css:parite -- --rapport parite.json         # écarts + règles non exercées
+```
+
+Code de sortie : 0 si le rendu est identique, 1 s'il y a des écarts, 2 si un
+parcours diverge. Pour rester déterministe, l'outil fige l'horloge, avance les
+minuteries de 10 s avant chaque capture et attend que l'échange avec l'hôte
+soit au repos. Si l'interface place le focus différemment d'un côté à l'autre,
+il le retire des deux pages. Limites : `:hover` et `:active` ne sont pas
+forcés, et seules les règles exercées par les parcours sont vérifiées (la
+couverture est affichée à la fin).
+
+Pour exercer de nouvelles règles, ajouter des étapes ou des données à
+`rendu/parcours.js`, et les scénarios correspondants dans
+`faux-hote/scenarios.js`, vérifiés par `test/faux-hote.test.js`.

@@ -14,6 +14,7 @@ fonctionner à l'identique.
 | `eslint.config.js`, `.prettierrc.json` | Lint + format JavaScript.                                                        |
 | `vitest.config.js`, `test/`            | Tests unitaires + **test de parité** avec `../app.js`.                           |
 | `playwright.config.js`, `e2e/`         | Parcours de l'interface dans Chromium face à un **faux hôte** (voir `e2e/`).     |
+| `scripts/parite-rendu.mjs`             | **Parité de rendu** : même rendu qu'un commit de référence ? (`css:parite`).     |
 | `src/modules/`                         | 7 fonctions pures extraites de `../app.js` (dont réconciliation des opérations). |
 | `catalog/`                             | Catalogue des 93 applications externalisé en JSON + schéma.                      |
 | `scripts/`                             | Extraction / génération / vérification du catalogue.                             |
@@ -32,6 +33,7 @@ Scripts utiles :
 
 ```bash
 npm run test:e2e          # parcours de l'interface (npx playwright install chromium au préalable)
+npm run css:parite        # rendu identique à HEAD ? (-- --reference origin/main, --parcours vues…)
 npm run test:watch        # tests en continu
 npm run catalog:extract   # régénère catalog/apps.json depuis ../app.js
 npm run lint:root         # node --check ../app.js ../i18n.js
