@@ -364,7 +364,7 @@ function showNativeError(details) {
   $("#nativeErrorMessage").textContent = clean;
   $("#nativeErrorId").textContent = `Diagnostic ${fingerprint}`;
   $("#nativeErrorCard").classList.remove("hidden");
-  pushNotification({key:`native-error-${fingerprint}`,title:"Une action nécessite votre attention",detail:clean,kind:"error",action:"troubleshooting",symbol:"!"});
+  addNotification({key:`native-error-${fingerprint}`,title:"Une action nécessite votre attention",detail:clean,kind:"error",action:"troubleshooting",symbol:"!"});
   const telemetryMode = getErrorTelemetryMode();
   if (telemetryMode === "automatic") sendMinimalErrorTelemetry(fingerprint, clean, supplied);
   else if (telemetryMode === "ask") {

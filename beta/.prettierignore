@@ -5,3 +5,6 @@ catalog/catalog.generated.js
 csharp/bin/
 csharp/obj/
 src/app/legacy.js
+test-results/
+playwright-report/
+blob-report/

@@ -18,11 +18,14 @@ export default [
       "coverage/**",
       "catalog/catalog.generated.js",
       "src/app/legacy.js",
+      "test-results/**",
+      "playwright-report/**",
+      "blob-report/**",
     ],
   },
   js.configs.recommended,
   {
-    files: ["src/**/*.js", "scripts/**/*.mjs", "test/**/*.js", "*.js"],
+    files: ["src/**/*.js", "scripts/**/*.mjs", "test/**/*.js", "e2e/**/*.js", "*.js"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "module",

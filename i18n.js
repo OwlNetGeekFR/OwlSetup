@@ -1545,6 +1545,7 @@
     "Diagnostic en cours...": "Diagnostic in progress...",
     "Envoi en cours…": "Sending…",
     "Espace disque": "Disk space",
+    "Paquets": "Packages",
     "Exemple : Nouveau PC": "Example: New PC",
     "Exemple de rapport minimal": "Example of a minimal report",
     "Fermer l'application": "Close the application",
@@ -1670,6 +1671,11 @@
     "zone(s) dans la file": "area(s) in the queue",
     "introuvable(s)": "not found",
     "libres": "free",
+    "Mo libres": "MB free",
+    "Go libres": "GB free",
+    "To libres": "TB free",
+    "paquet(s) disponible(s)": "package(s) available",
+    "paquet(s) introuvable(s)": "package(s) not found",
     "mesure partielle": "partial measurement",
     "simulation valable 5 minutes": "simulation valid for 5 minutes"
   });
@@ -1906,6 +1912,8 @@
     "Vérification du résultat...": "Checking the result...",
     "Vidéos": "Videos",
     "VMware Workstation Pro nécessite une connexion Broadcom et l'acceptation de ses conditions. Utilisez Installation guidée depuis sa carte.": "VMware Workstation Pro requires a Broadcom sign-in and acceptance of its terms. Use Guided installation from its card.",
+    "Windows 64 bits compatible": "Compatible 64-bit Windows",
+    "Windows 64 bits requis": "64-bit Windows required",
     "Windows a refusé l'accès. Fermez l'application concernée puis acceptez la demande d'autorisation administrateur.": "Windows denied access. Close the application concerned then accept the administrator approval prompt.",
     "Windows a refusé l'accès. Fermez le logiciel concerné et acceptez la demande d'autorisation si elle apparaît.": "Windows denied access. Close the software concerned and accept the approval prompt if it appears.",
     "Windows a signalé un succès mais la mise à jour n'est pas appliquée. Installez-la depuis Windows Update.": "Windows reported success but the update is not applied. Install it from Windows Update.",
