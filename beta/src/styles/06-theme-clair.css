@@ -133,13 +133,11 @@
 }
 :root[data-theme="light"] .breadcrumb,
 :root[data-theme="light"] .top-nav-item,
-:root[data-theme="light"] .top-nav-toggle,
-:root[data-theme="light"] .top-nav-settings {
+:root[data-theme="light"] .top-nav-toggle {
   color: #526178;
 }
 :root[data-theme="light"] .top-nav-item:hover,
-:root[data-theme="light"] .top-nav-toggle:hover,
-:root[data-theme="light"] .top-nav-settings:hover {
+:root[data-theme="light"] .top-nav-toggle:hover {
   color: #16243a;
   background: #edf3fa;
 }
@@ -173,7 +171,6 @@
 :root[data-theme="light"] .system-card,
 :root[data-theme="light"] .settings-panel,
 :root[data-theme="light"] .app-card,
-:root[data-theme="light"] .profile-card,
 :root[data-theme="light"] .queue-item,
 :root[data-theme="light"] .summary-card,
 :root[data-theme="light"] .feature-card,
@@ -188,8 +185,7 @@
   box-shadow: 0 6px 20px rgba(40, 67, 96, 0.05);
 }
 :root[data-theme="light"] .settings-panel:hover,
-:root[data-theme="light"] .app-card:hover,
-:root[data-theme="light"] .profile-card:hover {
+:root[data-theme="light"] .app-card:hover {
   border-color: #86a7d2;
 }
 :root[data-theme="light"] .settings-panel-heading,
@@ -227,7 +223,6 @@
   color: #17243a;
 }
 :root[data-theme="light"] .search,
-:root[data-theme="light"] .catalog-search,
 :root[data-theme="light"] .feedback-fields input,
 :root[data-theme="light"] .feedback-fields select,
 :root[data-theme="light"] .feedback-fields textarea {
@@ -248,8 +243,7 @@
   border-color: #b9c8da;
   background: #f7f9fc;
 }
-:root[data-theme="light"] .nav-item:hover,
-:root[data-theme="light"] .nav-group-toggle:hover {
+:root[data-theme="light"] .nav-item:hover {
   color: #1d2d44;
   background: #edf3fa;
 }
@@ -261,12 +255,10 @@
 :root[data-theme="light"] .update-scan-state,
 :root[data-theme="light"] .no-updates,
 :root[data-theme="light"] .available-update,
-:root[data-theme="light"] .tool-empty,
-:root[data-theme="light"] .history-list article {
+:root[data-theme="light"] .tool-empty {
   border-color: #ccd7e3;
   background: #eef1f6;
 }
-:root[data-theme="light"] .dialog-overlay,
 :root[data-theme="light"] .onboarding-overlay,
 :root[data-theme="light"] .first-run-overlay,
 :root[data-theme="light"] .language-overlay,
@@ -313,7 +305,6 @@
   color: #6b5827;
 }
 :root[data-theme="light"] .security-card,
-:root[data-theme="light"] .operation-card,
 :root[data-theme="light"] .cleanup-option,
 :root[data-theme="light"] .update-progress-steps > div {
   border-color: #ccd5e1;
@@ -984,7 +975,6 @@
   font-size: 19px;
 }
 .alpha-one-click-button small {
-  color: var(--text-blue);
   font-size: 10px;
 }
 .alpha-one-click-button.scanning > span {
@@ -1128,9 +1118,7 @@
   border-radius: 11px;
   background: #0d1723;
   display: grid;
-  grid-template-columns: 31px 1fr;
   gap: 10px;
-  align-items: center;
 }
 .alpha-result-list article > span {
   width: 31px;
@@ -1182,18 +1170,6 @@
 }
 .alpha-results > footer p strong {
   color: #add0f3;
-}
-.alpha-simulate-button {
-  min-height: 42px;
-  padding: 0 17px;
-  border: 1px solid #557cba;
-  border-radius: 10px;
-  background: #172c48;
-  color: #d8e8ff;
-  font-size: 10px;
-  font-weight: 900;
-  cursor: pointer;
-  white-space: nowrap;
 }
 .alpha-chip {
   margin-left: 6px;
@@ -1273,9 +1249,6 @@
   .alpha-results > footer {
     align-items: stretch;
     flex-direction: column;
-  }
-  .alpha-simulate-button {
-    width: 100%;
   }
 }
 :root[data-theme="light"] .alpha-command-center {
@@ -1822,7 +1795,6 @@
 }
 .browser-analysis-actions {
   display: flex;
-  align-items: center;
   gap: 16px;
 }
 .browser-analysis-actions > strong {

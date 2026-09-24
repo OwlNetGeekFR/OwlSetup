@@ -1,87 +1,6 @@
 /* Lisibilité renforcée : textes secondaires et commandes agrandis sans modifier les grands titres. */
-body {
-  font-size: 15px;
-}
-.brand strong {
-  font-size: 17px;
-}
-.brand small {
-  font-size: 11px;
-}
-.nav-item {
-  height: 48px;
-  font-size: 14px;
-}
-.nav-item b {
-  font-size: 11px;
-}
-.nav-item .new-badge,
-.build-badge {
-  font-size: 9px;
-}
-.system-title strong {
-  font-size: 13px;
-}
-.system-title small,
-.system-row,
-.status-pill,
-.side-note {
-  font-size: 11px;
-}
-.breadcrumb {
-  font-size: 12px;
-}
-.secure {
-  font-size: 11px;
-}
-.kicker,
-.label {
-  font-size: 10px;
-}
-.hero p,
-.page-intro p,
-.home-copy > p {
-  font-size: 14px;
-}
-.section-heading h2 {
-  font-size: 20px;
-}
-.text-button {
-  font-size: 12px;
-}
-.preset strong {
-  font-size: 14px;
-}
-.preset small,
-.preset > b {
-  font-size: 11px;
-}
-.search input {
-  font-size: 13px;
-}
-.filter,
-.results-line {
-  font-size: 11px;
-}
-.app-card {
-  min-height: 120px;
-}
-.app-copy strong {
-  font-size: 13px;
-}
-.app-copy small {
-  font-size: 10px;
-  line-height: 1.5;
-}
-.app-copy em,
-.official-link {
-  font-size: 9px;
-}
 .installed-badge {
   font-size: 9px;
-}
-.repair-capability {
-  font-size: 8px;
 }
 .app-card.manual-install {
   border-color: #4b3f2c;
@@ -154,9 +73,6 @@ body {
 .guided-install-steps small {
   display: block;
 }
-.guided-install-steps strong {
-  font-size: 9px;
-}
 .guided-install-steps small {
   margin-top: 4px;
   color: var(--muted);
@@ -188,7 +104,6 @@ body {
 }
 .guided-install-note strong {
   color: var(--text-green);
-  font-size: 9px;
 }
 .guided-install-note small {
   margin-top: 4px;
@@ -202,124 +117,8 @@ body {
 .guided-install-actions .primary-dialog-button {
   min-width: 205px;
 }
-.config-toolbar > div:first-child strong {
-  font-size: 13px;
-}
-.config-toolbar > div:first-child small {
-  font-size: 10px;
-}
-.custom-install strong {
-  font-size: 11px;
-}
-.custom-install input,
-.profile-tools input,
-.profile-tools select {
-  font-size: 10px;
-}
-.installed-manager strong {
-  font-size: 12px;
-}
-.installed-manager small {
-  font-size: 10px;
-}
-.tool-panel h3 {
-  font-size: 14px;
-}
 .tool-panel p {
-  font-size: 11px;
   line-height: 1.55;
-}
-.primary-dialog-button,
-.secondary-dialog-button,
-.danger-dialog-button {
-  font-size: 11px;
-}
-.system-list strong {
-  font-size: 11px;
-}
-.system-list small {
-  font-size: 9px;
-}
-.system-list button,
-.history-type {
-  font-size: 9px;
-}
-.disk-item b,
-.tool-empty {
-  font-size: 10px;
-}
-.health-dashboard small,
-.health-dashboard em {
-  font-size: 8px;
-}
-.health-dashboard strong {
-  font-size: 12px;
-}
-.cleanup-option strong,
-.update-card strong,
-.feature-grid strong {
-  font-size: 12px;
-}
-.cleanup-option small,
-.update-card small,
-.feature-grid small {
-  font-size: 10px;
-}
-.safe-list,
-.cleanup-summary > p,
-.dialog-checks,
-.dialog-warning,
-.progress-summary {
-  font-size: 10px;
-}
-.dialog-confirm > p {
-  font-size: 13px;
-}
-.progress-status strong {
-  font-size: 13px;
-}
-.progress-status small {
-  font-size: 10px;
-}
-.current-package small,
-.cleanup-current-zone small,
-.cleanup-result-card small {
-  font-size: 8px;
-}
-.current-package strong,
-.cleanup-current-zone strong,
-.cleanup-result-card strong {
-  font-size: 12px;
-}
-.update-progress-steps strong {
-  font-size: 10px;
-}
-.update-progress-steps small {
-  font-size: 8px;
-}
-.available-update strong {
-  font-size: 11px;
-}
-.available-update small,
-.version-flow {
-  font-size: 9px;
-}
-.quarantine-toolbar strong,
-.quarantine-item strong {
-  font-size: 12px;
-}
-.quarantine-toolbar small,
-.quarantine-item small,
-.quarantine-actions button {
-  font-size: 9px;
-}
-.selection-bar strong,
-.toast strong {
-  font-size: 12px;
-}
-.selection-bar small,
-.toast small {
-  font-size: 10px;
 }
 @media (max-width: 1100px) {
   .security-grid {
@@ -454,10 +253,6 @@ body {
 .config-toolbar > div:first-child small {
   font-size: 11px;
 }
-.custom-install strong {
-  font-size: 12px;
-}
-.custom-install input,
 .profile-tools input,
 .profile-tools select {
   font-size: 11px;

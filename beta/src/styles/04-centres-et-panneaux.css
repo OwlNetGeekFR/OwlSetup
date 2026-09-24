@@ -2161,9 +2161,6 @@
   visibility: visible;
   transform: none;
 }
-.onboarding-slide.leaving {
-  transform: translateX(-45px) scale(0.98);
-}
 .onboarding-slide h2 {
   margin: 9px 0 0;
   font-size: 34px;
