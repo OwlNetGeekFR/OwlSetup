@@ -87,6 +87,7 @@ export function ecartsDeDetail(reference, candidat) {
     if (valeursRef === null || valeursCand === null) {
       if (valeursRef !== valeursCand) {
         ecarts.push({
+          index: reference.index,
           element: reference.element,
           pseudo,
           propriete: "(pseudo-élément)",
@@ -99,6 +100,7 @@ export function ecartsDeDetail(reference, candidat) {
     reference.proprietes.forEach((propriete, i) => {
       if (valeursRef[i] !== valeursCand[i]) {
         ecarts.push({
+          index: reference.index,
           element: reference.element,
           pseudo,
           propriete,
@@ -109,4 +111,27 @@ export function ecartsDeDetail(reference, candidat) {
     });
   }
   return ecarts;
+}
+
+/**
+ * Cadre d'un élément (par son rang dans le document), amené au centre de la
+ * fenêtre. Exécuté dans la page. Rend null si l'élément n'est pas affiché ou
+ * s'il est plus grand que la fenêtre (un zoom n'aurait alors plus de sens).
+ */
+export function cadrerElement(index) {
+  const element = document.querySelectorAll("*")[index];
+  if (!element) return null;
+  element.scrollIntoView({ block: "center", inline: "center" });
+  const cadre = element.getBoundingClientRect();
+  if (!cadre.width || !cadre.height) return null;
+  if (cadre.width > innerWidth * 0.9 || cadre.height > innerHeight * 0.9) return null;
+  const marge = 14;
+  const x = Math.max(0, cadre.left - marge);
+  const y = Math.max(0, cadre.top - marge);
+  return {
+    x,
+    y,
+    width: Math.min(innerWidth - x, cadre.width + 2 * marge),
+    height: Math.min(innerHeight - y, cadre.height + 2 * marge),
+  };
 }

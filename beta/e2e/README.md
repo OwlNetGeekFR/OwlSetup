@@ -127,6 +127,19 @@ il le retire des deux pages. Limites : `:hover` et `:active` ne sont pas
 forcés, et seules les règles exercées par les parcours sont vérifiées (la
 couverture est affichée à la fin).
 
+**Mode palette.** Quand une refonte remplace volontairement des couleurs par
+des jetons proches, le rendu ne peut plus être identique. L'outil mesure alors
+chaque écart de couleur (ΔE CIE76 : < 2 imperceptible, 2–5 visible de près,
+≥ 5 visible) et compte à part les écarts qui ne sont pas des couleurs, qui ne
+devraient pas exister. `--captures <dossier>` écrit une planche HTML : pour
+chaque état qui diffère, des zooms ×2 avant/après des éléments les plus
+modifiés, puis l'écran entier. `--captures-largeurs` choisit les largeurs
+capturées (1500 par défaut).
+
+```bash
+npm run css:parite -- --parcours vues --largeurs 1500 --variantes sombre,clair --captures planche/
+```
+
 Pour exercer de nouvelles règles, ajouter des étapes ou des données à
 `rendu/parcours.js`, et les scénarios correspondants dans
 `faux-hote/scenarios.js`, vérifiés par `test/faux-hote.test.js`.
