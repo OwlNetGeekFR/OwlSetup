@@ -70,6 +70,9 @@ test("…", async ({ page, hote }) => {
 
 - `hote.repondre(action, payload => messages)` : ce que l'hôte renvoie. Une
   action sans réponse est seulement notée.
+- `hote.refuser(action, message)` : l'hôte lève une exception en traitant
+  l'action. L'interface reçoit `owlsetup:native-error`, comme depuis le
+  `catch` de `OnWebMessage`.
 - `hote.commande(action)` : attend la commande et rend son `payload`.
 - `hote.actions()` : les actions reçues, dans l'ordre.
 - `hote.calme()` : attend que les messages en file soient remis.

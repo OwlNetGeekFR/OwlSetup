@@ -124,6 +124,18 @@ export class FauxHote {
     this.#reponses.set(action, fabrique);
   }
 
+  /**
+   * L'hôte lève une exception en traitant `action` : le `catch` de
+   * OnWebMessage la rend à l'interface par `owlsetup:native-error`.
+   * `errorKind` suit le type d'exception (InvalidOperationException →
+   * « application », InvalidDataException → « validation »…).
+   */
+  refuser(action, message, errorKind = "application") {
+    if (!actionsConnues.has(action))
+      throw new Error(`l'hôte ne connaît pas l'action « ${action} »`);
+    this.#reponses.set(action, { refus: { message, errorKind } });
+  }
+
   /** Envoie des messages à l'interface, un par tâche, comme PostWebMessageAsJson. */
   envoyer(...messages) {
     for (const message of messages) {
@@ -190,8 +202,16 @@ export class FauxHote {
       return;
     }
     this.commandes.push({ action, payload });
-    const fabrique = this.#reponses.get(action);
-    if (fabrique) this.envoyer(...fabrique(payload));
+    const reponse = this.#reponses.get(action);
+    if (reponse?.refus) {
+      const { message, errorKind } = reponse.refus;
+      this.#enFile(() =>
+        this.#page.evaluate(
+          ([m, a, k]) => window.__owlsetupPont.erreurNative(m, a, k),
+          [message, action, errorKind]
+        )
+      );
+    } else if (reponse) this.envoyer(...reponse(payload));
     for (const attente of this.#attentes.filter((a) => a.action === action))
       attente.resoudre(payload);
     this.#attentes = this.#attentes.filter((a) => a.action !== action);
