@@ -59,7 +59,7 @@ body {
 .danger-outline-button {
   min-height: 46px;
   padding: 0 16px;
-  border: 1px solid #653a49;
+  border: 1px solid var(--line-danger);
   border-radius: 9px;
   background: rgba(140, 48, 68, 0.08);
   color: #e28a9a;
@@ -76,7 +76,7 @@ body {
   z-index: 420;
   width: min(370px, calc(100vw - 24px));
   padding: 15px 42px 15px 15px;
-  border: 1px solid #3b6087;
+  border: 1px solid var(--line-4);
   border-radius: 13px;
   background: linear-gradient(145deg, #142236, #0d1723);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
@@ -104,7 +104,7 @@ body {
   top: 10px;
   width: 27px;
   height: 27px;
-  border: 1px solid #324760;
+  border: 1px solid var(--line-3);
   border-radius: 7px;
   background: #111c29;
   color: #8091a7;
@@ -146,7 +146,7 @@ body {
 .history-clear-dialog {
   width: min(560px, 100%);
   padding: 24px;
-  border: 1px solid #63394a;
+  border: 1px solid var(--line-danger);
   border-radius: 18px;
   background: linear-gradient(145deg, #151d29, #0c131c);
   box-shadow: 0 35px 100px rgba(0, 0, 0, 0.7);
@@ -197,7 +197,7 @@ body {
   min-height: 46px;
   height: 46px;
   padding: 0 13px;
-  border: 1px solid #38506d;
+  border: 1px solid var(--line-3);
   border-radius: 10px;
   background: #111c2a;
   color: var(--text);
@@ -398,6 +398,8 @@ body.high-contrast {
   --muted: #b5c3d4;
   --line: #42546b;
   --panel: #101b2a;
+  --line-2: var(--line);
+  --line-3: var(--line);
 }
 body.high-contrast .view p,
 body.high-contrast small {
@@ -466,7 +468,7 @@ body.reduced-motion *::after {
   background: var(--panel);
 }
 .operation-row.interrupted {
-  border-color: #344155;
+  border-color: var(--line-3);
   background: linear-gradient(100deg, rgba(43, 54, 71, 0.2), var(--panel));
 }
 .operation-row.interrupted .operation-status {
@@ -481,7 +483,7 @@ body.reduced-motion *::after {
   font-style: normal;
 }
 .operation-row.failed {
-  border-color: #70404c;
+  border-color: var(--line-danger);
 }
 .operation-row.success,
 .operation-row.resolved {
@@ -732,14 +734,14 @@ body.reduced-motion *::after {
   background: #172c47;
 }
 .installed-page-card.detection-only {
-  border-color: #304964;
+  border-color: var(--line-3);
 }
 .installed-page-card.detection-only .installed-select-box {
   color: #79a9d9;
   background: #172a40;
 }
 .installed-page-card.detection-only:hover {
-  border-color: #466b92;
+  border-color: var(--line-4);
 }
 .settings-backup-actions {
   display: flex;
@@ -752,7 +754,7 @@ body.reduced-motion *::after {
   overflow: auto;
   margin: 14px 0;
   padding: 14px;
-  border: 1px solid #345170;
+  border: 1px solid var(--line-3);
   border-radius: 12px;
   background: #07101d;
   color: #75c8ff;
@@ -838,7 +840,7 @@ body.reduced-motion *::after {
   width: 100%;
   min-height: 112px;
   padding: 15px;
-  border: 1px solid #26374d;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: linear-gradient(145deg, #111a27, #0e141d);
   color: #f4f7fb;
@@ -871,7 +873,7 @@ body.reduced-motion *::after {
 .security-detail-panel {
   margin-top: 12px;
   padding: 16px 17px;
-  border: 1px solid #315476;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: linear-gradient(120deg, rgba(31, 83, 122, 0.2), #101721);
   display: flex;
@@ -893,7 +895,7 @@ body.reduced-motion *::after {
 .security-recommendations {
   margin-top: 14px;
   padding: 17px;
-  border: 1px solid #28394f;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: #0f1722;
 }
@@ -902,7 +904,7 @@ body.reduced-motion *::after {
 }
 .security-recommendation-count {
   padding: 5px 9px;
-  border: 1px solid #294057;
+  border: 1px solid var(--line-3);
   border-radius: 999px;
   color: #90a6c0;
   font-size: 10px;
@@ -913,7 +915,7 @@ body.reduced-motion *::after {
 }
 .security-recommendation {
   padding: 11px 12px;
-  border: 1px solid #2b3b4f;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #111b28;
   display: flex;
@@ -929,7 +931,7 @@ body.reduced-motion *::after {
   box-shadow: 0 0 10px currentColor;
 }
 .security-recommendation.critical {
-  border-color: #673849;
+  border-color: var(--line-danger);
   background: rgba(114, 38, 59, 0.12);
 }
 .security-recommendation.critical > span {
@@ -939,7 +941,7 @@ body.reduced-motion *::after {
   background: #62a8f2;
 }
 .security-recommendation.success {
-  border-color: #285746;
+  border-color: var(--line-success);
   background: rgba(43, 132, 96, 0.08);
 }
 .security-recommendation.success > span {
@@ -973,7 +975,7 @@ body.reduced-motion *::after {
   min-width: 112px;
   min-height: 40px;
   padding: 0 10px;
-  border: 1px solid #38506d;
+  border: 1px solid var(--line-3);
   border-radius: 9px;
   background: #111c2a;
   color: #eef4fb;
@@ -1004,7 +1006,7 @@ body.reduced-motion *::after {
 /* Finition ergonomique beta.17 : actions explicites, contenu progressif et aide contextuelle. */
 .catalog-advanced {
   margin-bottom: 18px;
-  border: 1px solid #2b3c53;
+  border: 1px solid var(--line-2);
   border-radius: 13px;
   background: linear-gradient(145deg, #101925, #0d141e);
   overflow: hidden;
@@ -1048,13 +1050,13 @@ body.reduced-motion *::after {
 }
 .catalog-advanced > summary > b {
   padding: 6px 9px;
-  border: 1px solid #334761;
+  border: 1px solid var(--line-3);
   border-radius: 7px;
   color: #87a8d3;
   font-size: 9px;
 }
 .catalog-advanced[open] > summary {
-  border-bottom: 1px solid #253448;
+  border-bottom: 1px solid var(--line-2);
   background: rgba(40, 76, 119, 0.09);
 }
 .catalog-advanced[open] > summary > b {
@@ -1106,7 +1108,7 @@ body.reduced-motion *::after {
   color: #fff;
 }
 .installed-page-actions .uninstall-action {
-  border: 1px solid #603846;
+  border: 1px solid var(--line-danger);
   background: rgba(157, 57, 76, 0.09);
   color: #e28494;
 }
@@ -1145,13 +1147,13 @@ body.reduced-motion *::after {
   transform: translateX(-50%) translateY(-1px);
 }
 .security-gauge:focus-visible {
-  outline: 2px solid #5d8fe0;
+  outline: 2px solid var(--line-accent);
   outline-offset: 4px;
 }
 .troubleshooting-help .text-button {
   min-height: 34px;
   padding: 0 11px;
-  border: 1px solid #315071;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #122035;
   color: #83b6f6;
@@ -1170,7 +1172,7 @@ body.reduced-motion *::after {
 .guide-help {
   margin-top: 18px;
   padding: 18px;
-  border: 1px solid #2a3b51;
+  border: 1px solid var(--line-2);
   border-radius: 13px;
   background: #0f1722;
 }
@@ -1184,7 +1186,7 @@ body.reduced-motion *::after {
 }
 .guide-help-grid article {
   padding: 13px;
-  border: 1px solid #27374c;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #111a27;
   display: flex;
@@ -1237,7 +1239,7 @@ body.reduced-motion *::after {
   color: #6f8199;
 }
 .notification-item:not(.unread) {
-  border-color: #222f41;
+  border-color: var(--line);
   opacity: 0.82;
 }
 .top-nav-group.open > .top-nav-menu {
@@ -1302,7 +1304,7 @@ body.reduced-motion *::after {
   width: min(800px, 100%);
   max-height: calc(100vh - 44px);
   overflow: auto;
-  border: 1px solid #304a70;
+  border: 1px solid var(--line-3);
   border-radius: 22px;
   background:
     radial-gradient(circle at 95% 0, rgba(52, 119, 226, 0.18), transparent 32%),
@@ -1354,7 +1356,7 @@ body.reduced-motion *::after {
 .first-run-option {
   min-height: 82px;
   padding: 13px;
-  border: 1px solid #2b3e59;
+  border: 1px solid var(--line-2);
   border-radius: 12px;
   background: #0e1723;
   display: grid;
@@ -1364,7 +1366,7 @@ body.reduced-motion *::after {
   cursor: pointer;
 }
 .first-run-option.recommended {
-  border-color: #35624f;
+  border-color: var(--line-success);
   background: rgba(29, 91, 68, 0.13);
 }
 .first-run-option-icon {
@@ -1398,7 +1400,7 @@ body.reduced-motion *::after {
 .first-run-option select {
   height: 38px;
   padding: 0 9px;
-  border: 1px solid #385171;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #111d2c;
   color: #eef5ff;
@@ -1432,7 +1434,7 @@ body.reduced-motion *::after {
 }
 .first-run-footer {
   padding: 15px 26px;
-  border-top: 1px solid #26364c;
+  border-top: 1px solid var(--line-2);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1579,14 +1581,14 @@ body.reduced-motion *::after {
   height: 17px;
 }
 .health-refresh:hover {
-  border-color: #45678f;
+  border-color: var(--line-4);
   color: #9bc4fa;
   background: #152237;
 }
 .home-trust > div > span {
   width: 25px;
   height: 25px;
-  border-color: #2d6956;
+  border-color: var(--line-success);
   background: rgba(48, 145, 106, 0.08);
 }
 .home-trust > div > span svg {
@@ -1647,10 +1649,10 @@ body.reduced-motion *::after {
 .hero,
 .home-hero,
 .system-title {
-  border-color: #24354a;
+  border-color: var(--line-2);
 }
 .system-title {
-  border-bottom-color: #2a3d55;
+  border-bottom-color: var(--line-2);
 }
 .windows-icon svg,
 .hero-orbit span svg,
@@ -1742,7 +1744,7 @@ body.reduced-motion *::after {
   bottom: 22px;
   width: min(560px, calc(100vw - 36px));
   padding: 16px;
-  border: 1px solid #7b3c4d;
+  border: 1px solid var(--line-danger);
   border-radius: 14px;
   background: linear-gradient(145deg, #25151d, #121923 58%);
   box-shadow: 0 25px 75px rgba(0, 0, 0, 0.58);
@@ -1804,7 +1806,7 @@ body.reduced-motion *::after {
   cursor: pointer;
 }
 .native-error-actions button:hover {
-  border-color: #6684aa;
+  border-color: var(--line-5);
   color: #fff;
 }
 .native-error-actions #openNativeErrorHelp {
@@ -2134,7 +2136,7 @@ samp,
   position: relative;
   width: min(650px, 100%);
   padding: 26px;
-  border: 1px solid #725d2a;
+  border: 1px solid var(--line-warning);
   border-radius: 18px;
   background: linear-gradient(145deg, #151e2b, #0c131c);
   box-shadow: 0 35px 100px rgba(0, 0, 0, 0.72);
@@ -2150,7 +2152,7 @@ samp,
 .restore-protection-icon {
   width: 52px;
   height: 52px;
-  border: 1px solid #6a5527;
+  border: 1px solid var(--line-warning);
   border-radius: 14px;
   background: #3e331b;
   color: #ffd369;
@@ -2178,7 +2180,7 @@ samp,
 .restore-protection-dialog ol {
   margin: 17px 0;
   padding: 14px 18px 14px 36px;
-  border: 1px solid #33445a;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: #101925;
   color: #d4deeb;
@@ -2245,7 +2247,7 @@ samp,
 .first-run-choice-buttons span {
   min-height: 36px;
   padding: 0 12px;
-  border: 1px solid #344760;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #101925;
   color: var(--muted);

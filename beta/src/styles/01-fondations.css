@@ -16,6 +16,16 @@
   --text-green: #63e3b4;
   --text-danger: #ff9fb4;
   --text-warn: #e6b25c;
+  /* Bordures : ardoise de --line (discret) à --line-5 (marqué), puis jetons de sens. Le thème clair redéfinit les mêmes jetons. */
+  --line-2: #293a51;
+  --line-3: #29445f;
+  --line-4: #3a5c86;
+  --line-5: #6684aa;
+  --line-accent: #5d8fe0;
+  --line-success: #2b664e;
+  --line-warning: #765c31;
+  --line-danger: #70404c;
+  --line-info: #285346;
 }
 * {
   box-sizing: border-box;
@@ -265,7 +275,7 @@ nav {
   width: 100%;
   height: 31px;
   margin-top: 8px;
-  border: 1px solid #28374b;
+  border: 1px solid var(--line-2);
   border-radius: 7px;
   background: #0c131d;
   color: var(--muted);
@@ -289,7 +299,7 @@ nav {
   display: inline-flex;
   margin-left: 6px;
   padding: 3px 6px;
-  border: 1px solid #8a6334;
+  border: 1px solid var(--line-warning);
   border-radius: 5px;
   background: rgba(218, 151, 61, 0.12);
   color: #f1b85e;
@@ -309,7 +319,7 @@ nav {
 }
 .cleanup-analysis-list article {
   padding: 10px;
-  border: 1px solid #273747;
+  border: 1px solid var(--line-2);
   border-radius: 8px;
   background: #0e1721;
   display: flex;
@@ -389,7 +399,7 @@ nav {
   transition: 0.2s;
 }
 .top-support:hover {
-  border-color: #7a4858;
+  border-color: var(--line-danger);
   background: rgba(139, 65, 86, 0.18);
   transform: translateY(-1px);
 }
@@ -420,7 +430,7 @@ main {
 }
 .horizontal-nav {
   padding: 8px 38px;
-  border-bottom: 1px solid #202a38;
+  border-bottom: 1px solid var(--line);
   background: rgba(10, 14, 21, 0.96);
   display: flex;
   align-items: center;
@@ -444,7 +454,7 @@ main {
 .top-nav-toggle:hover,
 .top-nav-item.active,
 .top-nav-toggle.active {
-  border-color: #293952;
+  border-color: var(--line-2);
   color: #edf3fc;
   background: #121c2a;
 }
@@ -476,7 +486,7 @@ main {
   display: none;
   position: absolute;
   left: 0;
-  border: 1px solid #2b3b51;
+  border: 1px solid var(--line-2);
   border-radius: 12px;
   background: rgba(12, 18, 27, 0.98);
   box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55);
@@ -551,7 +561,7 @@ main {
   color: #fff;
 }
 .nav-external {
-  border-top: 1px solid #233044;
+  border-top: 1px solid var(--line);
   margin-top: 4px;
   border-radius: 5px 5px 9px 9px;
 }
@@ -599,7 +609,7 @@ main {
 .update-notification {
   width: 35px;
   height: 35px;
-  border: 1px solid #293548;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #111823;
   color: var(--muted);
@@ -641,7 +651,7 @@ main {
 }
 .update-notification:hover {
   transform: translateY(-1px);
-  border-color: #3b526f;
+  border-color: var(--line-3);
 }
 .mobile-menu {
   display: none;
@@ -803,7 +813,7 @@ h3 {
   transition: 0.2s ease;
 }
 .preset:hover {
-  border-color: #405b8d;
+  border-color: var(--line-4);
   transform: translateY(-2px);
 }
 .preset-icon {
@@ -879,7 +889,7 @@ h3 {
 .catalog-scope {
   min-height: 61px;
   padding: 9px 12px;
-  border: 1px solid #293a51;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #101721;
   color: #8492a6;
@@ -974,7 +984,7 @@ h3 {
   transition: 0.18s ease;
 }
 .app-card:hover {
-  border-color: #334867;
+  border-color: var(--line-3);
   background: #121925;
   transform: translateY(-1px);
 }
@@ -1056,12 +1066,12 @@ h3 {
   text-decoration: underline;
 }
 .app-card:has(.official-link:hover) {
-  border-color: #334867;
+  border-color: var(--line-3);
 }
 .add-icon {
   width: 21px;
   height: 21px;
-  border: 1px solid #303948;
+  border: 1px solid var(--line-2);
   border-radius: 6px;
   display: grid;
   place-items: center;
@@ -1093,7 +1103,7 @@ h3 {
   text-overflow: ellipsis;
 }
 .app-card.installed {
-  border-color: #285044;
+  border-color: var(--line-info);
   background: linear-gradient(140deg, rgba(35, 103, 80, 0.14), #101721);
 }
 .installed-badge {
@@ -1132,7 +1142,7 @@ h3 {
   background: #9b4052;
 }
 .repair-icon {
-  border: 1px solid #31516a;
+  border: 1px solid var(--line-3);
   background: rgba(55, 131, 165, 0.09);
   color: #69cadd;
 }
@@ -1147,7 +1157,7 @@ h3 {
 .config-toolbar {
   margin-bottom: 18px;
   padding: 15px 17px;
-  border: 1px solid #263951;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: linear-gradient(100deg, rgba(38, 72, 112, 0.18), #101721);
   display: flex;
@@ -1176,7 +1186,7 @@ h3 {
 .manage-icon {
   width: 23px;
   height: 23px;
-  border: 1px solid #3b4859;
+  border: 1px solid var(--line-3);
   border-radius: 6px;
   background: #121a25;
   color: #78869a;
@@ -1202,7 +1212,7 @@ h3 {
 .profile-panel {
   min-height: 62px;
   padding: 11px;
-  border: 1px solid #25354a;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #101721;
 }
@@ -1246,7 +1256,7 @@ h3 {
 .profile-panel > p {
   margin: 7px 0 10px;
   padding-top: 9px;
-  border-top: 1px solid #243247;
+  border-top: 1px solid var(--line-2);
   color: var(--muted);
   font-size: 8px;
   line-height: 1.5;
@@ -1260,7 +1270,7 @@ h3 {
 .profile-tools input,
 .profile-tools select {
   height: 34px;
-  border: 1px solid #2d3b50;
+  border: 1px solid var(--line-2);
   border-radius: 7px;
   background: #0c121b;
   color: #dbe3ed;
@@ -1300,7 +1310,7 @@ h3 {
 }
 .tool-panel {
   padding: 16px;
-  border: 1px solid #27374d;
+  border: 1px solid var(--line-2);
   border-radius: 12px;
   background: linear-gradient(145deg, #111925, #0e141d);
   display: flex;
@@ -1333,7 +1343,7 @@ h3 {
   color: #7db2ff;
 }
 .tool-icon.green {
-  border-color: #28644f;
+  border-color: var(--line-success);
   background: linear-gradient(145deg, #194838, #123328);
   color: #69dfb1;
 }
@@ -1343,7 +1353,7 @@ h3 {
   color: #b497ff;
 }
 .tool-icon.orange {
-  border-color: #76502b;
+  border-color: var(--line-warning);
   background: linear-gradient(145deg, #553820, #3d2919);
   color: #f1b568;
 }
@@ -1374,7 +1384,7 @@ h3 {
 }
 .system-list article {
   padding: 11px 12px;
-  border: 1px solid #26364a;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #101721;
   display: flex;
@@ -1399,7 +1409,7 @@ h3 {
 .system-list button {
   height: 29px;
   padding: 0 9px;
-  border: 1px solid #33455e;
+  border: 1px solid var(--line-3);
   border-radius: 6px;
   background: #141e2b;
   color: #84a4d0;
@@ -1428,7 +1438,7 @@ h3 {
 }
 .tool-empty {
   padding: 25px;
-  border: 1px dashed #2b394c;
+  border: 1px dashed var(--line-2);
   border-radius: 9px;
   color: var(--muted);
   text-align: center;
@@ -1475,7 +1485,7 @@ h3 {
 }
 .security-overview {
   margin-top: 22px;
-  border: 1px solid #27405a;
+  border: 1px solid var(--line-3);
   border-radius: 13px;
   background: linear-gradient(120deg, rgba(32, 79, 113, 0.2), #101721);
   display: flex;
@@ -1536,7 +1546,7 @@ h3 {
 .security-grid article {
   min-height: 105px;
   padding: 15px;
-  border: 1px solid #26374d;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: linear-gradient(145deg, #111a27, #0e141d);
   display: flex;
@@ -1599,7 +1609,7 @@ h3 {
 .security-log-panel {
   margin-top: 14px;
   padding: 17px;
-  border: 1px solid #28394f;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: #101721;
   display: flex;
@@ -1617,7 +1627,7 @@ h3 {
 .simulation-badge {
   margin-bottom: 13px;
   padding: 10px 12px;
-  border: 1px solid #285746;
+  border: 1px solid var(--line-success);
   border-radius: 8px;
   background: rgba(43, 132, 96, 0.1);
   display: flex;
@@ -1664,7 +1674,7 @@ h3 {
 }
 .uninstall-preview > div {
   padding: 8px 10px;
-  border: 1px solid #2c3544;
+  border: 1px solid var(--line-2);
   border-radius: 7px;
   background: #101620;
   display: flex;

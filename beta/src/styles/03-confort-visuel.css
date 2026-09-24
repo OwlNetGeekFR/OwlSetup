@@ -13,7 +13,7 @@
   right: 14px;
   bottom: 12px;
   padding: 4px 7px;
-  border: 1px solid #765c31;
+  border: 1px solid var(--line-warning);
   border-radius: 999px;
   background: #2a2114;
   color: #f0bd67;
@@ -24,11 +24,11 @@
 }
 .app-card.manual-install .add-icon {
   color: #f0bd67;
-  border-color: #765c31;
+  border-color: var(--line-warning);
 }
 .guided-install-dialog {
   width: min(620px, 100%);
-  border-color: #66502e;
+  border-color: var(--line-warning);
 }
 .guided-install-glow {
   background: #e59a35;
@@ -51,7 +51,7 @@
   align-items: center;
   gap: 11px;
   padding: 11px 12px;
-  border: 1px solid #29384c;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #101721;
 }
@@ -85,7 +85,7 @@
   gap: 10px;
   margin-top: 12px;
   padding: 11px;
-  border: 1px solid #275541;
+  border: 1px solid var(--line-success);
   border-radius: 9px;
   background: rgba(35, 122, 85, 0.09);
 }
@@ -146,7 +146,7 @@
 .feedback-diagnostics {
   margin: 11px 0 0;
   padding: 10px;
-  border: 1px solid #29415b;
+  border: 1px solid var(--line-3);
   border-radius: 7px;
   background: #09111a;
   color: #8fb3d9;
@@ -335,7 +335,7 @@ body {
 .install-preflight {
   margin: 0 0 14px;
   padding: 13px;
-  border: 1px solid #29405a;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: linear-gradient(135deg, rgba(29, 57, 83, 0.32), rgba(11, 18, 28, 0.58));
 }
@@ -365,7 +365,7 @@ body {
 .preflight-grid > span {
   min-height: 48px;
   padding: 8px 9px;
-  border: 1px solid #27374b;
+  border: 1px solid var(--line-2);
   border-radius: 8px;
   background: #101722;
   display: grid;
@@ -411,7 +411,7 @@ body {
   color: #efc45c;
 }
 .preflight-grid > span.failed {
-  border-color: #63313d;
+  border-color: var(--line-danger);
 }
 .preflight-grid > span.failed i {
   background: #512632;
