@@ -45,7 +45,7 @@
   display: none;
 }
 :root[data-theme="light"] .schedule-note {
-  border-color: #e6cfa0;
+  border-color: var(--line-warning);
   background: #f7f0dd;
 }
 :root[data-theme="light"] .schedule-note > span {

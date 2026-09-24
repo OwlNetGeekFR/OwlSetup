@@ -22,7 +22,7 @@
   top: 70px;
   width: min(390px, calc(100vw - 34px));
   max-height: min(590px, calc(100vh - 92px));
-  border: 1px solid #30425b;
+  border: 1px solid var(--line-3);
   border-radius: 15px;
   background: rgba(13, 19, 28, 0.98);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
@@ -31,7 +31,7 @@
 }
 .notification-center-head {
   padding: 17px 18px;
-  border-bottom: 1px solid #253247;
+  border-bottom: 1px solid var(--line-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -65,7 +65,7 @@
 }
 .notification-item {
   padding: 12px;
-  border: 1px solid #26354a;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #111925;
   display: grid;
@@ -83,10 +83,10 @@
   background: linear-gradient(120deg, rgba(42, 87, 151, 0.24), #111925);
 }
 .notification-item.success.unread {
-  border-color: #285843;
+  border-color: var(--line-success);
 }
 .notification-item.warning.unread {
-  border-color: #6a5125;
+  border-color: var(--line-warning);
 }
 .notification-item:not(.unread) {
   background: #0f1722;
@@ -181,10 +181,10 @@
   gap: 12px;
 }
 .background-operation.complete {
-  border-color: #2b664e;
+  border-color: var(--line-success);
 }
 .background-operation.warning {
-  border-color: #74542a;
+  border-color: var(--line-warning);
 }
 .background-operation-icon {
   width: 38px;
@@ -243,7 +243,7 @@
 .background-operation > button {
   height: 34px;
   padding: 0 12px;
-  border: 1px solid #3a5273;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #142033;
   color: var(--text-blue);
@@ -252,7 +252,7 @@
   cursor: pointer;
 }
 .background-uninstall {
-  border-color: #704052;
+  border-color: var(--line-danger);
   background: linear-gradient(120deg, rgba(54, 27, 39, 0.98), rgba(19, 18, 27, 0.98));
 }
 .background-uninstall .background-operation-icon {
@@ -266,7 +266,7 @@
   color: var(--text-danger);
 }
 .background-uninstall.complete {
-  border-color: #2b664e;
+  border-color: var(--line-success);
 }
 .background-uninstall.complete .background-operation-icon {
   background: #174533;
@@ -311,7 +311,7 @@
   background: linear-gradient(90deg, #47d0b9, #4f8cf3);
 }
 .background-update.complete {
-  border-color: #2b664e;
+  border-color: var(--line-success);
 }
 .background-update.warning {
   border-color: #8a6024;
@@ -324,7 +324,7 @@
 /* Visionneuse de rapports */
 .report-dialog {
   width: min(760px, calc(100vw - 32px));
-  border-color: #304b6f;
+  border-color: var(--line-3);
 }
 .report-dialog-glow {
   background: #4b83eb;
@@ -338,7 +338,7 @@
 }
 .report-hero {
   padding: 16px;
-  border: 1px solid #285d49;
+  border: 1px solid var(--line-success);
   border-radius: 12px;
   background: linear-gradient(110deg, rgba(29, 93, 70, 0.25), rgba(15, 23, 34, 0.85));
   display: flex;
@@ -346,7 +346,7 @@
   gap: 13px;
 }
 .report-hero.warning {
-  border-color: #71552b;
+  border-color: var(--line-warning);
   background: linear-gradient(110deg, rgba(111, 78, 28, 0.24), rgba(15, 23, 34, 0.85));
 }
 .report-hero > span {
@@ -385,7 +385,7 @@
 }
 .report-summary-grid article {
   padding: 13px;
-  border: 1px solid #26364d;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #101823;
 }
@@ -411,7 +411,7 @@
 .report-meta {
   margin-top: 10px;
   padding: 11px 13px;
-  border: 1px solid #243248;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #0e151f;
   display: flex;
@@ -452,7 +452,7 @@
 }
 .report-item {
   padding: 11px 12px;
-  border: 1px solid #26364c;
+  border: 1px solid var(--line-2);
   border-radius: 9px;
   background: #101721;
   display: grid;
@@ -744,12 +744,12 @@
 .cleanup-option em.cleanup-recommended {
   color: #69d9ad;
   background: rgba(55, 177, 128, 0.14);
-  border: 1px solid #2b6b55;
+  border: 1px solid var(--line-success);
 }
 .cleanup-option em.cleanup-review {
   color: #f1c56f;
   background: rgba(193, 135, 34, 0.14);
-  border: 1px solid #705729;
+  border: 1px solid var(--line-warning);
 }
 .cleanup-option em.cleanup-advanced {
   color: #c19aff;
@@ -759,7 +759,7 @@
 .cleanup-option em.cleanup-reversible {
   color: #76b7ff;
   background: rgba(56, 122, 196, 0.14);
-  border: 1px solid #345c89;
+  border: 1px solid var(--line-4);
 }
 
 /* Sélection visible des applications installées avant désinstallation groupée. */
@@ -829,7 +829,7 @@
   align-items: center;
   gap: 6px;
   padding: 0 10px;
-  border-color: #355275;
+  border-color: var(--line-3);
   background: linear-gradient(145deg, #17263a, #111b29);
   color: #9fc5f8;
   font-size: 9px;
@@ -850,7 +850,7 @@
   stroke-linejoin: round;
 }
 .disk-item-actions .disk-clean-button {
-  border-color: #326a58;
+  border-color: var(--line-success);
   background: linear-gradient(145deg, #173c31, #112a23);
   color: #75deb8;
 }
@@ -860,13 +860,13 @@
   color: #a5f1d3;
 }
 .disk-clean-confirm > div {
-  border-color: #315f52;
+  border-color: var(--line-info);
 }
 .disk-clean-confirm-icon {
   width: 48px;
   height: 48px;
   margin-bottom: 15px;
-  border: 1px solid #326a58;
+  border: 1px solid var(--line-success);
   border-radius: 13px;
   background: #173c31;
   color: #72deb7;
@@ -885,7 +885,7 @@
 .disk-clean-path {
   margin-top: 12px;
   padding: 9px 11px;
-  border: 1px solid #29384c;
+  border: 1px solid var(--line-2);
   border-radius: 8px;
   background: #0d141e;
   color: #8090a5;
@@ -915,7 +915,7 @@
   color: #69d9ad;
 }
 .filter[data-category="Installés"].active {
-  border-color: #2f6b58;
+  border-color: var(--line-success);
   color: #8ae8c1;
   background: rgba(47, 139, 103, 0.14);
 }
@@ -941,7 +941,7 @@
 .installed-hero-icon {
   width: 82px;
   height: 82px;
-  border: 1px solid #326657;
+  border: 1px solid var(--line-info);
   border-radius: 24px;
   background:
     radial-gradient(circle at 28% 20%, rgba(92, 224, 181, 0.16), transparent 42%),
@@ -966,7 +966,7 @@
 .installed-overview {
   margin-top: 22px;
   padding: 14px 16px;
-  border: 1px solid #29475d;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: linear-gradient(100deg, rgba(32, 75, 101, 0.18), #101721);
   display: flex;
@@ -1018,7 +1018,7 @@
   width: 230px;
   height: 42px;
   padding: 0 42px 0 13px;
-  border: 1px solid #38506d;
+  border: 1px solid var(--line-3);
   border-radius: 9px;
   appearance: none;
   -webkit-appearance: none;
@@ -1047,7 +1047,7 @@
   min-height: 64px;
   margin-bottom: 12px;
   padding: 12px 14px;
-  border: 1px solid #3f536c;
+  border: 1px solid var(--line-3);
   border-radius: 10px;
   background: linear-gradient(100deg, rgba(39, 69, 107, 0.16), rgba(118, 43, 58, 0.08));
   display: flex;
@@ -1083,7 +1083,7 @@
 .installed-page-card {
   min-height: 92px;
   padding: 13px 14px;
-  border: 1px solid #29394f;
+  border: 1px solid var(--line-2);
   border-radius: 11px;
   background: linear-gradient(145deg, #111a26, #0e151e);
   display: grid;
@@ -1109,7 +1109,7 @@
   grid-row: 1/3;
   width: 22px;
   height: 22px;
-  border: 1px solid #3b4b60;
+  border: 1px solid var(--line-3);
   border-radius: 6px;
   color: transparent;
   display: grid;
@@ -1171,7 +1171,7 @@
 }
 .installed-page-meta b {
   padding: 4px 7px;
-  border: 1px solid #2d4e73;
+  border: 1px solid var(--line-3);
   border-radius: 999px;
   background: rgba(48, 102, 163, 0.11);
   color: #91baf0;
@@ -1197,7 +1197,7 @@
 }
 .installed-page-actions a {
   padding: 7px 9px;
-  border: 1px solid #30445e;
+  border: 1px solid var(--line-3);
   border-radius: 7px;
   color: #83a9dc;
   font-size: 10px;
@@ -1216,7 +1216,7 @@
 }
 .installed-empty {
   margin-top: 12px;
-  border: 1px dashed #314258;
+  border: 1px dashed var(--line-3);
 }
 .installed-empty button {
   margin-top: 10px;
@@ -1280,7 +1280,7 @@
 .onboarding-replay {
   margin-top: 14px;
   padding: 15px 17px;
-  border: 1px solid #315071;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: linear-gradient(100deg, rgba(42, 79, 127, 0.17), #101721);
   display: flex;
@@ -1331,7 +1331,7 @@
 .onboarding-dialog {
   width: min(840px, 100%);
   min-height: 590px;
-  border: 1px solid #2f4567;
+  border: 1px solid var(--line-3);
   border-radius: 22px;
   background: linear-gradient(145deg, #121c2a, #0a111a);
   box-shadow: 0 40px 130px rgba(0, 0, 0, 0.75);
@@ -1372,7 +1372,7 @@
 .language-dialog {
   width: min(760px, 100%);
   padding: 32px;
-  border: 1px solid #2f4567;
+  border: 1px solid var(--line-3);
   border-radius: 22px;
   background:
     radial-gradient(circle at 90% 0, rgba(55, 124, 236, 0.18), transparent 34%),
@@ -1422,7 +1422,7 @@
 .language-choice {
   min-height: 78px;
   padding: 13px 15px;
-  border: 1px solid #314763;
+  border: 1px solid var(--line-3);
   border-radius: 12px;
   background: #0e1723;
   color: #dce8f7;
@@ -1462,7 +1462,7 @@
 }
 .language-choice:not(:disabled):hover,
 .language-choice:not(:disabled):focus-visible {
-  border-color: #5689d0;
+  border-color: var(--line-accent);
   background: #122238;
   transform: translateY(-1px);
   outline: none;
@@ -1505,7 +1505,7 @@
 .language-settings {
   margin-top: 14px;
   padding: 16px 18px;
-  border: 1px solid #2d4967;
+  border: 1px solid var(--line-3);
   border-radius: 13px;
   background: #0d1723;
   display: flex;
@@ -1549,7 +1549,7 @@
   height: 39px;
   margin-top: 5px;
   padding: 0 10px;
-  border: 1px solid #334a67;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #09121c;
   color: #dce8f7;
@@ -1571,7 +1571,7 @@
 }
 .settings-overview > span {
   padding: 11px 13px;
-  border: 1px solid #2b3d55;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: rgba(16, 25, 38, 0.75);
 }
@@ -1597,7 +1597,7 @@
 .settings-panel {
   min-width: 0;
   padding: 20px;
-  border: 1px solid #28384d;
+  border: 1px solid var(--line-2);
   border-radius: 14px;
   background: linear-gradient(145deg, #111a27, #0d141e);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -1606,7 +1606,7 @@
     transform 0.18s ease;
 }
 .settings-panel:hover {
-  border-color: #354b68;
+  border-color: var(--line-3);
   transform: translateY(-1px);
 }
 .settings-panel-heading {
@@ -1614,7 +1614,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #243145;
+  border-bottom: 1px solid var(--line-2);
 }
 .settings-panel-heading > span {
   width: 39px;
@@ -1780,7 +1780,7 @@
 .log-dialog {
   width: min(820px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
-  border-color: #315174;
+  border-color: var(--line-3);
 }
 .log-dialog-glow {
   background: #447fe9;
@@ -1798,7 +1798,7 @@
   scrollbar-color: #43536a transparent;
 }
 .log-hero.warning {
-  border-color: #6c512c;
+  border-color: var(--line-warning);
 }
 .log-summary-grid {
   display: grid;
@@ -1808,7 +1808,7 @@
 }
 .log-summary-grid article {
   padding: 12px 14px;
-  border: 1px solid #27374d;
+  border: 1px solid var(--line-2);
   border-radius: 10px;
   background: #101823;
 }
@@ -1847,7 +1847,7 @@
 .log-entry {
   min-width: 0;
   padding: 9px 11px;
-  border: 1px solid #253449;
+  border: 1px solid var(--line-2);
   border-radius: 8px;
   background: #0e1620;
   display: grid;
@@ -1880,7 +1880,7 @@
   word-break: break-word;
 }
 .log-entry.error {
-  border-color: #643344;
+  border-color: var(--line-danger);
   background: rgba(116, 37, 54, 0.12);
 }
 .log-entry.error .log-entry-level {
@@ -1891,7 +1891,7 @@
   color: #f2a5b2;
 }
 .log-entry.warning {
-  border-color: #654d27;
+  border-color: var(--line-warning);
   background: rgba(117, 82, 30, 0.11);
 }
 .log-entry.warning .log-entry-level {
@@ -2112,7 +2112,7 @@
 }
 .onboarding-header button {
   padding: 8px 11px;
-  border: 1px solid #314159;
+  border: 1px solid var(--line-3);
   border-radius: 8px;
   background: #101824;
   color: var(--text-blue);
@@ -2247,7 +2247,7 @@
   animation-delay: -2.4s;
 }
 .onboarding-visual.installed {
-  border-color: #35634e;
+  border-color: var(--line-success);
   background: linear-gradient(145deg, #1a4535, #101f1b);
   color: #69dbac;
 }
@@ -2270,7 +2270,7 @@
 }
 .onboarding-pills span {
   padding: 7px 10px;
-  border: 1px solid #2f5549;
+  border: 1px solid var(--line-info);
   border-radius: 999px;
   background: rgba(48, 139, 103, 0.09);
   color: var(--text-green);
@@ -2281,7 +2281,7 @@
   width: 100%;
   margin-top: 20px;
   padding: 12px 14px;
-  border: 1px solid #2d405b;
+  border: 1px solid var(--line-3);
   border-radius: 11px;
   background: #101925;
   display: flex;
@@ -2318,7 +2318,7 @@
 .onboarding-footer {
   min-height: 82px;
   padding: 13px 24px;
-  border-top: 1px solid #26354b;
+  border-top: 1px solid var(--line-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2357,7 +2357,7 @@
   cursor: pointer;
 }
 .onboarding-secondary {
-  border: 1px solid #324258;
+  border: 1px solid var(--line-3);
   background: #111925;
   color: #8f9caf;
 }
