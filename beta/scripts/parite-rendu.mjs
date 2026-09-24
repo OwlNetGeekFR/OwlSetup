@@ -55,6 +55,9 @@ const { values: options } = parseArgs({
 const largeursCapturees = liste(options["captures-largeurs"]).map(Number);
 if (options.captures) mkdirSync(options.captures, { recursive: true });
 let numeroDeCapture = 0;
+// Un même élément (la barre latérale…) diffère dans presque tous les états :
+// on ne le zoome qu'une fois par variante.
+const dejaZoomes = new Set();
 
 function liste(texte) {
   return texte ? texte.split(",").map((x) => x.trim()) : null;
@@ -77,9 +80,10 @@ const HEURE_FIGEE = new Date("2026-09-24T10:15:00+02:00");
  * diffèrent, puis on relâche les deux côtés.
  */
 class RendezVous {
-  constructor(etiquette, largeur) {
+  constructor(etiquette, largeur, variante) {
     this.etiquette = etiquette;
     this.largeur = largeur;
+    this.variante = variante;
     this.attente = new Map();
     this.resultats = [];
   }
@@ -127,9 +131,12 @@ class RendezVous {
     const zooms = [];
     for (const e of [...pire.values()].sort((x, y) => y.note - x.note)) {
       if (zooms.length >= 6) break;
+      const cle = `${this.variante}|${e.element}`;
+      if (dejaZoomes.has(cle)) continue;
       const cadre = await pageRef.evaluate(cadrerElement, e.index);
       await pageCand.evaluate(cadrerElement, e.index);
       if (!cadre) continue;
+      dejaZoomes.add(cle);
       const numero = String(++numeroDeCapture).padStart(3, "0");
       const zoom = {
         element: e.element,
@@ -138,9 +145,13 @@ class RendezVous {
         avant: `${numero}-z-avant.png`,
         apres: `${numero}-z-apres.png`,
       };
-      await pageRef.screenshot({ path: path.join(options.captures, zoom.avant), clip: cadre });
-      await pageCand.screenshot({ path: path.join(options.captures, zoom.apres), clip: cadre });
-      zooms.push(zoom);
+      try {
+        await pageRef.screenshot({ path: path.join(options.captures, zoom.avant), clip: cadre });
+        await pageCand.screenshot({ path: path.join(options.captures, zoom.apres), clip: cadre });
+        zooms.push(zoom);
+      } catch {
+        // Un zoom impossible ne doit pas faire échouer la comparaison.
+      }
     }
     return zooms;
   }
@@ -342,7 +353,7 @@ async function principal() {
     while (suivante < taches.length) {
       const { parcours, combinaison } = taches[suivante++];
       const etiquette = `${parcours.nom} · ${combinaison.variante} · ${combinaison.largeur}px`;
-      const rdv = new RendezVous(etiquette, combinaison.largeur);
+      const rdv = new RendezVous(etiquette, combinaison.largeur, combinaison.variante);
       try {
         await Promise.all([
           jouerCote(navigateur, parcours, combinaison, "reference", cssReference, rdv, null),
