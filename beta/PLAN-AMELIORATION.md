@@ -350,6 +350,35 @@ chaînes** dans le source (ex. `Select-String`), pas le comportement.
    externe. Il faudra soit un mode de test explicite dans l'hôte, soit
    l'automatisation de l'interface Windows (UIA).
 
+   **Fait côté interface — parcours face à un faux hôte (`beta/e2e/`).**
+   L'autre moitié du problème se prend par l'autre bout : l'interface ne dépend
+   de l'hôte que par `window.chrome.webview`. Playwright la sert sous
+   `https://pcsetup.local` dans Chromium et lui substitue un faux hôte. Tout
+   tourne en CI Linux (job `interface` de `quality.yml`), sans Windows.
+   - Les fichiers servis sont **lus** dans le `.csproj` et `Bootstrap.Extract` :
+     une ressource que l'hôte n'extrait pas donne une 404 qui fait échouer le
+     test. Le refus d'une action inconnue par `OnWebMessage` est reproduit.
+   - Les réponses sont des scénarios écrits d'après le C#.
+     `beta/test/faux-hote.test.js` confronte chaque message aux initialiseurs
+     `new { type="…" }` de l'hôte : aucun type inventé, aucun champ inventé,
+     aucun champ oublié parmi ceux que l'hôte envoie toujours.
+   - Garde-fous en fin de chaque test : exception JS, 404, requête sortante,
+     violation CSP, action refusée. Dix sabotages, dix détections (celui du
+     favicon a dû être refait sur le logo : Chromium sans affichage ne demande
+     jamais le favicon).
+   - Onze parcours : démarrage et premier lancement, navigation dans les
+     quatorze vues avec la commande que chacune envoie, installation (réussie,
+     en échec 1603, bloquée par le diagnostic), mises à jour (liste reprise,
+     « Ne plus proposer »), interface anglaise.
+   - **Première trouvaille** : en anglais, la fenêtre de diagnostic affichait
+     encore « Paquets », « Windows 64 bits compatible », « 1 paquet(s)
+     disponible(s) » et « 182,4 Go libres ». `audit-i18n.mjs` annonce toujours
+     100 % : son heuristique de détection du français ne voit pas ces chaînes
+     sans accent. Traductions ajoutées ; l'audit reste à corriger.
+
+   Ce n'est pas l'hôte qui est testé ici. Le pilote de l'IPC réel (mode de test
+   ou UIA) reste à faire pour l'hôte lui-même.
+
    **Note relevée en chemin :** `Extract` réécrit les ressources depuis
    l'assembly à **chaque** lancement (`FileMode.Create`), juste avant
    `VerifyInterfaceIntegrity`. La protection contre une interface locale

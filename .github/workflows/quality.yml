@@ -2,7 +2,8 @@
 #
 # Complementaire de `release.yml` (build C# + installateur) : ici on ne compile
 # rien, on verifie le JavaScript, le formatage et la coherence du catalogue
-# externalise (`catalog.generated.js` genere depuis `beta/catalog/apps.json`).
+# externalise (`catalog.generated.js` genere depuis `beta/catalog/apps.json`),
+# puis on parcourt l'interface dans Chromium face a un faux hote (beta/e2e/).
 
 name: Qualite (front-end)
 
@@ -13,6 +14,11 @@ on:
       - "app.js"
       - "i18n.js"
       - "catalog.generated.js"
+      # Parcours e2e : l'interface servie, et l'hote que le faux hote relit.
+      - "index.html"
+      - "styles.css"
+      - "assets/**"
+      - "OwlSetupWebView.cs"
       - ".github/workflows/quality.yml"
   push:
     branches: [main]
@@ -21,6 +27,11 @@ on:
       - "app.js"
       - "i18n.js"
       - "catalog.generated.js"
+      # Parcours e2e : l'interface servie, et l'hote que le faux hote relit.
+      - "index.html"
+      - "styles.css"
+      - "assets/**"
+      - "OwlSetupWebView.cs"
       - ".github/workflows/quality.yml"
 
 permissions:
@@ -58,3 +69,39 @@ jobs:
 
       - name: Catalogue synchronise (app.js <-> apps.json <-> catalog.generated.js) et conforme au schema
         run: npm run catalog:verify
+
+  # Parcours de l'interface (Playwright) face au faux hote WebView2. Aucun
+  # Windows requis : le faux hote sert les ressources que l'hote extrait et
+  # rejoue les messages de OwlSetupWebView.cs.
+  interface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: beta
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+
+      - run: npm ci
+
+      - name: Installer Chromium pour Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Parcours de l'interface face au faux hote
+        run: npm run test:e2e
+
+      - name: Rapport Playwright (traces, captures) en cas d'echec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-playwright
+          path: |
+            beta/playwright-report/
+            beta/test-results/
+          retention-days: 14

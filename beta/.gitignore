@@ -3,3 +3,6 @@ coverage/
 *.log
 .DS_Store
 catalog/catalog.generated.js
+test-results/
+playwright-report/
+blob-report/
