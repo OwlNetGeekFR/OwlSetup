@@ -125,13 +125,13 @@ export function cadrerElement(index) {
   const cadre = element.getBoundingClientRect();
   if (!cadre.width || !cadre.height) return null;
   if (cadre.width > innerWidth * 0.9 || cadre.height > innerHeight * 0.9) return null;
+  // Hors de la fenêtre même après défilement (translation, position fixe…).
+  if (cadre.right <= 0 || cadre.bottom <= 0) return null;
+  if (cadre.left >= innerWidth || cadre.top >= innerHeight) return null;
   const marge = 14;
   const x = Math.max(0, cadre.left - marge);
   const y = Math.max(0, cadre.top - marge);
-  return {
-    x,
-    y,
-    width: Math.min(innerWidth - x, cadre.width + 2 * marge),
-    height: Math.min(innerHeight - y, cadre.height + 2 * marge),
-  };
+  const width = Math.min(innerWidth - x, cadre.right + marge - x);
+  const height = Math.min(innerHeight - y, cadre.bottom + marge - y);
+  return width >= 2 && height >= 2 ? { x, y, width, height } : null;
 }
