@@ -318,7 +318,6 @@
   height: 44px;
   padding: 0 17px;
   border-radius: 8px;
-  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -354,16 +353,11 @@
   width: 112px;
   height: 112px;
   margin-bottom: 15px;
-  border: 8px solid #213249;
-  border-top-color: #4ed1d9;
-  border-right-color: #4c7ff0;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  transform: rotate(12deg);
 }
 .health-ring > div {
-  transform: rotate(-12deg);
   text-align: center;
 }
 .health-ring strong,
@@ -388,7 +382,6 @@
 }
 .health-widget > b {
   margin-top: 5px;
-  font-size: 10px;
 }
 .home-section-heading {
   display: flex;
@@ -398,7 +391,6 @@
 }
 .home-section-heading h2 {
   margin: 5px 0 0;
-  font-size: 19px;
 }
 .local-pill {
   padding: 6px 9px;
@@ -459,9 +451,6 @@
   letter-spacing: 0.12em;
 }
 .feature-icon {
-  width: 39px;
-  height: 39px;
-  border-radius: 10px;
   display: grid;
   place-items: center;
   color: #83aaff;
@@ -493,19 +482,16 @@
 }
 .feature-copy strong {
   font-family: Manrope;
-  font-size: 13px;
 }
 .feature-copy small {
   min-height: 38px;
   margin-top: 7px;
   color: var(--muted);
-  font-size: 9px;
   line-height: 1.5;
 }
 .feature-copy em {
   margin-top: 14px;
   color: var(--text-blue);
-  font-size: 8px;
   font-style: normal;
 }
 .feature-copy em b {
@@ -530,8 +516,6 @@
   gap: 9px;
 }
 .home-trust > div > span {
-  width: 21px;
-  height: 21px;
   border: 1px solid #2d6956;
   border-radius: 50%;
   display: grid;
@@ -546,13 +530,9 @@
 .home-trust small {
   display: block;
 }
-.home-trust strong {
-  font-size: 9px;
-}
 .home-trust small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 7px;
 }
 .queue-layout {
   display: grid;
@@ -579,9 +559,6 @@
 .queue-item strong,
 .queue-item small {
   display: block;
-}
-.queue-item strong {
-  font-size: 12px;
 }
 .queue-item small {
   color: #657084;
@@ -651,7 +628,6 @@
   border-radius: 9px;
   background: linear-gradient(90deg, #396de5, #4f87f5);
   font-weight: 700;
-  font-size: 11px;
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(54, 105, 226, 0.25);
 }
@@ -661,7 +637,6 @@
 }
 .summary-card > p {
   color: var(--muted);
-  font-size: 8px;
   line-height: 1.5;
   text-align: center;
 }
@@ -734,13 +709,11 @@
   font: 800 8px Manrope;
 }
 .steps h3 {
-  font-size: 13px;
   margin: 2px 0 7px;
 }
 .steps p {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
   line-height: 1.6;
 }
 .notice {
@@ -845,7 +818,6 @@
   background: rgba(62, 213, 152, 0.08);
   padding: 4px 6px;
   border-radius: 4px;
-  font-size: 7px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -876,12 +848,8 @@
 .update-action-copy small {
   display: block;
 }
-.update-action-copy strong {
-  font-size: 12px;
-}
 .update-action-copy small {
   color: var(--muted);
-  font-size: 9px;
   margin-top: 5px;
 }
 .update-button {
@@ -944,13 +912,9 @@
 .update-steps small {
   display: block;
 }
-.update-steps strong {
-  font-size: 10px;
-}
 .update-steps small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 8px;
   line-height: 1.5;
 }
 .cleanup-intro {
@@ -1061,13 +1025,9 @@
 .cleanup-copy small {
   display: block;
 }
-.cleanup-copy strong {
-  font-size: 11px;
-}
 .cleanup-copy small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 8px;
 }
 .cleanup-option em {
   padding: 4px 6px;
@@ -1275,8 +1235,6 @@
   z-index: 100;
   inset: 0;
   display: grid;
-  place-items: center;
-  padding: 20px;
   background: rgba(2, 5, 10, 0.78);
   backdrop-filter: blur(9px);
 }
@@ -1346,7 +1304,6 @@
 .dialog-confirm > p {
   margin: 0 0 18px;
   color: var(--muted);
-  font-size: 11px;
   line-height: 1.6;
 }
 .dialog-confirm > p strong {
@@ -1427,13 +1384,9 @@
 .progress-status small {
   display: block;
 }
-.progress-status strong {
-  font-size: 11px;
-}
 .progress-status small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .progress-status > b {
   color: var(--text-cyan);
@@ -1628,7 +1581,6 @@
   border: 0;
   border-radius: 8px;
   color: #fff;
-  background: linear-gradient(90deg, #a83e52, #d35569);
   font-size: 9px;
   font-weight: 800;
   cursor: pointer;
@@ -1839,13 +1791,9 @@
 .update-progress-steps small {
   display: block;
 }
-.update-progress-steps strong {
-  font-size: 8px;
-}
 .update-progress-steps small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 6px;
 }
 .cleanup-dialog {
   width: min(680px, calc(100vw - 32px));
@@ -1890,13 +1838,9 @@
 .cleanup-confirm-card small {
   display: block;
 }
-.cleanup-confirm-card strong {
-  font-size: 10px;
-}
 .cleanup-confirm-card small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .cleanup-dialog-warning {
   color: #948a72;
@@ -1947,17 +1891,14 @@
 .cleanup-current-zone small,
 .cleanup-result-card small {
   color: var(--muted);
-  font-size: 6px;
   letter-spacing: 0.12em;
 }
 .cleanup-current-zone strong,
 .cleanup-result-card strong {
   margin-top: 5px;
-  font-size: 10px;
 }
 .cleanup-current-zone > b {
   color: #73919b;
-  font-size: 8px;
 }
 .cleanup-result-card {
   border-color: #285344;
@@ -2032,7 +1973,6 @@
 }
 .health-dashboard strong {
   margin-top: 4px;
-  font-size: 10px;
 }
 .health-dashboard em {
   margin-top: 3px;
@@ -2051,21 +1991,6 @@
 }
 .health-refresh.scanning {
   animation: spin 1s linear infinite;
-}
-.health-ring {
-  transition: border-color 0.3s;
-}
-.health-ring.good {
-  border-top-color: #4ed3a1;
-  border-right-color: #4ed3a1;
-}
-.health-ring.warning {
-  border-top-color: #e6b34e;
-  border-right-color: #d67c51;
-}
-.health-ring.critical {
-  border-top-color: #dc5d71;
-  border-right-color: #dc5d71;
 }
 .update-preview-panel {
   margin-top: 20px;
@@ -2104,15 +2029,10 @@
 .no-updates small {
   display: block;
 }
-.update-scan-state strong,
-.no-updates strong {
-  font-size: 10px;
-}
 .update-scan-state small,
 .no-updates small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .no-updates > span {
   width: 35px;
@@ -2172,15 +2092,11 @@
 }
 .update-app-icon span {
   color: #74a4ed;
-  font-size: 7px;
   font-weight: 800;
 }
 .available-update strong,
 .available-update small {
   display: block;
-}
-.available-update strong {
-  font-size: 9px;
 }
 .available-update small {
   margin-top: 4px;
@@ -2303,7 +2219,6 @@
   padding: 60px 20px;
   text-align: center;
   color: var(--muted);
-  font-size: 9px;
 }
 .quarantine-loading span {
   display: block;
@@ -2328,7 +2243,6 @@
 }
 .quarantine-empty p {
   color: var(--muted);
-  font-size: 8px;
 }
 .quarantine-confirm {
   position: fixed;
@@ -2353,7 +2267,6 @@
 }
 .quarantine-confirm p {
   color: #7d899a;
-  font-size: 9px;
   line-height: 1.6;
 }
 .quarantine-confirm .dialog-actions {
@@ -2417,9 +2330,6 @@
 .self-update-state strong,
 .self-update-state small {
   display: block;
-}
-.self-update-state strong {
-  font-size: 11px;
 }
 .self-update-state small {
   margin-top: 5px;
@@ -2487,12 +2397,10 @@
 }
 .update-signing-notice strong {
   color: #f2d18d;
-  font-size: 9px;
 }
 .update-signing-notice small {
   margin-top: 4px;
   color: #a99776;
-  font-size: 8px;
   line-height: 1.55;
 }
 .troubleshooting-intro {
@@ -2505,8 +2413,6 @@
   border: 1px solid #7b5524;
   border-radius: 7px;
   color: #f3bd61;
-  background: rgba(175, 105, 26, 0.1);
-  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -2547,9 +2453,6 @@
 .feedback-heading strong,
 .feedback-heading small {
   display: block;
-}
-.feedback-heading strong {
-  font-size: 14px;
 }
 .feedback-heading small {
   margin-top: 4px;
@@ -2755,17 +2658,6 @@
   }
   .custom-tools {
     grid-template-columns: 1fr;
-  }
-  .custom-install {
-    align-items: stretch;
-    flex-wrap: wrap;
-  }
-  .custom-install > div {
-    width: 100%;
-  }
-  .custom-install input {
-    width: auto;
-    flex: 1;
   }
   .search {
     max-width: none;

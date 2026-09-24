@@ -88,12 +88,24 @@ export class FauxHote {
   erreursDEnvoi = [];
 
   #page;
+  #remplacements;
   #reponses = new Map(Object.entries(REPONSES_DE_DEMARRAGE));
   #attentes = [];
   #envois = Promise.resolve();
 
-  constructor(page) {
+  /**
+   * @param {import("@playwright/test").Page} page
+   * @param {{ remplacements?: Record<string, string | Buffer> }} [options]
+   *   contenu servi à la place d'une ressource extraite (même chemin) — par
+   *   exemple une feuille de style de référence pour comparer deux rendus.
+   *   Seul un chemin que l'hôte extrait peut être remplacé.
+   */
+  constructor(page, { remplacements = {} } = {}) {
     this.#page = page;
+    for (const chemin of Object.keys(remplacements)) {
+      if (!carte.has(chemin)) throw new Error(`l'hôte n'extrait pas « ${chemin} »`);
+    }
+    this.#remplacements = new Map(Object.entries(remplacements));
   }
 
   async brancher() {
@@ -176,6 +188,24 @@ export class FauxHote {
     await this.#envois;
   }
 
+  /**
+   * Attend que l'échange soit au repos : plus aucun message en file, et
+   * l'interface n'envoie plus de nouvelle commande (une réponse en déclenche
+   * souvent une autre : fin d'installation → nouvelle détection…).
+   */
+  async stabiliser() {
+    for (let tour = 0; tour < 40; tour++) {
+      const avant = this.commandes.length + this.actionsInconnues.length;
+      await this.calme();
+      await this.#page.evaluate(
+        () => new Promise((fin) => requestAnimationFrame(() => setTimeout(fin, 60)))
+      );
+      await this.calme();
+      if (this.commandes.length + this.actionsInconnues.length === avant) return;
+    }
+    throw new Error("l'interface ne cesse d'envoyer des commandes");
+  }
+
   async violationsCsp() {
     return this.#page.evaluate(() => window.__owlsetupViolationsCsp ?? []);
   }
@@ -232,7 +262,7 @@ export class FauxHote {
     return route.fulfill({
       status: 200,
       contentType: typeDeContenu(fichier),
-      body: await readFile(fichier),
+      body: this.#remplacements.get(chemin) ?? (await readFile(fichier)),
     });
   }
 }

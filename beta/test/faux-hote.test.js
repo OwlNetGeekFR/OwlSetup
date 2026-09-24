@@ -106,6 +106,12 @@ const PRODUCTIONS = {
   diagnosticAvantInstallation: () =>
     scenarios.diagnosticAvantInstallation({ requestId: 3, packages: ["A.B", "C.D"] }),
   installation: () => scenarios.installation({ packages: ["A.B", "C.D"] }, ["C.D"]),
+  historique: () => scenarios.historique(),
+  quarantaine: () =>
+    scenarios.quarantaine([scenarios.elementEnQuarantaine("20260920", "cache", 4, 2048, "2 Ko")]),
+  planification: () => scenarios.planification(),
+  navigateursDetectes: () => scenarios.navigateursDetectes(),
+  diagnosticWinget: () => scenarios.diagnosticWinget(),
 };
 
 describe("faux hôte : fidélité à OwlSetupWebView.cs", () => {
@@ -124,7 +130,8 @@ describe("faux hôte : fidélité à OwlSetupWebView.cs", () => {
     const fonctions = Object.entries(scenarios)
       .filter(([, valeur]) => typeof valeur === "function")
       .map(([nom]) => nom)
-      .filter((nom) => nom !== "miseAJourDisponible"); // ligne de liste, vérifiée plus bas
+      // lignes de liste, vérifiées plus bas
+      .filter((nom) => !["miseAJourDisponible", "elementEnQuarantaine"].includes(nom));
     expect(fonctions.sort()).toEqual(Object.keys(PRODUCTIONS).sort());
   });
 
@@ -146,14 +153,32 @@ describe("faux hôte : fidélité à OwlSetupWebView.cs", () => {
     });
   }
 
-  it("une ligne de mise à jour a les champs de QueryAvailableUpdates", () => {
-    const debut = hote.indexOf("List<Dictionary<string,object>> QueryAvailableUpdates(");
-    expect(debut, "QueryAvailableUpdates introuvable").toBeGreaterThan(0);
-    const ajout = hote.indexOf("results.Add(new Dictionary<string,object>{", debut);
+  /** Clés du premier `<liste>.Add(new Dictionary<string,object>{…})` d'une méthode. */
+  function clesDuDictionnaire(signature, liste) {
+    const debut = hote.indexOf(signature);
+    expect(debut, `${signature} introuvable`).toBeGreaterThan(0);
+    const ajout = hote.indexOf(`${liste}.Add(new Dictionary<string,object>{`, debut);
     const ligne = hote.slice(ajout, hote.indexOf("});", ajout));
     const champs = [...ligne.matchAll(/\{"(\w+)",/g)].map(([, champ]) => champ).sort();
     expect(champs.length).toBeGreaterThan(3);
+    return champs;
+  }
+
+  it("une ligne de mise à jour a les champs de QueryAvailableUpdates", () => {
+    const champs = clesDuDictionnaire(
+      "List<Dictionary<string,object>> QueryAvailableUpdates(",
+      "results"
+    );
     expect(Object.keys(scenarios.miseAJourDisponible("A.B", "A", "1", "2")).sort()).toEqual(champs);
+  });
+
+  it("un élément en quarantaine a les champs de BuildQuarantineItems", () => {
+    const champs = clesDuDictionnaire(
+      "List<Dictionary<string,object>> BuildQuarantineItems(",
+      "items"
+    );
+    const element = scenarios.elementEnQuarantaine("20260920", "cache", 4, 2048, "2 Ko");
+    expect(Object.keys(element).sort()).toEqual(champs);
   });
 
   it("les réponses de démarrage correspondent à des actions de OnWebMessage", () => {

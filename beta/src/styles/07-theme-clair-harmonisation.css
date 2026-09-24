@@ -651,7 +651,6 @@
 }
 :root[data-theme="light"] .catalog-advanced > summary > b {
   border-color: #bcccdf;
-  color: var(--text-blue);
 }
 :root[data-theme="light"] .browser-category small,
 :root[data-theme="light"] .browser-category p {
@@ -1075,11 +1074,6 @@
 :root[data-theme="light"] .alpha-result-list article.advanced > span {
   background: #efe9fb;
 }
-:root[data-theme="light"] .alpha-simulate-button {
-  background: #e7effb;
-  border-color: #bcd0ec;
-  color: #2f5aa8;
-}
 :root[data-theme="light"] .alpha-review-logo {
   background: #e7effb;
   color: var(--text-cyan);
@@ -1210,7 +1204,6 @@
 :root[data-theme="light"] .health-ring small {
   color: var(--muted);
 }
-:root[data-theme="light"] .home-footnote strong,
 :root[data-theme="light"] footer p strong {
   color: #2b4f8f;
 }

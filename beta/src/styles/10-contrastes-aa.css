@@ -45,14 +45,6 @@
   border-color: var(--blue);
 }
 
-/* --- Textes poses sur une jauge coloree ----------------------------------
-   « / 100 » s affiche par-dessus le remplissage vert de la jauge et de
-   l anneau de sante : sur ce vert clair, il faut un texte sombre. */
-.security-gauge small,
-.health-ring small {
-  color: #0b2b22;
-}
-
 /* --- Bouton de soutien Ko-fi ---------------------------------------------
    Rose pale sur fond rose : 1,7:1. */
 .top-support strong,

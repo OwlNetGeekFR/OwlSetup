@@ -468,6 +468,39 @@ fonctionnelle avec vérification d'empreinte, canal bêta commutable.
    par WebView2, jamais sur le réseau — minifier ne gagnerait rien et
    compliquerait le débogage (même raisonnement que `build-js.mjs`).
    **Reste** : purge des règles mortes.
+
+   **Filet de refonte — parité de rendu (`npm run css:parite`).** L'outil
+   rejoue les parcours de `e2e/rendu/parcours.js` avec deux feuilles : celle
+   d'un commit de référence et celle des partiels du disque. À chaque étape, il
+   compare tous les styles calculés de tous les éléments, `::before` et
+   `::after` compris. La matrice couvre 34 parcours, soit 350 états, dans les
+   deux thèmes, avec et sans réglages d'accessibilité, sur sept largeurs (une
+   par palier de requête média). Elle tourne en 4 min 30 et exerce 82 % des
+   règles ; le rapport liste les autres. L'outil est déterministe : horloge
+   simulée, minuteries avancées avant chaque capture, attente d'un échange au
+   repos, focus retiré quand l'interface le place différemment. Sept sabotages
+   (couleur, thème clair seul, pseudo-élément, requête média, variable sans
+   effet) ont été détectés, ou ignorés quand ils le devaient.
+
+   **Fait — nettoyage prouvé (−565 lignes, rendu identique).**
+   - 214 déclarations toujours écrasées : une règle plus loin, au même
+     sélecteur et dans le même contexte, redéclare la même propriété (ou un
+     raccourci qui la couvre) sans perdre en importance ; la valeur qui masque
+     est validée par `CSS.supports`.
+   - 39 sélecteurs exigeant l'une des 19 classes absentes de tout le code
+     (l'ancienne navigation latérale `.nav-group`/`.nav-submenu`,
+     `.brand-logo`…), et 82 règles restées vides.
+   - Parité stricte sur les 350 états ; les 18 tests PowerShell qui lisent le
+     CSS restent verts.
+
+   **Constat — la palette.** La feuille contient **1 673 couleurs
+   distinctes** pour 2 433 usages, et environ 350 usages de variables. Même en
+   confondant les couleurs à moins de ΔE 5 (écart visible de près), il en
+   reste 425. Une refonte par jetons (une palette de 40 à 60 couleurs par
+   thème, le thème clair réduit à des redéfinitions de jetons) est le seul
+   moyen de diviser la feuille. Elle changera donc légèrement le rendu : c'est
+   une décision de design, à valider sur captures avant/après.
+
 2. [~] _(4.0.0-beta.44, beta.49, beta.50)_ **i18n** : **1 227 chaînes à 100 %**,
    `index.html` et `app.js` compris, **interpolations comprises**. La porte
    `--check` de `beta/scripts/audit-i18n.mjs` bloque sur tout

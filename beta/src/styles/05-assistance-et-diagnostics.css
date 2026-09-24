@@ -982,12 +982,6 @@ body.reduced-motion *::after {
 .security-state-critical {
   color: #ef718c !important;
 }
-.security-state-warning {
-  color: #efb563 !important;
-}
-.security-state-info {
-  color: #69aef2 !important;
-}
 @media (max-width: 760px) {
   .security-header-actions,
   .security-log-actions {

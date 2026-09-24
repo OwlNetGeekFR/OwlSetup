@@ -202,6 +202,109 @@ export function installation(payload, echecs = []) {
 }
 
 /**
+ * `LoadHistory` : un élément par journal `PC-Setup-*.log`. `title` et `type`
+ * viennent de `HistoryType`, `summary` du rapport JSON quand il existe.
+ */
+export function historique() {
+  const entree = (name, type, summary, result, reportName) => ({
+    name,
+    date: "24/09/2026 10:15",
+    size: "12,4 Ko",
+    type,
+    title: type,
+    summary,
+    result,
+    reportName,
+  });
+  return [
+    {
+      type: "history-state",
+      items: [
+        entree(
+          "PC-Setup-Installation-2026-09-24-101500.log",
+          "Installation",
+          "2 réussi(s) · 0 échec(s)",
+          "success",
+          "PC-Setup-Installation-2026-09-24-101500.json"
+        ),
+        entree(
+          "PC-Setup-Mise-a-jour-2026-09-23-184200.log",
+          "Mise à jour",
+          "1 réussi(s) · 1 échec(s)",
+          "failed",
+          "PC-Setup-Mise-a-jour-2026-09-23-184200.json"
+        ),
+        entree("PC-Setup-Nettoyage-2026-09-20-090000.log", "Nettoyage", "", "", ""),
+      ],
+    },
+  ];
+}
+
+/** Un élément de `BuildQuarantineItems` (dictionnaire de l'hôte). */
+export function elementEnQuarantaine(batch, item, ageDays, bytes, size) {
+  return {
+    batch,
+    item,
+    modified: "20/09/2026 09:00",
+    modifiedSort: "2026-09-20T09:00:00.0000000+02:00",
+    ageDays,
+    bytes,
+    size,
+    partial: false,
+  };
+}
+
+/** `SendQuarantineState` avec des éléments isolés. */
+export function quarantaine(elements) {
+  return [{ type: "quarantine-state", items: elements }];
+}
+
+/** `SendScheduleState` quand une tâche planifiée existe. */
+export function planification() {
+  return [
+    {
+      type: "schedule-state",
+      exists: true,
+      action: "check",
+      frequency: "weekly",
+      day: 5,
+      time: "20:00",
+      nextRun: "26/09/2026 20:00",
+    },
+  ];
+}
+
+/** `ScanBrowserData` : un élément par navigateur ayant au moins un profil. */
+export function navigateursDetectes() {
+  return [
+    {
+      type: "browser-scan-state",
+      items: [
+        { id: "chrome", name: "Google Chrome", engine: "Chromium", profiles: 2, running: false },
+        { id: "firefox", name: "Mozilla Firefox", engine: "Firefox", profiles: 1, running: true },
+      ],
+    },
+  ];
+}
+
+/** `DiagnoseWinget` : progression de l'outil puis résultat. */
+export function diagnosticWinget() {
+  return [
+    { type: "tool-progress", tool: "winget", percent: 10, status: "Verification de WinGet..." },
+    { type: "tool-progress", tool: "winget", percent: 55, status: "Version controlee." },
+    { type: "tool-progress", tool: "winget", percent: 90, status: "Sources controlees." },
+    { type: "tool-progress", tool: "winget", percent: 100, status: "Diagnostic termine." },
+    {
+      type: "winget-diagnostic",
+      available: true,
+      sources: true,
+      version: "v1.11.400",
+      message: "WinGet et ses sources répondent correctement.",
+    },
+  ];
+}
+
+/**
  * Ce que l'hôte répond au lancement d'une interface « au repos » : c'est le
  * jeu de réponses installé par défaut sur le faux hôte.
  */

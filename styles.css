@@ -119,38 +119,11 @@ button {
   color: inherit;
   text-decoration: none;
 }
-.brand-logo {
-  width: 35px;
-  height: 35px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  transform: skew(-4deg);
-}
-.brand-logo i {
-  display: block;
-  background: linear-gradient(135deg, var(--cyan), var(--blue));
-  border-radius: 2px;
-}
 .brand-app-logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
   filter: drop-shadow(0 5px 12px rgba(39, 152, 239, 0.32));
-}
-.brand-app-logo.linux-brand-logo {
-  width: 46px;
-  height: 46px;
-  filter: drop-shadow(0 6px 11px rgba(0, 0, 0, 0.48));
-}
-.brand-app-logo.macos-brand-logo {
-  width: 39px;
-  height: 39px;
-  padding: 6px;
-  border: 1px solid #344052;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #232b37, #10151d);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
 }
 .brand strong,
 .brand small {
@@ -158,13 +131,11 @@ button {
 }
 .brand strong {
   font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  font-size: 15px;
   letter-spacing: 0.01em;
 }
 .brand small {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
@@ -180,75 +151,8 @@ nav {
   scrollbar-width: thin;
   scrollbar-color: #263247 transparent;
 }
-.nav-group {
-  display: grid;
-  gap: 3px;
-}
-.nav-group-toggle {
-  width: 100%;
-  height: 37px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #687487;
-  display: grid;
-  grid-template-columns: 18px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  cursor: pointer;
-  transition: 0.18s;
-}
-.nav-group-toggle:hover {
-  color: #aeb8c8;
-  background: #101722;
-}
-.nav-group-toggle > span {
-  font-size: 14px;
-  text-align: center;
-}
-.nav-group-toggle strong {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-}
-.nav-group-toggle i {
-  font-size: 13px;
-  font-style: normal;
-  transition: transform 0.2s;
-}
-.nav-group:not(.collapsed) > .nav-group-toggle {
-  color: #93a1b5;
-}
-.nav-group.collapsed > .nav-group-toggle i {
-  transform: rotate(-90deg);
-}
-.nav-submenu {
-  display: grid;
-  gap: 3px;
-  padding-left: 9px;
-  overflow: hidden;
-}
-.nav-group.collapsed > .nav-submenu {
-  display: none;
-}
-.nav-subitem {
-  height: 40px;
-  padding-left: 11px;
-  font-size: 11px;
-}
-.nav-subitem > span {
-  width: 16px;
-  font-size: 14px;
-}
-.nav-group:has(.nav-item.active) > .nav-group-toggle {
-  color: #b9c5d8;
-  background: rgba(72, 121, 255, 0.06);
-}
 .nav-item {
   width: 100%;
-  height: 45px;
   padding: 0 13px;
   border: 0;
   border-radius: 9px;
@@ -259,7 +163,6 @@ nav {
   gap: 13px;
   text-align: left;
   font-weight: 600;
-  font-size: 13px;
   cursor: pointer;
 }
 .nav-item > span {
@@ -275,7 +178,6 @@ nav {
   color: #a7b1c1;
   background: #202735;
   text-align: center;
-  font-size: 10px;
 }
 .nav-item.active {
   color: #fff;
@@ -324,9 +226,6 @@ nav {
 .system-title strong,
 .system-title small {
   display: block;
-}
-.system-title strong {
-  font-size: 11px;
 }
 .system-title small {
   color: var(--muted);
@@ -382,7 +281,6 @@ nav {
   background: #101b29;
 }
 .system-refresh span {
-  display: inline-block;
   margin-right: 5px;
 }
 .system-refresh:active span {
@@ -424,25 +322,19 @@ nav {
 .cleanup-analysis-list small {
   display: block;
 }
-.cleanup-analysis-list strong {
-  font-size: 9px;
-}
 .cleanup-analysis-list small {
   margin-top: 4px;
   color: #68778a;
-  font-size: 7px;
   line-height: 1.4;
 }
 .cleanup-analysis-list b {
   flex: 0 0 auto;
   color: #63d3b0;
-  font-size: 9px;
 }
 .analysis-loading {
   padding: 18px;
   color: var(--muted);
   text-align: center;
-  font-size: 9px;
 }
 .analysis-loading span {
   display: inline-block;
@@ -462,12 +354,10 @@ nav {
 }
 .protected-folders strong {
   color: var(--text-green);
-  font-size: 8px;
 }
 .protected-folders span {
   margin-top: 4px;
   color: #768a80;
-  font-size: 7px;
 }
 .repair-logo {
   color: #70d4e6;
@@ -530,29 +420,22 @@ main {
   z-index: 10;
 }
 .horizontal-nav {
-  height: 56px;
   padding: 8px 38px;
   border-bottom: 1px solid #202a38;
   background: rgba(10, 14, 21, 0.96);
   display: flex;
   align-items: center;
-  gap: 7px;
   position: sticky;
   top: 65px;
   z-index: 9;
 }
 .top-nav-item,
 .top-nav-toggle {
-  height: 39px;
-  padding: 0 14px;
   border: 1px solid transparent;
-  border-radius: 9px;
   background: transparent;
   color: #8490a2;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: 0.18s;
@@ -594,9 +477,6 @@ main {
   display: none;
   position: absolute;
   left: 0;
-  top: 46px;
-  width: 265px;
-  padding: 8px;
   border: 1px solid #2b3b51;
   border-radius: 12px;
   background: rgba(12, 18, 27, 0.98);
@@ -608,14 +488,10 @@ main {
   gap: 4px;
 }
 .top-nav-menu .nav-item {
-  height: 43px;
   font-size: 11px;
 }
 .top-nav-menu .nav-item.active {
   background: rgba(72, 121, 255, 0.16);
-}
-.settings-tab {
-  margin-left: auto;
 }
 .top-menu-alert {
   min-width: 18px;
@@ -630,35 +506,23 @@ main {
   display: none;
 }
 .top-nav-menu {
-  width: 330px;
   padding: 10px;
-}
-.top-nav-group.open > .top-nav-menu {
-  animation: navMenuReveal 0.16s ease-out;
 }
 .top-nav-menu-title {
   padding: 6px 10px 7px;
   color: var(--text-blue);
-  font-size: 7px;
   font-weight: 900;
   letter-spacing: 0.15em;
 }
 .top-nav-menu .nav-item {
-  height: 58px;
-  padding: 7px 10px;
-  gap: 11px;
   text-decoration: none;
 }
 .top-nav-menu .nav-menu-icon {
-  width: 35px;
-  height: 35px;
   flex: 0 0 auto;
-  border-radius: 9px;
   background: #17263a;
   color: #79a9ef;
   display: grid;
   place-items: center;
-  font-size: 15px;
 }
 .top-nav-menu .nav-menu-copy {
   width: auto;
@@ -673,12 +537,8 @@ main {
 }
 .nav-menu-copy strong {
   color: #dce5f2;
-  font-size: 11px;
 }
 .nav-menu-copy small {
-  margin-top: 4px;
-  color: #697a90;
-  font-size: 8px;
   font-weight: 500;
 }
 .top-nav-menu .nav-item:hover {
@@ -708,7 +568,6 @@ main {
 }
 .breadcrumb {
   color: var(--muted);
-  font-size: 11px;
 }
 .breadcrumb span {
   margin: 0 9px;
@@ -727,7 +586,6 @@ main {
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 10px;
 }
 .secure span {
   display: grid;
@@ -811,7 +669,6 @@ main {
 .kicker,
 .label {
   color: var(--text-blue);
-  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
@@ -917,13 +774,11 @@ h3 {
 }
 .section-heading h2 {
   margin: 5px 0 0;
-  font-size: 18px;
 }
 .text-button {
   border: 0;
   background: none;
   color: var(--muted);
-  font-size: 10px;
   cursor: pointer;
 }
 .text-button:hover {
@@ -977,9 +832,6 @@ h3 {
 .preset small {
   display: block;
 }
-.preset strong {
-  font-size: 12px;
-}
 .preset small {
   margin-top: 5px;
   color: var(--muted);
@@ -993,7 +845,6 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: center;
 }
 .search {
   min-width: 250px;
@@ -1015,7 +866,6 @@ h3 {
   outline: 0;
   color: #dce2eb;
   background: transparent;
-  font-size: 11px;
 }
 .search input::placeholder {
   color: #566071;
@@ -1077,21 +927,7 @@ h3 {
   font-size: 8px;
 }
 .catalog-scope:hover {
-  border-color: #3b567c;
   transform: translateY(-1px);
-}
-.catalog-scope.active {
-  border-color: #4378c8;
-  background: linear-gradient(145deg, #16253a, #111b2a);
-  box-shadow: inset 0 -2px #4d83ed;
-}
-.catalog-scope.active > span {
-  background: #214376;
-  color: #a8c9ff;
-}
-.catalog-scope.active > b {
-  background: #23406a;
-  color: #bdd5ff;
 }
 .filters {
   display: flex;
@@ -1110,12 +946,6 @@ h3 {
   white-space: nowrap;
   cursor: pointer;
 }
-.filter:hover,
-.filter.active {
-  border-color: #2c4268;
-  color: #d7e4ff;
-  background: rgba(55, 100, 184, 0.13);
-}
 .results-line {
   display: flex;
   justify-content: space-between;
@@ -1132,7 +962,6 @@ h3 {
   gap: 9px;
 }
 .app-card {
-  min-height: 105px;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1195,14 +1024,11 @@ h3 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
 }
 .app-copy small {
   min-height: 26px;
   margin-top: 5px;
   color: var(--muted);
-  font-size: 8px;
-  line-height: 1.4;
 }
 .app-copy em {
   margin-top: 5px;
@@ -1270,7 +1096,6 @@ h3 {
 .app-card.installed {
   border-color: #285044;
   background: linear-gradient(140deg, rgba(35, 103, 80, 0.14), #101721);
-  cursor: default;
 }
 .installed-badge {
   position: absolute;
@@ -1280,7 +1105,6 @@ h3 {
   border-radius: 5px;
   color: #58d3a6;
   background: rgba(62, 213, 152, 0.1);
-  font-size: 7px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1338,12 +1162,10 @@ h3 {
 }
 .config-toolbar > div:first-child strong {
   margin-top: 5px;
-  font-size: 11px;
 }
 .config-toolbar > div:first-child small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .config-toolbar > div:last-child {
   display: flex;
@@ -1371,7 +1193,6 @@ h3 {
   left: 66px;
   bottom: 12px;
   color: #66859a;
-  font-size: 6px;
 }
 .custom-tools {
   display: grid;
@@ -1460,7 +1281,6 @@ h3 {
   padding: 12px 14px;
   border: 1px solid #49323a;
   border-radius: 10px;
-  background: rgba(119, 42, 56, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1469,13 +1289,9 @@ h3 {
 .installed-manager small {
   display: block;
 }
-.installed-manager strong {
-  font-size: 10px;
-}
 .installed-manager small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 7px;
 }
 .tools-grid {
   display: grid;
@@ -1534,14 +1350,11 @@ h3 {
 }
 .tool-panel h3 {
   margin: 0;
-  font-size: 12px;
 }
 .tool-panel p {
   min-height: 28px;
   margin: 5px 0 12px;
   color: var(--muted);
-  font-size: 8px;
-  line-height: 1.5;
 }
 .tool-actions {
   display: flex;
@@ -1577,13 +1390,9 @@ h3 {
 .system-list small {
   display: block;
 }
-.system-list strong {
-  font-size: 9px;
-}
 .system-list small {
   margin-top: 4px;
   color: #647387;
-  font-size: 7px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1667,7 +1476,6 @@ h3 {
 }
 .security-overview {
   margin-top: 22px;
-  padding: 18px;
   border: 1px solid #27405a;
   border-radius: 13px;
   background: linear-gradient(120deg, rgba(32, 79, 113, 0.2), #101721);
@@ -1703,14 +1511,12 @@ h3 {
 .security-score small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 10px;
 }
 .security-mode {
   text-align: right;
 }
 .security-mode span {
   color: var(--text-blue);
-  font-size: 8px;
   letter-spacing: 0.13em;
 }
 .security-mode strong {
@@ -1721,7 +1527,6 @@ h3 {
 .security-mode small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 9px;
 }
 .security-grid {
   display: grid;
@@ -1775,17 +1580,14 @@ h3 {
 }
 .security-grid small {
   color: var(--text-blue);
-  font-size: 8px;
   letter-spacing: 0.1em;
 }
 .security-grid strong {
   margin-top: 7px;
-  font-size: 12px;
 }
 .security-grid em {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 9px;
   font-style: normal;
   line-height: 1.4;
 }
@@ -1808,12 +1610,10 @@ h3 {
 }
 .security-log-panel h2 {
   margin: 5px 0 0;
-  font-size: 16px;
 }
 .security-log-panel p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 10px;
 }
 .simulation-badge {
   margin-bottom: 13px;
@@ -1840,7 +1640,6 @@ h3 {
 }
 .simulation-badge strong {
   color: var(--text-green);
-  font-size: 9px;
   letter-spacing: 0.08em;
 }
 .simulation-badge small {
@@ -2226,7 +2025,6 @@ h3 {
   height: 44px;
   padding: 0 17px;
   border-radius: 8px;
-  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -2262,16 +2060,11 @@ h3 {
   width: 112px;
   height: 112px;
   margin-bottom: 15px;
-  border: 8px solid #213249;
-  border-top-color: #4ed1d9;
-  border-right-color: #4c7ff0;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  transform: rotate(12deg);
 }
 .health-ring > div {
-  transform: rotate(-12deg);
   text-align: center;
 }
 .health-ring strong,
@@ -2296,7 +2089,6 @@ h3 {
 }
 .health-widget > b {
   margin-top: 5px;
-  font-size: 10px;
 }
 .home-section-heading {
   display: flex;
@@ -2306,7 +2098,6 @@ h3 {
 }
 .home-section-heading h2 {
   margin: 5px 0 0;
-  font-size: 19px;
 }
 .local-pill {
   padding: 6px 9px;
@@ -2367,9 +2158,6 @@ h3 {
   letter-spacing: 0.12em;
 }
 .feature-icon {
-  width: 39px;
-  height: 39px;
-  border-radius: 10px;
   display: grid;
   place-items: center;
   color: #83aaff;
@@ -2401,19 +2189,16 @@ h3 {
 }
 .feature-copy strong {
   font-family: Manrope;
-  font-size: 13px;
 }
 .feature-copy small {
   min-height: 38px;
   margin-top: 7px;
   color: var(--muted);
-  font-size: 9px;
   line-height: 1.5;
 }
 .feature-copy em {
   margin-top: 14px;
   color: var(--text-blue);
-  font-size: 8px;
   font-style: normal;
 }
 .feature-copy em b {
@@ -2438,8 +2223,6 @@ h3 {
   gap: 9px;
 }
 .home-trust > div > span {
-  width: 21px;
-  height: 21px;
   border: 1px solid #2d6956;
   border-radius: 50%;
   display: grid;
@@ -2454,13 +2237,9 @@ h3 {
 .home-trust small {
   display: block;
 }
-.home-trust strong {
-  font-size: 9px;
-}
 .home-trust small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 7px;
 }
 .queue-layout {
   display: grid;
@@ -2487,9 +2266,6 @@ h3 {
 .queue-item strong,
 .queue-item small {
   display: block;
-}
-.queue-item strong {
-  font-size: 12px;
 }
 .queue-item small {
   color: #657084;
@@ -2559,7 +2335,6 @@ h3 {
   border-radius: 9px;
   background: linear-gradient(90deg, #396de5, #4f87f5);
   font-weight: 700;
-  font-size: 11px;
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(54, 105, 226, 0.25);
 }
@@ -2569,7 +2344,6 @@ h3 {
 }
 .summary-card > p {
   color: var(--muted);
-  font-size: 8px;
   line-height: 1.5;
   text-align: center;
 }
@@ -2642,13 +2416,11 @@ h3 {
   font: 800 8px Manrope;
 }
 .steps h3 {
-  font-size: 13px;
   margin: 2px 0 7px;
 }
 .steps p {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
   line-height: 1.6;
 }
 .notice {
@@ -2753,7 +2525,6 @@ h3 {
   background: rgba(62, 213, 152, 0.08);
   padding: 4px 6px;
   border-radius: 4px;
-  font-size: 7px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -2784,12 +2555,8 @@ h3 {
 .update-action-copy small {
   display: block;
 }
-.update-action-copy strong {
-  font-size: 12px;
-}
 .update-action-copy small {
   color: var(--muted);
-  font-size: 9px;
   margin-top: 5px;
 }
 .update-button {
@@ -2852,13 +2619,9 @@ h3 {
 .update-steps small {
   display: block;
 }
-.update-steps strong {
-  font-size: 10px;
-}
 .update-steps small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 8px;
   line-height: 1.5;
 }
 .cleanup-intro {
@@ -2969,13 +2732,9 @@ h3 {
 .cleanup-copy small {
   display: block;
 }
-.cleanup-copy strong {
-  font-size: 11px;
-}
 .cleanup-copy small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 8px;
 }
 .cleanup-option em {
   padding: 4px 6px;
@@ -3183,8 +2942,6 @@ h3 {
   z-index: 100;
   inset: 0;
   display: grid;
-  place-items: center;
-  padding: 20px;
   background: rgba(2, 5, 10, 0.78);
   backdrop-filter: blur(9px);
 }
@@ -3254,7 +3011,6 @@ h3 {
 .dialog-confirm > p {
   margin: 0 0 18px;
   color: var(--muted);
-  font-size: 11px;
   line-height: 1.6;
 }
 .dialog-confirm > p strong {
@@ -3335,13 +3091,9 @@ h3 {
 .progress-status small {
   display: block;
 }
-.progress-status strong {
-  font-size: 11px;
-}
 .progress-status small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .progress-status > b {
   color: var(--text-cyan);
@@ -3536,7 +3288,6 @@ h3 {
   border: 0;
   border-radius: 8px;
   color: #fff;
-  background: linear-gradient(90deg, #a83e52, #d35569);
   font-size: 9px;
   font-weight: 800;
   cursor: pointer;
@@ -3747,13 +3498,9 @@ h3 {
 .update-progress-steps small {
   display: block;
 }
-.update-progress-steps strong {
-  font-size: 8px;
-}
 .update-progress-steps small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 6px;
 }
 .cleanup-dialog {
   width: min(680px, calc(100vw - 32px));
@@ -3798,13 +3545,9 @@ h3 {
 .cleanup-confirm-card small {
   display: block;
 }
-.cleanup-confirm-card strong {
-  font-size: 10px;
-}
 .cleanup-confirm-card small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .cleanup-dialog-warning {
   color: #948a72;
@@ -3855,17 +3598,14 @@ h3 {
 .cleanup-current-zone small,
 .cleanup-result-card small {
   color: var(--muted);
-  font-size: 6px;
   letter-spacing: 0.12em;
 }
 .cleanup-current-zone strong,
 .cleanup-result-card strong {
   margin-top: 5px;
-  font-size: 10px;
 }
 .cleanup-current-zone > b {
   color: #73919b;
-  font-size: 8px;
 }
 .cleanup-result-card {
   border-color: #285344;
@@ -3940,7 +3680,6 @@ h3 {
 }
 .health-dashboard strong {
   margin-top: 4px;
-  font-size: 10px;
 }
 .health-dashboard em {
   margin-top: 3px;
@@ -3959,21 +3698,6 @@ h3 {
 }
 .health-refresh.scanning {
   animation: spin 1s linear infinite;
-}
-.health-ring {
-  transition: border-color 0.3s;
-}
-.health-ring.good {
-  border-top-color: #4ed3a1;
-  border-right-color: #4ed3a1;
-}
-.health-ring.warning {
-  border-top-color: #e6b34e;
-  border-right-color: #d67c51;
-}
-.health-ring.critical {
-  border-top-color: #dc5d71;
-  border-right-color: #dc5d71;
 }
 .update-preview-panel {
   margin-top: 20px;
@@ -4012,15 +3736,10 @@ h3 {
 .no-updates small {
   display: block;
 }
-.update-scan-state strong,
-.no-updates strong {
-  font-size: 10px;
-}
 .update-scan-state small,
 .no-updates small {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 8px;
 }
 .no-updates > span {
   width: 35px;
@@ -4080,15 +3799,11 @@ h3 {
 }
 .update-app-icon span {
   color: #74a4ed;
-  font-size: 7px;
   font-weight: 800;
 }
 .available-update strong,
 .available-update small {
   display: block;
-}
-.available-update strong {
-  font-size: 9px;
 }
 .available-update small {
   margin-top: 4px;
@@ -4211,7 +3926,6 @@ h3 {
   padding: 60px 20px;
   text-align: center;
   color: var(--muted);
-  font-size: 9px;
 }
 .quarantine-loading span {
   display: block;
@@ -4236,7 +3950,6 @@ h3 {
 }
 .quarantine-empty p {
   color: var(--muted);
-  font-size: 8px;
 }
 .quarantine-confirm {
   position: fixed;
@@ -4261,7 +3974,6 @@ h3 {
 }
 .quarantine-confirm p {
   color: #7d899a;
-  font-size: 9px;
   line-height: 1.6;
 }
 .quarantine-confirm .dialog-actions {
@@ -4325,9 +4037,6 @@ h3 {
 .self-update-state strong,
 .self-update-state small {
   display: block;
-}
-.self-update-state strong {
-  font-size: 11px;
 }
 .self-update-state small {
   margin-top: 5px;
@@ -4395,12 +4104,10 @@ h3 {
 }
 .update-signing-notice strong {
   color: #f2d18d;
-  font-size: 9px;
 }
 .update-signing-notice small {
   margin-top: 4px;
   color: #a99776;
-  font-size: 8px;
   line-height: 1.55;
 }
 .troubleshooting-intro {
@@ -4413,8 +4120,6 @@ h3 {
   border: 1px solid #7b5524;
   border-radius: 7px;
   color: #f3bd61;
-  background: rgba(175, 105, 26, 0.1);
-  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -4455,9 +4160,6 @@ h3 {
 .feedback-heading strong,
 .feedback-heading small {
   display: block;
-}
-.feedback-heading strong {
-  font-size: 14px;
 }
 .feedback-heading small {
   margin-top: 4px;
@@ -4664,17 +4366,6 @@ h3 {
   .custom-tools {
     grid-template-columns: 1fr;
   }
-  .custom-install {
-    align-items: stretch;
-    flex-wrap: wrap;
-  }
-  .custom-install > div {
-    width: 100%;
-  }
-  .custom-install input {
-    width: auto;
-    flex: 1;
-  }
   .search {
     max-width: none;
   }
@@ -4790,89 +4481,8 @@ h3 {
 }
 
 /* Lisibilité renforcée : textes secondaires et commandes agrandis sans modifier les grands titres. */
-body {
-  font-size: 15px;
-}
-.brand strong {
-  font-size: 17px;
-}
-.brand small {
-  font-size: 11px;
-}
-.nav-item {
-  height: 48px;
-  font-size: 14px;
-}
-.nav-item b {
-  font-size: 11px;
-}
-.nav-item .new-badge,
-.build-badge {
-  font-size: 9px;
-}
-.system-title strong {
-  font-size: 13px;
-}
-.system-title small,
-.system-row,
-.status-pill,
-.side-note {
-  font-size: 11px;
-}
-.breadcrumb {
-  font-size: 12px;
-}
-.secure {
-  font-size: 11px;
-}
-.kicker,
-.label {
-  font-size: 10px;
-}
-.hero p,
-.page-intro p,
-.home-copy > p {
-  font-size: 14px;
-}
-.section-heading h2 {
-  font-size: 20px;
-}
-.text-button {
-  font-size: 12px;
-}
-.preset strong {
-  font-size: 14px;
-}
-.preset small,
-.preset > b {
-  font-size: 11px;
-}
-.search input {
-  font-size: 13px;
-}
-.filter,
-.results-line {
-  font-size: 11px;
-}
-.app-card {
-  min-height: 120px;
-}
-.app-copy strong {
-  font-size: 13px;
-}
-.app-copy small {
-  font-size: 10px;
-  line-height: 1.5;
-}
-.app-copy em,
-.official-link {
-  font-size: 9px;
-}
 .installed-badge {
   font-size: 9px;
-}
-.repair-capability {
-  font-size: 8px;
 }
 .app-card.manual-install {
   border-color: #4b3f2c;
@@ -4945,9 +4555,6 @@ body {
 .guided-install-steps small {
   display: block;
 }
-.guided-install-steps strong {
-  font-size: 9px;
-}
 .guided-install-steps small {
   margin-top: 4px;
   color: var(--muted);
@@ -4979,7 +4586,6 @@ body {
 }
 .guided-install-note strong {
   color: var(--text-green);
-  font-size: 9px;
 }
 .guided-install-note small {
   margin-top: 4px;
@@ -4993,124 +4599,8 @@ body {
 .guided-install-actions .primary-dialog-button {
   min-width: 205px;
 }
-.config-toolbar > div:first-child strong {
-  font-size: 13px;
-}
-.config-toolbar > div:first-child small {
-  font-size: 10px;
-}
-.custom-install strong {
-  font-size: 11px;
-}
-.custom-install input,
-.profile-tools input,
-.profile-tools select {
-  font-size: 10px;
-}
-.installed-manager strong {
-  font-size: 12px;
-}
-.installed-manager small {
-  font-size: 10px;
-}
-.tool-panel h3 {
-  font-size: 14px;
-}
 .tool-panel p {
-  font-size: 11px;
   line-height: 1.55;
-}
-.primary-dialog-button,
-.secondary-dialog-button,
-.danger-dialog-button {
-  font-size: 11px;
-}
-.system-list strong {
-  font-size: 11px;
-}
-.system-list small {
-  font-size: 9px;
-}
-.system-list button,
-.history-type {
-  font-size: 9px;
-}
-.disk-item b,
-.tool-empty {
-  font-size: 10px;
-}
-.health-dashboard small,
-.health-dashboard em {
-  font-size: 8px;
-}
-.health-dashboard strong {
-  font-size: 12px;
-}
-.cleanup-option strong,
-.update-card strong,
-.feature-grid strong {
-  font-size: 12px;
-}
-.cleanup-option small,
-.update-card small,
-.feature-grid small {
-  font-size: 10px;
-}
-.safe-list,
-.cleanup-summary > p,
-.dialog-checks,
-.dialog-warning,
-.progress-summary {
-  font-size: 10px;
-}
-.dialog-confirm > p {
-  font-size: 13px;
-}
-.progress-status strong {
-  font-size: 13px;
-}
-.progress-status small {
-  font-size: 10px;
-}
-.current-package small,
-.cleanup-current-zone small,
-.cleanup-result-card small {
-  font-size: 8px;
-}
-.current-package strong,
-.cleanup-current-zone strong,
-.cleanup-result-card strong {
-  font-size: 12px;
-}
-.update-progress-steps strong {
-  font-size: 10px;
-}
-.update-progress-steps small {
-  font-size: 8px;
-}
-.available-update strong {
-  font-size: 11px;
-}
-.available-update small,
-.version-flow {
-  font-size: 9px;
-}
-.quarantine-toolbar strong,
-.quarantine-item strong {
-  font-size: 12px;
-}
-.quarantine-toolbar small,
-.quarantine-item small,
-.quarantine-actions button {
-  font-size: 9px;
-}
-.selection-bar strong,
-.toast strong {
-  font-size: 12px;
-}
-.selection-bar small,
-.toast small {
-  font-size: 10px;
 }
 @media (max-width: 1100px) {
   .security-grid {
@@ -5245,10 +4735,6 @@ body {
 .config-toolbar > div:first-child small {
   font-size: 11px;
 }
-.custom-install strong {
-  font-size: 12px;
-}
-.custom-install input,
 .profile-tools input,
 .profile-tools select {
   font-size: 11px;
@@ -7724,9 +7210,6 @@ body {
   visibility: visible;
   transform: none;
 }
-.onboarding-slide.leaving {
-  transform: translateX(-45px) scale(0.98);
-}
 .onboarding-slide h2 {
   margin: 9px 0 0;
   font-size: 34px;
@@ -9003,12 +8486,6 @@ body.reduced-motion *::after {
 }
 .security-state-critical {
   color: #ef718c !important;
-}
-.security-state-warning {
-  color: #efb563 !important;
-}
-.security-state-info {
-  color: #69aef2 !important;
 }
 @media (max-width: 760px) {
   .security-header-actions,
@@ -10443,13 +9920,11 @@ samp,
 }
 :root[data-theme="light"] .breadcrumb,
 :root[data-theme="light"] .top-nav-item,
-:root[data-theme="light"] .top-nav-toggle,
-:root[data-theme="light"] .top-nav-settings {
+:root[data-theme="light"] .top-nav-toggle {
   color: #526178;
 }
 :root[data-theme="light"] .top-nav-item:hover,
-:root[data-theme="light"] .top-nav-toggle:hover,
-:root[data-theme="light"] .top-nav-settings:hover {
+:root[data-theme="light"] .top-nav-toggle:hover {
   color: #16243a;
   background: #edf3fa;
 }
@@ -10483,7 +9958,6 @@ samp,
 :root[data-theme="light"] .system-card,
 :root[data-theme="light"] .settings-panel,
 :root[data-theme="light"] .app-card,
-:root[data-theme="light"] .profile-card,
 :root[data-theme="light"] .queue-item,
 :root[data-theme="light"] .summary-card,
 :root[data-theme="light"] .feature-card,
@@ -10498,8 +9972,7 @@ samp,
   box-shadow: 0 6px 20px rgba(40, 67, 96, 0.05);
 }
 :root[data-theme="light"] .settings-panel:hover,
-:root[data-theme="light"] .app-card:hover,
-:root[data-theme="light"] .profile-card:hover {
+:root[data-theme="light"] .app-card:hover {
   border-color: #86a7d2;
 }
 :root[data-theme="light"] .settings-panel-heading,
@@ -10537,7 +10010,6 @@ samp,
   color: #17243a;
 }
 :root[data-theme="light"] .search,
-:root[data-theme="light"] .catalog-search,
 :root[data-theme="light"] .feedback-fields input,
 :root[data-theme="light"] .feedback-fields select,
 :root[data-theme="light"] .feedback-fields textarea {
@@ -10558,8 +10030,7 @@ samp,
   border-color: #b9c8da;
   background: #f7f9fc;
 }
-:root[data-theme="light"] .nav-item:hover,
-:root[data-theme="light"] .nav-group-toggle:hover {
+:root[data-theme="light"] .nav-item:hover {
   color: #1d2d44;
   background: #edf3fa;
 }
@@ -10571,12 +10042,10 @@ samp,
 :root[data-theme="light"] .update-scan-state,
 :root[data-theme="light"] .no-updates,
 :root[data-theme="light"] .available-update,
-:root[data-theme="light"] .tool-empty,
-:root[data-theme="light"] .history-list article {
+:root[data-theme="light"] .tool-empty {
   border-color: #ccd7e3;
   background: #eef1f6;
 }
-:root[data-theme="light"] .dialog-overlay,
 :root[data-theme="light"] .onboarding-overlay,
 :root[data-theme="light"] .first-run-overlay,
 :root[data-theme="light"] .language-overlay,
@@ -10623,7 +10092,6 @@ samp,
   color: #6b5827;
 }
 :root[data-theme="light"] .security-card,
-:root[data-theme="light"] .operation-card,
 :root[data-theme="light"] .cleanup-option,
 :root[data-theme="light"] .update-progress-steps > div {
   border-color: #ccd5e1;
@@ -11294,7 +10762,6 @@ samp,
   font-size: 19px;
 }
 .alpha-one-click-button small {
-  color: var(--text-blue);
   font-size: 10px;
 }
 .alpha-one-click-button.scanning > span {
@@ -11438,9 +10905,7 @@ samp,
   border-radius: 11px;
   background: #0d1723;
   display: grid;
-  grid-template-columns: 31px 1fr;
   gap: 10px;
-  align-items: center;
 }
 .alpha-result-list article > span {
   width: 31px;
@@ -11492,18 +10957,6 @@ samp,
 }
 .alpha-results > footer p strong {
   color: #add0f3;
-}
-.alpha-simulate-button {
-  min-height: 42px;
-  padding: 0 17px;
-  border: 1px solid #557cba;
-  border-radius: 10px;
-  background: #172c48;
-  color: #d8e8ff;
-  font-size: 10px;
-  font-weight: 900;
-  cursor: pointer;
-  white-space: nowrap;
 }
 .alpha-chip {
   margin-left: 6px;
@@ -11583,9 +11036,6 @@ samp,
   .alpha-results > footer {
     align-items: stretch;
     flex-direction: column;
-  }
-  .alpha-simulate-button {
-    width: 100%;
   }
 }
 :root[data-theme="light"] .alpha-command-center {
@@ -12132,7 +11582,6 @@ samp,
 }
 .browser-analysis-actions {
   display: flex;
-  align-items: center;
   gap: 16px;
 }
 .browser-analysis-actions > strong {
@@ -13987,7 +13436,6 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .catalog-advanced > summary > b {
   border-color: #bcccdf;
-  color: var(--text-blue);
 }
 :root[data-theme="light"] .browser-category small,
 :root[data-theme="light"] .browser-category p {
@@ -14411,11 +13859,6 @@ label.windows-update-row {
 :root[data-theme="light"] .alpha-result-list article.advanced > span {
   background: #efe9fb;
 }
-:root[data-theme="light"] .alpha-simulate-button {
-  background: #e7effb;
-  border-color: #bcd0ec;
-  color: #2f5aa8;
-}
 :root[data-theme="light"] .alpha-review-logo {
   background: #e7effb;
   color: var(--text-cyan);
@@ -14546,7 +13989,6 @@ label.windows-update-row {
 :root[data-theme="light"] .health-ring small {
   color: var(--muted);
 }
-:root[data-theme="light"] .home-footnote strong,
 :root[data-theme="light"] footer p strong {
   color: #2b4f8f;
 }
@@ -14750,14 +14192,6 @@ label.windows-update-row {
 }
 .btn.ghost:hover {
   border-color: var(--blue);
-}
-
-/* --- Textes poses sur une jauge coloree ----------------------------------
-   « / 100 » s affiche par-dessus le remplissage vert de la jauge et de
-   l anneau de sante : sur ce vert clair, il faut un texte sombre. */
-.security-gauge small,
-.health-ring small {
-  color: #0b2b22;
 }
 
 /* --- Bouton de soutien Ko-fi ---------------------------------------------
