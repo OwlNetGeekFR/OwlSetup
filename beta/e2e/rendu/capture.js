@@ -135,7 +135,9 @@ export function ecartsDeDetail(reference, candidat) {
 export function cadrerElement(index) {
   const element = document.querySelectorAll("*")[index];
   if (!element) return null;
-  element.scrollIntoView({ block: "center", inline: "center" });
+  // « instant » : la feuille déclare `scroll-behavior: smooth`, et un défilement
+  // animé mesurerait l'élément à mi-course, décalant le zoom de l'autre page.
+  element.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
   const cadre = element.getBoundingClientRect();
   if (!cadre.width || !cadre.height) return null;
   if (cadre.width > innerWidth * 0.9 || cadre.height > innerHeight * 0.9) return null;
