@@ -46,7 +46,7 @@
 }
 :root[data-theme="light"] .schedule-note {
   border-color: var(--line-warning);
-  background: #f7f0dd;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .schedule-note > span {
   background: #f0e2c0;

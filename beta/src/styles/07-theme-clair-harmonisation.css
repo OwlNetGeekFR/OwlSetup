@@ -49,7 +49,7 @@
 :root[data-theme="light"] .privacy-confirm,
 :root[data-theme="light"] .guided-install-steps {
   border-color: var(--line);
-  background: #eef1f6;
+  background: var(--panel-3);
   color: var(--text);
 }
 :root[data-theme="light"] .self-update-versions,
@@ -57,18 +57,17 @@
 :root[data-theme="light"] .current-package,
 :root[data-theme="light"] .cleanup-current-zone {
   border-color: var(--line);
-  background: #e8ecf3;
+  background: var(--panel-2);
   color: var(--text);
 }
 :root[data-theme="light"] .expert-command-preview,
 :root[data-theme="light"] .feedback-preview-body pre,
 :root[data-theme="light"] .report-body pre {
   border-color: var(--line-2);
-  background: #eef1f6;
+  background: var(--panel-3);
   color: #2f5a9e;
 }
 :root[data-theme="light"] .dialog-close {
-  background: #eef1f6;
   color: #53637a;
 }
 :root[data-theme="light"] .dialog-close:hover {
@@ -79,7 +78,7 @@
   background: #dde3ec;
 }
 :root[data-theme="light"] .dialog-checks {
-  background: #eef3f8;
+  background: var(--panel-3);
 }
 
 /* --- Panneaux teinte bleue (fonds translucides bleutes) --- */
@@ -99,7 +98,7 @@
 :root[data-theme="light"] .winget-discovery,
 :root[data-theme="light"] .winget-discovery-copy {
   border-color: var(--line-2);
-  background: #eaeff7;
+  background: var(--panel-2);
   color: var(--text);
 }
 :root[data-theme="light"] .security-detail-panel h2,
@@ -128,7 +127,7 @@
 :root[data-theme="light"] .security-recommendation-list,
 :root[data-theme="light"] .security-recommendation-count {
   border-color: var(--line);
-  background: #f6f8fb;
+  background: var(--panel);
   color: var(--text);
 }
 :root[data-theme="light"] .catalog-scope,
@@ -138,17 +137,17 @@
 :root[data-theme="light"] .profile-tools input,
 :root[data-theme="light"] .profile-tools select {
   border-color: var(--line-2);
-  background: #eef1f6;
+  background: var(--panel-3);
   color: #3a4a60;
 }
 :root[data-theme="light"] .catalog-scope.active {
   border-color: var(--line-accent);
-  background: #e6edf8;
+  background: var(--panel-accent);
   color: #22344f;
 }
 :root[data-theme="light"] .home-secondary.app-update-button {
   border-color: var(--line-success);
-  background: #e9f4ee;
+  background: var(--tint-success);
   color: #2f6d55;
 }
 
@@ -162,7 +161,7 @@
 :root[data-theme="light"] .cleanup-result-card,
 :root[data-theme="light"] .protected-folders {
   border-color: var(--line-success);
-  background: #e9f4ee;
+  background: var(--tint-success);
   color: #2f6d55;
 }
 
@@ -181,12 +180,12 @@
 :root[data-theme="light"] .alpha-review-warning,
 :root[data-theme="light"] .system-restart-reason {
   border-color: var(--line-warning);
-  background: #f7f0dd;
+  background: var(--tint-warning);
   color: #7a5c22;
 }
 :root[data-theme="light"] .help-hint {
   border-color: var(--line-warning);
-  background: #f3e7cf;
+  background: var(--tint-warning);
   color: #7a5c22;
 }
 :root[data-theme="light"] .operation-process-panel .text-button {
@@ -211,7 +210,7 @@
   color: #8a3b4c;
 }
 :root[data-theme="light"] .native-error-card code {
-  background: #f3dfe4;
+  background: var(--tint-danger);
   color: #8a3b4c;
 }
 :root[data-theme="light"] .danger-outline-button {
@@ -237,19 +236,19 @@
 :root[data-theme="light"] .notification-list,
 :root[data-theme="light"] .notification-empty {
   border-color: var(--line);
-  background: #f6f8fb;
+  background: var(--panel);
   color: var(--text);
 }
 :root[data-theme="light"] .background-operation,
 :root[data-theme="light"] .background-operation-copy {
   border-color: var(--line-2);
-  background: #eef2f8;
+  background: var(--panel-3);
   color: var(--text);
 }
 :root[data-theme="light"] .background-operation.background-update,
 :root[data-theme="light"] .background-operation.background-update .background-operation-copy {
   border-color: var(--line-success);
-  background: #e9f4ee;
+  background: var(--tint-success);
 }
 :root[data-theme="light"] .background-operation.background-uninstall,
 :root[data-theme="light"] .background-operation.background-uninstall .background-operation-copy {
@@ -257,7 +256,7 @@
   background: #fbeef1;
 }
 :root[data-theme="light"] .toast {
-  background: #e9f4ee;
+  background: var(--tint-success);
   color: #2f6d55;
 }
 :root[data-theme="light"] .toast.toast-error {
@@ -266,7 +265,7 @@
 }
 :root[data-theme="light"] .toast.toast-warning {
   border-color: var(--line-warning);
-  background: #f7f0dd;
+  background: var(--tint-warning);
 }
 
 /* --- Onboarding / premier demarrage --- */
@@ -280,10 +279,10 @@
 }
 :root[data-theme="light"] .onboarding-visual {
   border-color: var(--line-2);
-  background: #e9eef7;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .onboarding-visual.installed {
-  background: #e6f2ec;
+  background: var(--tint-success);
 }
 :root[data-theme="light"] .onboarding-visual.maintenance {
   background: #efe9fb;
@@ -311,7 +310,7 @@
 :root[data-theme="light"] .winget-discovery-icon,
 :root[data-theme="light"] .dialog-logo {
   border-color: #bcd0ec;
-  background: #e7effb;
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .settings-heading-icon.safe,
@@ -325,7 +324,7 @@
 :root[data-theme="light"] .cleanup-dialog-logo,
 :root[data-theme="light"] .self-update-logo {
   border-color: var(--line-success);
-  background: #e0f0e8;
+  background: var(--tint-success);
   color: var(--text-green);
 }
 :root[data-theme="light"] .settings-heading-icon.theme,
@@ -346,7 +345,7 @@
 :root[data-theme="light"] .browser-dialog-logo,
 :root[data-theme="light"] .browser-hero-icon {
   border-color: var(--line-info);
-  background: #e0f0f2;
+  background: var(--tint-info);
   color: var(--text-cyan);
 }
 :root[data-theme="light"] .security-icon.orange,
@@ -356,7 +355,7 @@
 :root[data-theme="light"] .native-error-symbol,
 :root[data-theme="light"] .uninstall-logo {
   border-color: var(--line-warning);
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .batch-uninstall-glow,
@@ -370,7 +369,6 @@
 /* --- Divers --- */
 :root[data-theme="light"] .update-notification {
   border-color: var(--line-2);
-  background: #eef1f6;
   color: #53637a;
 }
 :root[data-theme="light"] .update-notification b {
@@ -386,7 +384,7 @@
 
 /* --- Passe 2 : reliquats (badges Parametres, icones d'en-tete, jauge securite) --- */
 :root[data-theme="light"] .settings-overview > span {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .settings-overview b {
   color: var(--text-green);
@@ -395,11 +393,11 @@
   color: var(--muted);
 }
 :root[data-theme="light"] .settings-panel-heading > span {
-  background: #e7effb;
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .settings-panel-heading > span.safe {
-  background: #e0f0e8;
+  background: var(--tint-success);
   color: var(--text-green);
 }
 :root[data-theme="light"] .settings-panel-heading > span.expert,
@@ -418,7 +416,6 @@
   color: var(--muted);
 }
 :root[data-theme="light"] .security-gauge em {
-  background: #e7effb;
   color: #2f5aa8;
 }
 :root[data-theme="light"] .security-gauge:focus-visible em {
@@ -433,7 +430,7 @@
 }
 :root[data-theme="light"] .health-refresh {
   border-color: var(--line-2);
-  background: #eef1f6;
+  background: var(--panel-3);
   color: #53637a;
 }
 :root[data-theme="light"] .cleanup-summary {
@@ -449,15 +446,13 @@
 }
 :root[data-theme="light"] .settings-toggle {
   border-color: var(--line);
-  background: #eef1f6;
+  background: var(--panel-3);
   color: var(--text);
 }
 :root[data-theme="light"] .language-settings > div > span {
-  background: #e7effb;
   color: #2f5aa8;
 }
 :root[data-theme="light"] .top-nav-menu .nav-menu-icon {
-  background: #e7effb;
   color: #2f5aa8;
 }
 :root[data-theme="light"] .top-nav-menu .nav-item.active .nav-menu-icon {
@@ -480,11 +475,8 @@
   background: #d8dfe8;
   border-color: var(--line);
 }
-:root[data-theme="light"] .home-trust > div {
-  background: #f6f8fb;
-}
 :root[data-theme="light"] .home-trust > div > span {
-  background: #e0f0e8;
+  background: var(--tint-success);
   color: var(--text-green);
 }
 :root[data-theme="light"] .home-trust small {
@@ -498,16 +490,13 @@
 :root[data-theme="light"] .top-nav-menu .nav-menu-copy small {
   color: var(--muted);
 }
-:root[data-theme="light"] .top-nav-menu .nav-item:hover {
-  background: #eef3fa;
-}
 :root[data-theme="light"] .top-nav-menu-title {
   color: var(--muted);
 }
 
 /* Notice "executable non signe" de la modale mise a jour */
 :root[data-theme="light"] .update-signing-notice {
-  background: #f7f0dd;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .update-signing-notice > span {
   background: #f0e2c0;
@@ -544,19 +533,19 @@
 :root[data-theme="light"] .update-card-icon.cyan,
 :root[data-theme="light"] .cleanup-icon.cyan {
   border-color: var(--line-info);
-  background: #e0f0f2;
+  background: var(--tint-info);
   color: var(--text-cyan);
 }
 :root[data-theme="light"] .update-card-icon.green,
 :root[data-theme="light"] .preset-icon.green {
   border-color: var(--line-success);
-  background: #e0f0e8;
+  background: var(--tint-success);
   color: var(--text-green);
 }
 :root[data-theme="light"] .cleanup-icon.orange,
 :root[data-theme="light"] .update-card-icon.orange {
   border-color: var(--line-warning);
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 
@@ -626,7 +615,7 @@
 }
 :root[data-theme="light"] .browser-analysis-protection span {
   border-color: var(--line-success);
-  background: #e9f4ee;
+  background: var(--tint-success);
   color: #2f6d55;
 }
 :root[data-theme="light"] .browser-category em {
@@ -653,447 +642,329 @@
 
 /* --- Passe 7 : couche claire generee depuis l'audit CSS (fonds sombres et
        textes tres clairs sans contrepartie) --- 4.0.0-beta.37 --- */
-:root[data-theme="light"] .cleanup-analysis-list article {
-  background: #eef1f6;
-}
 :root[data-theme="light"] .repair-logo {
-  background: #e0f0f2;
-}
-:root[data-theme="light"] .catalog-scope > span {
-  background: #e7effb;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .catalog-scope.active > span {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .catalog-scope.active > b {
-  background: #e7effb;
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .manage-icon {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
-:root[data-theme="light"] .system-list article {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .system-list button {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .history-type {
-  background: #e7effb;
-}
-:root[data-theme="light"] .tool-progress > div {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .security-score > span {
-  background: #e0f0f2;
-}
 :root[data-theme="light"] .security-grid article {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .simulation-badge > span {
-  background: #e0f0f2;
-}
-:root[data-theme="light"] .danger-simulation > span {
-  background: #f9e4e9;
-}
-:root[data-theme="light"] .uninstall-preview > div {
-  background: #eef1f6;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .winget-discovery button.needs-query {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .winget-result-card {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .winget-result-icon {
-  background: #e7effb;
+  background: var(--panel-accent);
   border-color: #bcd0ec;
   color: #2f5aa8;
 }
 :root[data-theme="light"] .winget-result-fallback {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .winget-external-badge {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   border-color: var(--line-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .winget-add-result.added {
-  background: #e0f0f2;
+  background: var(--tint-info);
   border-color: var(--line-info);
 }
 :root[data-theme="light"] .queue-empty button {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .steps article > b {
-  background: #e7effb;
+  background: var(--panel-accent);
   border-color: #bcd0ec;
 }
 :root[data-theme="light"] .steps article > b small {
-  background: #e7effb;
+  background: var(--panel-accent);
   border-color: #bcd0ec;
   color: #1d2a3a;
 }
 :root[data-theme="light"] .notice > span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .update-advice > span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .update-steps li {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .cleanup-option em {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .danger-note > span {
-  background: #f9e4e9;
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .dialog-warning span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .danger-dialog-warning span {
-  background: #f9e4e9;
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .batch-uninstall-list article {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .batch-item-state {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .batch-uninstall-current > span {
-  background: #f9e4e9;
-}
-:root[data-theme="light"] .update-confirm-list > span {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .update-progress-steps > div > span {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .update-progress-steps > div.active > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
   color: var(--text-cyan);
 }
 :root[data-theme="light"] .update-progress-steps > div.done > span {
-  background: #e0f0e8;
+  background: var(--tint-success);
 }
 :root[data-theme="light"] .cleanup-confirm-card > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .cleanup-current-zone > span {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .cleanup-result-card > span {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .no-updates > span {
-  background: #e0f0e8;
-}
-:root[data-theme="light"] .quarantine-item > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .quarantine-empty > span {
-  background: #e0f0e8;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .self-update-state > span {
-  background: #e0f0f2;
-}
-:root[data-theme="light"] .feedback-heading > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .troubleshooting-help article > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .support-paths article {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .support-paths b {
-  background: #e7effb;
-}
-:root[data-theme="light"] .guided-install-steps li {
-  background: #eef1f6;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .guided-install-steps li > b {
-  background: #f7ecd5;
-}
-:root[data-theme="light"] .guided-install-note > span {
-  background: #e0f0e8;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .preflight-grid > span {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
-:root[data-theme="light"] .preflight-grid i {
-  background: #e7effb;
-}
 :root[data-theme="light"] .preflight-grid > span.success i {
-  background: #e0f0e8;
+  background: var(--tint-success);
 }
 :root[data-theme="light"] .preflight-grid > span.warning i {
-  background: #f7ecd5;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .preflight-grid > span.failed i {
-  background: #f9e4e9;
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .uninstall-residue-list article {
-  background: #eef1f6;
   border-color: var(--line);
 }
 :root[data-theme="light"] .notification-item {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .notification-item.unread {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .notification-item:not(.unread) {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .notification-symbol {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .notification-item.success.unread .notification-symbol {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .notification-item.warning.unread .notification-symbol {
-  background: #f7ecd5;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .notification-empty > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .background-operation-copy > i {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .background-operation > button {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .background-uninstall {
-  background: #f9e4e9;
+  background: var(--tint-danger);
   border-color: var(--line-danger);
 }
 :root[data-theme="light"] .background-update {
-  background: #e0f0f2;
+  background: var(--tint-info);
   border-color: var(--line-info);
 }
 :root[data-theme="light"] .report-dialog-logo {
-  background: #e7effb;
-}
-:root[data-theme="light"] .report-hero > span {
-  background: #e0f0e8;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .report-hero.warning > span {
-  background: #f7ecd5;
-}
-:root[data-theme="light"] .report-summary-grid article {
-  background: #eef1f6;
-}
-:root[data-theme="light"] .report-item {
-  background: #eef1f6;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .disk-item-actions button {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .disk-item-actions .disk-clean-button {
-  background: #e0f0f2;
+  background: var(--tint-info);
   border-color: var(--line-info);
 }
 :root[data-theme="light"] .disk-clean-confirm-icon {
-  background: #e0f0f2;
+  background: var(--tint-info);
   border-color: var(--line-info);
 }
-:root[data-theme="light"] .disk-clean-path {
-  background: #eef1f6;
-}
 :root[data-theme="light"] .installed-hero-icon {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .installed-page-card {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .installed-page-card.selected {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
-:root[data-theme="light"] .onboarding-replay > div > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .language-choice > span {
-  background: #e7effb;
-}
 :root[data-theme="light"] .language-choice.coming-soon > span {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .log-dialog-logo {
-  background: #e7effb;
-}
-:root[data-theme="light"] .log-summary-grid article {
-  background: #eef1f6;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .log-entry {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .log-entry-level {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .log-entry.error .log-entry-level {
-  background: #f9e4e9;
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .log-entry.warning .log-entry-level {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .log-entry.success .log-entry-level {
-  background: #e0f0e8;
+  background: var(--tint-success);
 }
 :root[data-theme="light"] .onboarding-header button {
-  background: #eef1f6;
   border-color: var(--line);
 }
 :root[data-theme="light"] .onboarding-visual > b {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .onboarding-tip > span {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .context-help-popover > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .context-help-popover > button {
-  background: #eef1f6;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .operation-row.interrupted .operation-status {
-  background: #e7effb;
-}
-:root[data-theme="light"] .operation-status {
-  background: #e7effb;
-}
-:root[data-theme="light"] .operation-row.failed .operation-status {
-  background: #f9e4e9;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .operation-row.success .operation-status {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .operation-row.resolved .operation-status {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .operation-process-item {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .windows-manage-icon {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .installed-page-card.detection-only .installed-select-box {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .security-recommendation {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
-:root[data-theme="light"] .guide-help-grid article {
-  background: #eef1f6;
-}
 :root[data-theme="light"] .guide-help-grid article > span {
-  background: #e7effb;
   border-color: #bcd0ec;
 }
 :root[data-theme="light"] .notification-item:not(.unread) .notification-symbol {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .native-error-actions button {
-  background: #eef1f6;
   border-color: var(--line);
 }
 :root[data-theme="light"] .native-error-actions #openNativeErrorHelp {
-  background: #f9e4e9;
+  background: var(--tint-danger);
   border-color: var(--line-danger);
   color: #8a3b4c;
 }
 :root[data-theme="light"] .native-error-actions #closeNativeError {
-  background: #eef1f6;
+  background: var(--panel-3);
   border-color: var(--line);
 }
 :root[data-theme="light"] .post-install-verified-heading > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .post-install-app-icon {
-  background: #eef1f6;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .alpha-restore-choice > span {
-  background: #e7effb;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .alpha-result-list article.safe > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .alpha-result-list article.recommended > span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .alpha-result-list article.advanced > span {
   background: #efe9fb;
 }
 :root[data-theme="light"] .alpha-review-logo {
-  background: #e7effb;
+  background: var(--panel-accent);
   color: var(--text-cyan);
 }
 :root[data-theme="light"] .alpha-review-row.safe > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .alpha-review-row.recommended > span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   color: #8a6524;
 }
 :root[data-theme="light"] .alpha-review-row.advanced > span {
   background: #efe9fb;
 }
-:root[data-theme="light"] .alpha-review-warning > span {
-  background: #f7ecd5;
-}
 :root[data-theme="light"] .browser-safety-banner > span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .browser-safety-banner b {
-  background: #e0f0f2;
-}
-:root[data-theme="light"] .browser-card-icon {
-  background: #e7effb;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .browser-category > span {
-  background: #e7effb;
-}
-:root[data-theme="light"] .browser-analysis-breakdown > span {
-  background: #eef1f6;
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .browser-data-details-grid article.sensitive {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   border-color: var(--line-warning);
 }
 :root[data-theme="light"] .browser-protected-data span {
-  background: #e0f0f2;
+  background: var(--tint-info);
 }
 :root[data-theme="light"] .browser-analysis-protection span.warning {
-  background: #f7ecd5;
+  background: var(--tint-warning);
   border-color: var(--line-warning);
 }
 :root[data-theme="light"] .browser-analysis-protection .protected {
-  background: #e0f0f2;
+  background: var(--tint-info);
   border-color: var(--line-info);
 }
 :root[data-theme="light"] .browser-sync-warning > span {
-  background: #f7ecd5;
+  background: var(--tint-warning);
 }
 :root[data-theme="light"] .nav-menu-copy strong {
   color: #2f5aa8;
@@ -1136,7 +1007,7 @@
 }
 :root[data-theme="light"] .troubleshooting-help .text-button {
   border-color: var(--line-3);
-  background: #e7effb;
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .troubleshooting-help .text-button:focus-visible {
