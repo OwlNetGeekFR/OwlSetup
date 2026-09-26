@@ -48,7 +48,11 @@ export function capturerStylesCalcules({ indices } = {}) {
     const decrire = (element) => {
       const chaine = [nommer(element, true)];
       if (element.id) return chaine[0];
-      for (let p = element.parentElement; p && p !== document.body && chaine.length < 4; p = p.parentElement) {
+      for (
+        let p = element.parentElement;
+        p && p !== document.body && chaine.length < 4;
+        p = p.parentElement
+      ) {
         chaine.unshift(nommer(p, false));
         if (p.id) break;
       }
