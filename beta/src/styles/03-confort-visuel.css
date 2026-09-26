@@ -53,7 +53,7 @@
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: #101721;
+  background: var(--panel-2);
 }
 .guided-install-steps li > b {
   width: 28px;
@@ -95,7 +95,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #174431;
+  background: var(--tint-success);
   color: #67d8a6;
 }
 .guided-install-note strong,
@@ -148,7 +148,7 @@
   padding: 10px;
   border: 1px solid var(--line-3);
   border-radius: 7px;
-  background: #09111a;
+  background: var(--panel);
   color: #8fb3d9;
   font:
     9px/1.65 Consolas,
@@ -367,7 +367,7 @@ body {
   padding: 8px 9px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
-  background: #101722;
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 22px 1fr;
   grid-template-rows: auto auto;
@@ -381,7 +381,7 @@ body {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #1c2b3e;
+  background: var(--panel-accent);
   color: #8ea5c2;
   font-style: normal;
   font-weight: 800;
@@ -400,21 +400,21 @@ body {
   border-color: #23533f;
 }
 .preflight-grid > span.success i {
-  background: #173f31;
+  background: var(--tint-success);
   color: #61d8a8;
 }
 .preflight-grid > span.warning {
   border-color: #5a4824;
 }
 .preflight-grid > span.warning i {
-  background: #503b17;
+  background: var(--tint-warning);
   color: #efc45c;
 }
 .preflight-grid > span.failed {
   border-color: var(--line-danger);
 }
 .preflight-grid > span.failed i {
-  background: #512632;
+  background: var(--tint-danger);
   color: #f18b9d;
 }
 .primary-dialog-button:disabled,
@@ -509,7 +509,7 @@ body {
   padding: 9px;
   border: 1px solid #3b2d35;
   border-radius: 8px;
-  background: #111721;
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;

@@ -26,6 +26,15 @@
   --line-warning: #765c31;
   --line-danger: #70404c;
   --line-info: #285346;
+  /* Fonds de surface : --panel et --panel-2, puis deux niveaux plus clairs, une surface d'accent et des pastilles teintées de sens. Le thème clair redéfinit les mêmes jetons. */
+  --panel-3: #151e2b;
+  --panel-4: #1c2838;
+  --panel-accent: #16283f;
+  --tint-accent: #173459;
+  --tint-success: #173e31;
+  --tint-warning: #493819;
+  --tint-danger: #4b2833;
+  --tint-info: #173d39;
 }
 * {
   box-sizing: border-box;
@@ -185,7 +194,7 @@ nav {
   padding: 3px 6px;
   border-radius: 20px;
   color: #a7b1c1;
-  background: #202735;
+  background: var(--panel-3);
   text-align: center;
 }
 .nav-item.active {
@@ -212,7 +221,7 @@ nav {
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #10151d;
+  background: var(--panel);
 }
 .system-title {
   display: flex;
@@ -277,7 +286,7 @@ nav {
   margin-top: 8px;
   border: 1px solid var(--line-2);
   border-radius: 7px;
-  background: #0c131d;
+  background: var(--panel);
   color: var(--muted);
   font-size: 9px;
   font-weight: 700;
@@ -287,7 +296,7 @@ nav {
 .system-refresh:hover {
   border-color: #38577f;
   color: #b6c9e3;
-  background: #101b29;
+  background: var(--panel-3);
 }
 .system-refresh span {
   margin-right: 5px;
@@ -321,7 +330,7 @@ nav {
   padding: 10px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
-  background: #0e1721;
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -456,7 +465,7 @@ main {
 .top-nav-toggle.active {
   border-color: var(--line-2);
   color: #edf3fc;
-  background: #121c2a;
+  background: var(--panel-2);
 }
 .top-nav-item.active,
 .top-nav-toggle.active {
@@ -477,7 +486,7 @@ main {
 .top-nav-group.open > .top-nav-toggle {
   border-color: #34517a;
   color: #fff;
-  background: #142136;
+  background: var(--panel-accent);
 }
 .top-nav-group.open > .top-nav-toggle i {
   transform: rotate(180deg);
@@ -528,7 +537,7 @@ main {
 }
 .top-nav-menu .nav-menu-icon {
   flex: 0 0 auto;
-  background: #17263a;
+  background: var(--panel-accent);
   color: #79a9ef;
   display: grid;
   place-items: center;
@@ -551,7 +560,7 @@ main {
   font-weight: 500;
 }
 .top-nav-menu .nav-item:hover {
-  background: #131f2e;
+  background: var(--panel-3);
 }
 .top-nav-menu .nav-item.active .nav-menu-icon {
   background: #21447b;
@@ -611,7 +620,7 @@ main {
   height: 35px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: #111823;
+  background: var(--panel-2);
   color: var(--muted);
   display: grid;
   place-items: center;
@@ -863,7 +872,7 @@ h3 {
   padding: 0 13px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #0e131b;
+  background: var(--panel);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -891,7 +900,7 @@ h3 {
   padding: 9px 12px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: #101721;
+  background: var(--panel-2);
   color: #8492a6;
   display: grid;
   grid-template-columns: 32px 1fr auto;
@@ -905,7 +914,7 @@ h3 {
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: #192b45;
+  background: var(--panel-accent);
   color: #79a8f5;
   display: grid;
   place-items: center;
@@ -930,7 +939,7 @@ h3 {
   min-width: 25px;
   padding: 5px 7px;
   border-radius: 999px;
-  background: #202c3e;
+  background: var(--panel-4);
   color: #9cadc3;
   text-align: center;
   font-size: 8px;
@@ -974,7 +983,7 @@ h3 {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #0f141c;
+  background: var(--panel);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: start;
@@ -985,7 +994,7 @@ h3 {
 }
 .app-card:hover {
   border-color: var(--line-3);
-  background: #121925;
+  background: var(--panel-2);
   transform: translateY(-1px);
 }
 .app-card.selected {
@@ -1188,7 +1197,7 @@ h3 {
   height: 23px;
   border: 1px solid var(--line-3);
   border-radius: 6px;
-  background: #121a25;
+  background: var(--panel-2);
   color: #78869a;
   cursor: pointer;
 }
@@ -1214,7 +1223,7 @@ h3 {
   padding: 11px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: #101721;
+  background: var(--panel);
 }
 .profile-panel summary {
   min-height: 40px;
@@ -1272,7 +1281,7 @@ h3 {
   height: 34px;
   border: 1px solid var(--line-2);
   border-radius: 7px;
-  background: #0c121b;
+  background: var(--panel);
   color: #dbe3ed;
   padding: 0 10px;
   font-size: 8px;
@@ -1386,7 +1395,7 @@ h3 {
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: #101721;
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1411,7 +1420,7 @@ h3 {
   padding: 0 9px;
   border: 1px solid var(--line-3);
   border-radius: 6px;
-  background: #141e2b;
+  background: var(--panel-3);
   color: #84a4d0;
   font-size: 7px;
   cursor: pointer;
@@ -1420,7 +1429,7 @@ h3 {
   min-width: 74px;
   padding: 5px 7px;
   border-radius: 6px;
-  background: #17283e;
+  background: var(--panel-accent);
   color: #75a6e9;
   text-align: center;
   font-size: 7px;
@@ -1461,7 +1470,7 @@ h3 {
 .tool-progress > div {
   height: 6px;
   border-radius: 10px;
-  background: #1c2838;
+  background: var(--panel-4);
   overflow: hidden;
 }
 .tool-progress i {
@@ -1504,7 +1513,7 @@ h3 {
   display: grid;
   place-items: center;
   color: #61d8bc;
-  background: #173d39;
+  background: var(--tint-info);
   font-size: 24px;
 }
 .security-score strong,
@@ -1564,11 +1573,11 @@ h3 {
 }
 .security-icon.green {
   color: #64d7aa;
-  background: #173d32;
+  background: var(--tint-success);
 }
 .security-icon.blue {
   color: #7fa9ff;
-  background: #19375e;
+  background: var(--tint-accent);
 }
 .security-icon.violet {
   color: #b08aff;
@@ -1611,7 +1620,7 @@ h3 {
   padding: 17px;
   border: 1px solid var(--line-2);
   border-radius: 11px;
-  background: #101721;
+  background: var(--panel);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1641,7 +1650,7 @@ h3 {
   display: grid;
   place-items: center;
   color: #63d8ae;
-  background: #173f32;
+  background: var(--tint-success);
 }
 .simulation-badge strong,
 .simulation-badge small {
@@ -1662,7 +1671,7 @@ h3 {
 }
 .danger-simulation > span {
   color: #ef8c9c;
-  background: #4b2833;
+  background: var(--tint-danger);
 }
 .danger-simulation strong {
   color: var(--text-danger);
@@ -1676,7 +1685,7 @@ h3 {
   padding: 8px 10px;
   border: 1px solid var(--line-2);
   border-radius: 7px;
-  background: #101620;
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -195,7 +195,7 @@ nav {
   padding: 3px 6px;
   border-radius: 20px;
   color: #a7b1c1;
-  background: var(--panel-4);
+  background: var(--panel-3);
   text-align: center;
 }
 .nav-item.active {
@@ -297,7 +297,7 @@ nav {
 .system-refresh:hover {
   border-color: #38577f;
   color: #b6c9e3;
-  background: var(--panel-2);
+  background: var(--panel-3);
 }
 .system-refresh span {
   margin-right: 5px;
@@ -331,7 +331,7 @@ nav {
   padding: 10px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -621,7 +621,7 @@ main {
   height: 35px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: var(--muted);
   display: grid;
   place-items: center;
@@ -901,7 +901,7 @@ h3 {
   padding: 9px 12px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: #8492a6;
   display: grid;
   grid-template-columns: 32px 1fr auto;
@@ -1396,7 +1396,7 @@ h3 {
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1421,7 +1421,7 @@ h3 {
   padding: 0 9px;
   border: 1px solid var(--line-3);
   border-radius: 6px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #84a4d0;
   font-size: 7px;
   cursor: pointer;
@@ -1686,7 +1686,7 @@ h3 {
   padding: 8px 10px;
   border: 1px solid var(--line-2);
   border-radius: 7px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1788,7 +1788,7 @@ h3 {
 .winget-discovery button.needs-query {
   border-color: #36557c;
   color: #9eb5d2;
-  background: var(--panel-2);
+  background: var(--panel-3);
 }
 .winget-discovery button.needs-query:hover {
   border-color: #5f97d9;
@@ -1800,7 +1800,7 @@ h3 {
   padding: 11px 14px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #9bb5d8;
   font-size: 11px;
 }
@@ -2057,7 +2057,7 @@ h3 {
 }
 .home-secondary {
   border: 1px solid var(--line-2);
-  background: var(--panel);
+  background: var(--panel-2);
   color: #9ba6b6;
 }
 .health-widget {
@@ -3014,7 +3014,7 @@ h3 {
   height: 29px;
   border: 1px solid var(--line-2);
   border-radius: 7px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: #7d899b;
   font-size: 17px;
   cursor: pointer;
@@ -3123,7 +3123,7 @@ h3 {
   height: 7px;
   margin: 17px 0 20px;
   border-radius: 10px;
-  background: var(--panel-4);
+  background: var(--panel-3);
   overflow: hidden;
 }
 .progress-track i {
@@ -3139,7 +3139,7 @@ h3 {
   padding: 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 11px;
@@ -3194,7 +3194,7 @@ h3 {
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .install-preferences label,
 .install-preferences label > span,
@@ -3653,7 +3653,7 @@ h3 {
   padding: 11px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3710,7 +3710,7 @@ h3 {
   width: 38px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #6d8db9;
   cursor: pointer;
   font-size: 15px;
@@ -3734,7 +3734,7 @@ h3 {
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 11px;
@@ -3778,7 +3778,7 @@ h3 {
   padding: 9px 11px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: auto auto 1fr auto;
   align-items: center;
@@ -4068,7 +4068,7 @@ h3 {
   padding: 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -4272,7 +4272,7 @@ h3 {
   padding: 13px 15px;
   border: 1px solid var(--line-2);
   border-radius: 11px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   gap: 11px;
@@ -4554,7 +4554,7 @@ h3 {
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .guided-install-steps li > b {
   width: 28px;
@@ -4868,7 +4868,7 @@ body {
   padding: 8px 9px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 22px 1fr;
   grid-template-rows: auto auto;
@@ -5010,7 +5010,7 @@ body {
   padding: 9px;
   border: 1px solid #3b2d35;
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -5157,7 +5157,7 @@ body {
   border-color: var(--line-warning);
 }
 .notification-item:not(.unread) {
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .notification-symbol {
   width: 31px;
@@ -5455,7 +5455,7 @@ body {
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .report-summary-grid small,
 .report-summary-grid strong {
@@ -5481,7 +5481,7 @@ body {
   padding: 11px 13px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
@@ -5522,7 +5522,7 @@ body {
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -6090,7 +6090,7 @@ body {
   border-radius: 9px;
   appearance: none;
   -webkit-appearance: none;
-  background-color: var(--panel-2);
+  background-color: var(--panel-3);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238bb7ef' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 13px center;
@@ -6108,7 +6108,7 @@ body {
   box-shadow: 0 0 0 3px rgba(76, 137, 211, 0.13);
 }
 .installed-page-tools select option {
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #eaf2fc;
 }
 .installed-selection-panel {
@@ -6492,7 +6492,7 @@ body {
   padding: 13px 15px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: #dce8f7;
   display: grid;
   grid-template-columns: 45px 1fr auto;
@@ -6575,7 +6575,7 @@ body {
   padding: 16px 18px;
   border: 1px solid var(--line-3);
   border-radius: 13px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6878,7 +6878,7 @@ body {
   padding: 12px 14px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .log-summary-grid small,
 .log-summary-grid strong {
@@ -6917,7 +6917,7 @@ body {
   padding: 9px 11px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 30px 70px minmax(0, 1fr);
   align-items: start;
@@ -7182,7 +7182,7 @@ body {
   padding: 8px 11px;
   border: 1px solid var(--line-3);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: var(--text-blue);
   font-size: 12px;
   cursor: pointer;
@@ -7630,7 +7630,7 @@ body {
   height: 27px;
   border: 1px solid var(--line-3);
   border-radius: 7px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #8091a7;
   cursor: pointer;
 }
@@ -7723,7 +7723,7 @@ body {
   padding: 0 13px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: var(--text);
   color-scheme: dark;
 }
@@ -7735,7 +7735,7 @@ body {
 }
 .history-toolbar select option,
 .security-log-actions select option {
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #eef4fb;
 }
 .accessibility-settings {
@@ -8441,7 +8441,7 @@ body.reduced-motion *::after {
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -8501,7 +8501,7 @@ body.reduced-motion *::after {
   padding: 0 10px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #eef4fb;
   color-scheme: dark;
 }
@@ -8712,7 +8712,7 @@ body.reduced-motion *::after {
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   display: flex;
   align-items: flex-start;
   gap: 11px;
@@ -8882,7 +8882,7 @@ body.reduced-motion *::after {
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 12px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
@@ -8926,7 +8926,7 @@ body.reduced-motion *::after {
   padding: 0 9px;
   border: 1px solid var(--line-3);
   border-radius: 8px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #eef5ff;
 }
 .first-run-privacy {
@@ -9773,7 +9773,7 @@ samp,
   padding: 0 12px;
   border: 1px solid var(--line-3);
   border-radius: 8px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: var(--muted);
   display: grid;
   place-items: center;
@@ -9816,7 +9816,7 @@ samp,
   padding: 16px 18px;
   border: 1px solid var(--line-3);
   border-radius: 13px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -10120,7 +10120,7 @@ samp,
 :root[data-theme="light"] .dialog-warning,
 :root[data-theme="light"] .notice {
   border-color: var(--line-warning);
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #6b5827;
 }
 :root[data-theme="light"] .security-card,
@@ -10178,7 +10178,7 @@ samp,
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: block;
 }
 .telemetry-choice-list b,
@@ -10300,7 +10300,7 @@ samp,
   padding: 4px 9px;
   border: 1px solid #2d4d75;
   border-radius: 999px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #83b4f7;
   font-size: 9px;
   font-weight: 700;
@@ -10360,7 +10360,7 @@ samp,
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: var(--panel-2);
   display: grid;
   grid-template-columns: 38px 1fr;
   gap: 10px;
@@ -10897,7 +10897,7 @@ samp,
   padding: 12px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   display: flex;
   align-items: center;
   gap: 11px;
@@ -11031,7 +11031,7 @@ samp,
   padding: 0 11px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel);
   color: #e9f1fb;
 }
 .settings-toggle.compact {
@@ -11141,7 +11141,7 @@ samp,
   padding: 4px 6px;
   border: 1px solid var(--line-3);
   border-radius: 6px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   color: #7790ab;
   font-size: 8px;
   font-style: normal;
@@ -11282,7 +11282,7 @@ samp,
   padding: 11px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
@@ -11449,7 +11449,7 @@ samp,
   padding: 22px;
   border: 1px solid var(--line-3);
   border-radius: 16px;
-  background: var(--panel-2);
+  background: var(--panel-3);
 }
 .browser-list {
   display: grid;
@@ -11648,7 +11648,7 @@ samp,
   padding: 11px 13px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .browser-cleanup-review small {
   color: #8297ad;
@@ -11659,7 +11659,7 @@ samp,
   padding: 14px;
   border: 1px solid var(--line-3);
   border-radius: 11px;
-  background: var(--panel);
+  background: var(--panel-2);
   cursor: pointer;
 }
 .browser-close-choice input {
@@ -11765,7 +11765,7 @@ samp,
   padding: 9px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: #95a8bd;
   text-align: left;
   cursor: pointer;
@@ -11803,7 +11803,7 @@ samp,
   padding: 8px 10px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2px 8px;
@@ -11881,7 +11881,7 @@ samp,
 }
 .browser-data-details[open] summary {
   border-bottom: 1px solid var(--line-3);
-  background: #101e2e;
+  background: var(--panel-3);
 }
 .browser-data-details-grid {
   display: grid;
@@ -11893,7 +11893,7 @@ samp,
   padding: 10px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: var(--panel-3);
 }
 .browser-data-details-grid article.sensitive {
   border-color: var(--line-warning);
@@ -11946,7 +11946,7 @@ samp,
   padding: 10px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-2);
 }
 .browser-analysis-protection b {
   width: 100%;
@@ -12600,7 +12600,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .telemetry-summary {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #3f6d5a;
 }
 :root[data-theme="light"] .telemetry-preview-dialog {
@@ -12625,7 +12625,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .telemetry-preview-exclusions {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
 }
 :root[data-theme="light"] .telemetry-preview-exclusions span {
   background: var(--tint-success);
@@ -12675,6 +12675,7 @@ label.windows-update-row {
 }
 /* Diagnostic anonymisé du formulaire d'aide */
 :root[data-theme="light"] .feedback-diagnostics {
+  background: var(--panel-3);
   color: #41597a;
 }
 /* Cadres d'icônes du catalogue / des mises à jour */
@@ -12705,7 +12706,7 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .restore-protection-icon {
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #8a6524;
 }
 :root[data-theme="light"] .restore-protection-dialog ol {
@@ -12729,7 +12730,7 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .external-catalog-notice {
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #6b5827;
 }
 :root[data-theme="light"] .build-badge {
@@ -12763,7 +12764,7 @@ label.windows-update-row {
   background: linear-gradient(145deg, #eef2f7, #e6ebf2);
 }
 :root[data-theme="light"] .browser-safety-banner {
-  background: var(--tint-success);
+  background: #e9f4ee;
 }
 :root[data-theme="light"] .browser-selection-toolbar button {
   border-color: var(--line-3);
@@ -12943,7 +12944,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .home-secondary.app-update-button {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #2f6d55;
 }
 
@@ -12957,7 +12958,7 @@ label.windows-update-row {
 :root[data-theme="light"] .cleanup-result-card,
 :root[data-theme="light"] .protected-folders {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #2f6d55;
 }
 
@@ -12976,7 +12977,7 @@ label.windows-update-row {
 :root[data-theme="light"] .alpha-review-warning,
 :root[data-theme="light"] .system-restart-reason {
   border-color: var(--line-warning);
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #7a5c22;
 }
 :root[data-theme="light"] .help-hint {
@@ -13044,7 +13045,7 @@ label.windows-update-row {
 :root[data-theme="light"] .background-operation.background-update,
 :root[data-theme="light"] .background-operation.background-update .background-operation-copy {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
 }
 :root[data-theme="light"] .background-operation.background-uninstall,
 :root[data-theme="light"] .background-operation.background-uninstall .background-operation-copy {
@@ -13052,7 +13053,7 @@ label.windows-update-row {
   background: #fbeef1;
 }
 :root[data-theme="light"] .toast {
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #2f6d55;
 }
 :root[data-theme="light"] .toast.toast-error {
@@ -13061,7 +13062,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .toast.toast-warning {
   border-color: var(--line-warning);
-  background: var(--tint-warning);
+  background: #f7f0dd;
 }
 
 /* --- Onboarding / premier demarrage --- */
@@ -13165,6 +13166,7 @@ label.windows-update-row {
 /* --- Divers --- */
 :root[data-theme="light"] .update-notification {
   border-color: var(--line-2);
+  background: var(--panel-3);
   color: #53637a;
 }
 :root[data-theme="light"] .update-notification b {
@@ -13292,7 +13294,7 @@ label.windows-update-row {
 
 /* Notice "executable non signe" de la modale mise a jour */
 :root[data-theme="light"] .update-signing-notice {
-  background: var(--tint-warning);
+  background: #f7f0dd;
 }
 :root[data-theme="light"] .update-signing-notice > span {
   background: #f0e2c0;
@@ -13411,7 +13413,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .browser-analysis-protection span {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #2f6d55;
 }
 :root[data-theme="light"] .browser-category em {
@@ -13452,11 +13454,17 @@ label.windows-update-row {
   background: var(--panel-3);
   border-color: var(--line);
 }
+:root[data-theme="light"] .history-type {
+  background: var(--panel-accent);
+}
 :root[data-theme="light"] .security-grid article {
   background: var(--panel-3);
 }
 :root[data-theme="light"] .simulation-badge > span {
   background: var(--tint-info);
+}
+:root[data-theme="light"] .danger-simulation > span {
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .winget-discovery button.needs-query {
   background: var(--panel-3);
@@ -13508,6 +13516,9 @@ label.windows-update-row {
 :root[data-theme="light"] .update-steps li {
   background: var(--panel-3);
 }
+:root[data-theme="light"] .cleanup-option em {
+  background: var(--panel-3);
+}
 :root[data-theme="light"] .danger-note > span {
   background: var(--tint-danger);
 }
@@ -13519,6 +13530,9 @@ label.windows-update-row {
   background: var(--tint-danger);
 }
 :root[data-theme="light"] .batch-uninstall-list article {
+  background: var(--panel-3);
+}
+:root[data-theme="light"] .batch-item-state {
   background: var(--panel-3);
 }
 :root[data-theme="light"] .update-progress-steps > div.active > span {
@@ -13612,6 +13626,9 @@ label.windows-update-row {
 :root[data-theme="light"] .disk-clean-confirm-icon {
   background: var(--tint-info);
   border-color: var(--line-info);
+}
+:root[data-theme="light"] .disk-clean-path {
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .installed-hero-icon {
   background: var(--tint-info);
@@ -13950,7 +13967,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .schedule-note {
   border-color: var(--line-warning);
-  background: var(--tint-warning);
+  background: #f7f0dd;
 }
 :root[data-theme="light"] .schedule-note > span {
   background: #f0e2c0;
