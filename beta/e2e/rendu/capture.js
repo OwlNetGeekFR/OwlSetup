@@ -38,11 +38,21 @@ export function capturerStylesCalcules({ indices } = {}) {
   };
 
   if (indices) {
+    const nommer = (element, toutesLesClasses) => {
+      if (element.id) return `${element.localName}#${element.id}`;
+      const classes = [...element.classList].slice(0, toutesLesClasses ? undefined : 2);
+      return element.localName + classes.map((nom) => `.${nom}`).join("");
+    };
+    // Un `span` seul ne dit rien : on remonte jusqu'au premier ancêtre qui a
+    // un id, sur trois niveaux au plus.
     const decrire = (element) => {
-      const classes = [...element.classList].map((nom) => `.${nom}`).join("");
-      const id = element.id ? `#${element.id}` : "";
-      const parent = element.parentElement?.id ? `#${element.parentElement.id} > ` : "";
-      return `${parent}${element.localName}${id}${classes}`;
+      const chaine = [nommer(element, true)];
+      if (element.id) return chaine[0];
+      for (let p = element.parentElement; p && p !== document.body && chaine.length < 4; p = p.parentElement) {
+        chaine.unshift(nommer(p, false));
+        if (p.id) break;
+      }
+      return chaine.join(" > ");
     };
     return indices.map((index) => ({
       index,

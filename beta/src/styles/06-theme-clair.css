@@ -8,7 +8,7 @@
   padding: 16px 18px;
   border: 1px solid var(--line-3);
   border-radius: 13px;
-  background: var(--panel);
+  background: #0d1723;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,7 +62,7 @@
   padding: 0 10px;
   border: 1px solid var(--line-3);
   border-radius: 8px;
-  background: var(--panel);
+  background: #09121c;
   color: #dce8f7;
 }
 .appearance-settings label.update-channel-toggle {
@@ -122,14 +122,6 @@
   --line-warning: #e6cfa0;
   --line-danger: #e6c4cc;
   --line-info: #b7dbe0;
-  --panel-3: #eef1f6;
-  --panel-4: #eef1f6;
-  --panel-accent: #e7effb;
-  --tint-accent: #e7effb;
-  --tint-success: #e0f0e8;
-  --tint-warning: #f7ecd5;
-  --tint-danger: #f9e4e9;
-  --tint-info: #e0f0f2;
 }
 :root[data-theme="light"] body {
   color: var(--text);
@@ -154,17 +146,18 @@
 :root[data-theme="light"] .top-nav-item:hover,
 :root[data-theme="light"] .top-nav-toggle:hover {
   color: #16243a;
+  background: #edf3fa;
 }
 :root[data-theme="light"] .top-nav-item.active,
 :root[data-theme="light"] .top-nav-toggle.active,
 :root[data-theme="light"] .top-nav-group.open .top-nav-toggle {
   color: #16243a;
   border-color: var(--line-5);
-  background: var(--panel-accent);
+  background: #e7effb;
   box-shadow: inset 0 -2px #3270da;
 }
 :root[data-theme="light"] .top-nav-menu {
-  background: var(--panel);
+  background: #f6f8fb;
   box-shadow: 0 16px 40px rgba(37, 59, 88, 0.14);
 }
 :root[data-theme="light"] .top-nav-menu a,
@@ -173,7 +166,7 @@
 }
 :root[data-theme="light"] .top-nav-menu a:hover,
 :root[data-theme="light"] .top-nav-menu button:hover {
-  background: var(--panel-3);
+  background: #eef4fb;
 }
 :root[data-theme="light"] .brand small,
 :root[data-theme="light"] .side-note,
@@ -194,7 +187,7 @@
 :root[data-theme="light"] .feedback-form,
 :root[data-theme="light"] .troubleshooting-help article {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f6f8fb;
   box-shadow: 0 6px 20px rgba(40, 67, 96, 0.05);
 }
 :root[data-theme="light"] .settings-panel:hover,
@@ -212,7 +205,7 @@
 :root[data-theme="light"] .protection-setting,
 :root[data-theme="light"] .self-test-actions {
   border-color: var(--line);
-  background: var(--panel-3);
+  background: #eef1f6;
 }
 :root[data-theme="light"] .appearance-settings select,
 :root[data-theme="light"] .alpha-schedule-grid select,
@@ -254,11 +247,11 @@
 :root[data-theme="light"] .system-refresh,
 :root[data-theme="light"] .filter {
   border-color: var(--line-3);
-  background: var(--panel);
+  background: #f7f9fc;
 }
 :root[data-theme="light"] .nav-item:hover {
   color: #1d2d44;
-  background: var(--panel-3);
+  background: #edf3fa;
 }
 :root[data-theme="light"] .nav-item.active {
   color: #122039;
@@ -270,7 +263,7 @@
 :root[data-theme="light"] .available-update,
 :root[data-theme="light"] .tool-empty {
   border-color: var(--line);
-  background: var(--panel-3);
+  background: #eef1f6;
 }
 :root[data-theme="light"] .onboarding-overlay,
 :root[data-theme="light"] .first-run-overlay,
@@ -298,28 +291,29 @@
 :root[data-theme="light"] .language-choice,
 :root[data-theme="light"] .onboarding-tip {
   border-color: var(--line-2);
-  background: var(--panel-3);
+  background: #eef1f6;
   color: #1d2a3a;
 }
 :root[data-theme="light"] .first-run-choice-buttons span {
-  background: var(--panel);
+  background: #f6f8fb;
   color: #5a6a80;
 }
 :root[data-theme="light"] .first-run-choice-buttons input:checked + span {
   border-color: var(--line-accent);
+  background: #e3ebf6;
   color: #22344f;
 }
 :root[data-theme="light"] .dialog-warning,
 :root[data-theme="light"] .notice {
   border-color: var(--line-warning);
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #6b5827;
 }
 :root[data-theme="light"] .security-card,
 :root[data-theme="light"] .cleanup-option,
 :root[data-theme="light"] .update-progress-steps > div {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f6f8fb;
 }
 :root[data-theme="light"] .selection-bar {
   border-color: #b4c3d5;
@@ -370,7 +364,7 @@
   padding: 13px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: #0d1621;
   display: block;
 }
 .telemetry-choice-list b,
@@ -492,7 +486,7 @@
   padding: 4px 9px;
   border: 1px solid #2d4d75;
   border-radius: 999px;
-  background: var(--panel-2);
+  background: #111d2c;
   color: #83b4f7;
   font-size: 9px;
   font-weight: 700;
@@ -552,7 +546,7 @@
   padding: 11px 12px;
   border: 1px solid var(--line-2);
   border-radius: 9px;
-  background: var(--panel);
+  background: #0e1722;
   display: grid;
   grid-template-columns: 38px 1fr;
   gap: 10px;
@@ -568,11 +562,11 @@
 }
 .health-details-list article.penalty > span {
   color: #f4c46a;
-  background: var(--tint-warning);
+  background: #4b391d;
 }
 .health-details-list article.healthy > span {
   color: #62d5a7;
-  background: var(--tint-success);
+  background: #173b30;
 }
 .health-details-list strong,
 .health-details-list small,
@@ -714,7 +708,7 @@
   display: grid;
   place-items: center;
   color: #6fe0b4;
-  background: var(--tint-success);
+  background: #173d31;
   font-weight: 900;
 }
 .post-install-verified-heading strong,
@@ -755,7 +749,7 @@
   height: 34px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-3);
+  background: #17222d;
   display: grid;
   place-items: center;
   font-size: 9px;
@@ -805,7 +799,7 @@
 #batchUninstallBtn[aria-busy="true"],
 #installedBatchUninstall[aria-busy="true"] {
   color: #c4d7ef;
-  background: var(--panel-accent);
+  background: #1b2b3f;
   cursor: progress;
 }
 :root[data-theme="light"] .post-install-verified {
@@ -1089,7 +1083,7 @@
   padding: 12px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel-2);
+  background: #101b29;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -1131,7 +1125,7 @@
   padding: 10px;
   border: 1px solid var(--line-2);
   border-radius: 11px;
-  background: var(--panel);
+  background: #0d1723;
   display: grid;
   gap: 10px;
 }
@@ -1144,11 +1138,11 @@
   font-weight: 900;
 }
 .alpha-result-list article.safe > span {
-  background: var(--tint-success);
+  background: #153a31;
   color: #65deb2;
 }
 .alpha-result-list article.recommended > span {
-  background: var(--tint-warning);
+  background: #493819;
   color: #ffd069;
 }
 .alpha-result-list article.advanced > span {
@@ -1197,7 +1191,7 @@
 }
 .settings-heading-icon.alpha-clock {
   color: #79e3d6;
-  background: var(--tint-info);
+  background: #16433e;
 }
 .alpha-schedule-settings {
   display: grid;
@@ -1223,7 +1217,7 @@
   padding: 0 11px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: #101a27;
   color: #e9f1fb;
 }
 .settings-toggle.compact {
@@ -1285,7 +1279,7 @@
 :root[data-theme="light"] .alpha-result-list article,
 :root[data-theme="light"] .alpha-result-metrics article {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f7faff;
 }
 
 /* OwlSetup 4.0 Alpha 2 — plan détaillé, choix des risques et confirmation. */
@@ -1307,7 +1301,7 @@
   height: 32px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-accent);
+  background: #152235;
   color: #8194aa;
   display: grid;
   place-items: center;
@@ -1315,7 +1309,7 @@
 }
 .alpha-plan-toggle input:checked + span {
   border-color: #55a99a;
-  background: var(--tint-success);
+  background: #173b33;
   color: #6ee0b7;
   box-shadow: 0 0 0 3px rgba(74, 196, 168, 0.1);
 }
@@ -1333,7 +1327,7 @@
   padding: 4px 6px;
   border: 1px solid var(--line-3);
   border-radius: 6px;
-  background: var(--panel-2);
+  background: #101b28;
   color: #7790ab;
   font-size: 8px;
   font-style: normal;
@@ -1354,7 +1348,7 @@
   padding: 0 13px;
   border: 1px solid var(--line-4);
   border-radius: 9px;
-  background: var(--panel-accent);
+  background: #14253b;
   color: #bcd7fa;
   font-size: 10px;
   font-weight: 850;
@@ -1363,7 +1357,7 @@
 .alpha-mode-actions button:nth-child(2) {
   border-color: #287062;
   color: #7be1c0;
-  background: var(--tint-info);
+  background: #14352f;
 }
 .alpha-mode-actions button:nth-child(3) {
   border-color: #614b8c;
@@ -1412,7 +1406,7 @@
   padding: 11px;
   border: 1px solid var(--line-3);
   border-radius: 11px;
-  background: var(--panel);
+  background: #0e1824;
   display: grid;
   grid-template-columns: auto 34px 1fr;
   gap: 10px;
@@ -1434,11 +1428,11 @@
   font-weight: 900;
 }
 .alpha-review-row.safe > span {
-  background: var(--tint-success);
+  background: #173b31;
   color: #67dcb1;
 }
 .alpha-review-row.recommended > span {
-  background: var(--tint-warning);
+  background: #493819;
   color: #f5c968;
 }
 .alpha-review-row.advanced > span {
@@ -1466,7 +1460,7 @@
 }
 .alpha-review-row:has(input:checked) {
   border-color: var(--line-5);
-  background: var(--panel-3);
+  background: #111f30;
   box-shadow: inset 3px 0 #58cdbd;
 }
 .alpha-review-restore {
@@ -1474,7 +1468,7 @@
   padding: 11px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel-2);
+  background: #101b29;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
@@ -1514,7 +1508,7 @@
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: var(--tint-warning);
+  background: #533d1d;
   color: #f4c76e;
   display: grid;
   place-items: center;
@@ -1560,7 +1554,7 @@
 :root[data-theme="light"] .alpha-review-row,
 :root[data-theme="light"] .alpha-review-restore {
   border-color: var(--line-3);
-  background: var(--panel);
+  background: #f7faff;
   color: #31445c;
 }
 :root[data-theme="light"] .alpha-review-dialog {
@@ -1630,7 +1624,7 @@
   font-size: 12px;
   padding: 7px 10px;
   border-radius: 999px;
-  background: var(--tint-success);
+  background: #12382e;
 }
 .browser-workspace {
   display: grid;
@@ -1641,7 +1635,7 @@
   padding: 22px;
   border: 1px solid var(--line-3);
   border-radius: 16px;
-  background: var(--panel-2);
+  background: #101a28;
 }
 .browser-list {
   display: grid;
@@ -1675,7 +1669,7 @@
   padding: 12px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel);
+  background: #0c1622;
   cursor: pointer;
 }
 .browser-card:hover {
@@ -1696,7 +1690,7 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: var(--tint-accent);
+  background: #193a5e;
   color: #75dce5;
   font-weight: 800;
 }
@@ -1727,7 +1721,7 @@
   padding: 13px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel);
+  background: #0c1622;
   cursor: pointer;
 }
 .browser-category:has(input:checked) {
@@ -1840,7 +1834,7 @@
   padding: 11px 13px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: #0d1724;
 }
 .browser-cleanup-review small {
   color: #8297ad;
@@ -1851,7 +1845,7 @@
   padding: 14px;
   border: 1px solid var(--line-3);
   border-radius: 11px;
-  background: var(--panel);
+  background: #0d1825;
   cursor: pointer;
 }
 .browser-close-choice input {
@@ -1910,7 +1904,7 @@
   padding: 9px 10px;
   border: 1px solid var(--line-2);
   border-radius: 10px;
-  background: var(--panel);
+  background: #0c1622;
   color: #8499af;
   font-size: 10px;
 }
@@ -1922,7 +1916,7 @@
   padding: 6px 8px;
   border: 1px solid var(--line-3);
   border-radius: 7px;
-  background: var(--panel-accent);
+  background: #132238;
   color: #a9c9ec;
   font-size: 9px;
   font-weight: 800;
@@ -1957,7 +1951,7 @@
   padding: 9px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: #0d1724;
   color: #95a8bd;
   text-align: left;
   cursor: pointer;
@@ -1995,7 +1989,7 @@
   padding: 8px 10px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: #0d1927;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2px 8px;
@@ -2036,7 +2030,7 @@
   margin-top: 13px;
   border: 1px solid var(--line-3);
   border-radius: 12px;
-  background: var(--panel);
+  background: #0c1622;
   overflow: hidden;
 }
 .browser-data-details summary {
@@ -2085,7 +2079,7 @@
   padding: 10px;
   border: 1px solid var(--line-3);
   border-radius: 9px;
-  background: var(--panel-2);
+  background: #0e1a28;
 }
 .browser-data-details-grid article.sensitive {
   border-color: var(--line-warning);
@@ -2138,7 +2132,7 @@
   padding: 10px;
   border: 1px solid var(--line-3);
   border-radius: 10px;
-  background: var(--panel);
+  background: #0c1724;
 }
 .browser-analysis-protection b {
   width: 100%;
@@ -2303,7 +2297,7 @@
 .filter.active {
   border-color: color-mix(in srgb, var(--filter-accent) 48%, var(--line-2));
   color: var(--filter-accent);
-  background: color-mix(in srgb, var(--filter-accent) 10%, var(--panel));
+  background: color-mix(in srgb, var(--filter-accent) 10%, #101721);
 }
 .filter.active:before {
   opacity: 1;
@@ -2474,7 +2468,7 @@
   padding: 1px 6px;
   border: 1px solid var(--line-4);
   border-radius: 999px;
-  background: var(--panel-accent);
+  background: #16283f;
   color: #8fb6e6;
   font-size: 7px;
   white-space: nowrap;
@@ -2615,7 +2609,7 @@
   padding: 1px 7px;
   border-radius: 999px;
   border: 1px solid var(--line-2);
-  background: var(--panel-accent);
+  background: #16283f;
   color: #8fb6e6;
   font-size: 7px;
   white-space: nowrap;
@@ -2730,17 +2724,18 @@ label.windows-update-row {
 }
 .wu-sev.wu-optional {
   border-color: var(--line-4);
-  background: var(--panel-accent);
+  background: #16283f;
   color: #8fb6e6;
 }
 
 /* Thème clair : inventaire + installation Windows Update — 4.0.0-beta.29 */
 :root[data-theme="light"] .windows-update-row {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f7f9fc;
 }
 :root[data-theme="light"] .windows-update-row .wu-kind {
   border-color: #b9d0ee;
+  background: #e7effb;
   color: #1d4e8f;
 }
 :root[data-theme="light"] .windows-update-row.wu-driver .wu-kind {
@@ -2764,7 +2759,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .windows-update-install-bar {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f7f9fc;
 }
 :root[data-theme="light"] .windows-update-install-bar > span {
   color: var(--muted);
@@ -2778,21 +2773,25 @@ label.windows-update-row {
   color: #8a6524;
 }
 :root[data-theme="light"] .wu-sev.wu-optional {
+  background: #e7effb;
   color: #1d4e8f;
 }
 
 /* Thème clair : harmonisation « bleu ardoise atténué » des composants restés sombres — 4.0.0-beta.30 */
 /* Rapports d'erreurs facultatifs (télémétrie) */
+:root[data-theme="light"] .telemetry-choice-list label > span {
+  background: #eef1f6;
+}
 :root[data-theme="light"] .telemetry-choice-list small {
   color: var(--muted);
 }
 :root[data-theme="light"] .telemetry-choice-list input:checked + span {
-  background: var(--panel-accent);
+  background: #e3ebf6;
   box-shadow: 0 0 0 1px rgba(58, 103, 181, 0.18);
 }
 :root[data-theme="light"] .telemetry-summary {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
   color: #3f6d5a;
 }
 :root[data-theme="light"] .telemetry-preview-dialog {
@@ -2812,20 +2811,21 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .telemetry-preview-dialog pre {
-  background: var(--panel-3);
+  background: #eef1f6;
   color: #2f5a9e;
 }
 :root[data-theme="light"] .telemetry-preview-exclusions {
   border-color: var(--line-success);
-  background: var(--tint-success);
+  background: #e9f4ee;
 }
 :root[data-theme="light"] .telemetry-preview-exclusions span {
-  background: var(--tint-success);
+  background: #dcefe5;
   color: var(--text-green);
 }
 /* Détail transparent du score de maintenance */
 :root[data-theme="light"] .health-details-button {
   border-color: var(--line-3);
+  background: #e9eef6;
   color: var(--text-blue);
 }
 :root[data-theme="light"] .health-details-button:hover {
@@ -2849,7 +2849,7 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .health-details-list article {
-  background: var(--panel-3);
+  background: #eef1f6;
 }
 :root[data-theme="light"] .health-details-list small {
   color: var(--muted);
@@ -2858,15 +2858,16 @@ label.windows-update-row {
   color: #8a6524;
 }
 :root[data-theme="light"] .health-details-list article.penalty > span {
-  background: var(--tint-warning);
+  background: #f7ecd5;
   color: #8a6524;
 }
 :root[data-theme="light"] .health-details-list article.healthy > span {
-  background: var(--tint-success);
+  background: #dcefe5;
   color: var(--text-green);
 }
 /* Diagnostic anonymisé du formulaire d'aide */
 :root[data-theme="light"] .feedback-diagnostics {
+  background: #eef1f6;
   color: #41597a;
 }
 /* Cadres d'icônes du catalogue / des mises à jour */
@@ -2897,10 +2898,11 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .restore-protection-icon {
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #8a6524;
 }
 :root[data-theme="light"] .restore-protection-dialog ol {
+  background: #eef1f6;
   color: #37475c;
 }
 :root[data-theme="light"] .restore-protection-note {
@@ -2910,7 +2912,7 @@ label.windows-update-row {
 :root[data-theme="light"] .update-selfmanaged,
 :root[data-theme="light"] .browser-data-details summary > span {
   border-color: #b9d0ee;
-  background: var(--panel-accent);
+  background: #e7effb;
   color: #1d4e8f;
 }
 :root[data-theme="light"] .ignored-updates-bar {
@@ -2921,11 +2923,11 @@ label.windows-update-row {
   color: var(--muted);
 }
 :root[data-theme="light"] .external-catalog-notice {
-  background: var(--tint-warning);
+  background: #f7f0dd;
   color: #6b5827;
 }
 :root[data-theme="light"] .build-badge {
-  background: var(--tint-warning);
+  background: #f6edda;
   color: #8a6524;
 }
 /* Nettoyage des navigateurs : surfaces */
@@ -2933,7 +2935,7 @@ label.windows-update-row {
 :root[data-theme="light"] .browser-data-details,
 :root[data-theme="light"] .browser-data-details[open] summary {
   border-color: var(--line-2);
-  background: var(--panel);
+  background: #f6f8fb;
 }
 :root[data-theme="light"] .browser-card,
 :root[data-theme="light"] .browser-category,
@@ -2944,7 +2946,7 @@ label.windows-update-row {
 :root[data-theme="light"] .browser-data-details-grid article,
 :root[data-theme="light"] .browser-analysis-protection > div {
   border-color: var(--line);
-  background: var(--panel-3);
+  background: #eef1f6;
 }
 :root[data-theme="light"] .browser-empty {
   color: var(--muted);
@@ -2955,30 +2957,31 @@ label.windows-update-row {
   background: linear-gradient(145deg, #eef2f7, #e6ebf2);
 }
 :root[data-theme="light"] .browser-safety-banner {
-  background: var(--tint-success);
+  background: #e9f4ee;
 }
 :root[data-theme="light"] .browser-selection-toolbar button {
   border-color: var(--line-3);
+  background: #e3ebf6;
   color: #2b4f8f;
 }
 :root[data-theme="light"] .browser-presets button.active,
 :root[data-theme="light"] .browser-card.selected,
 :root[data-theme="light"] .browser-category:has(input:checked) {
   border-color: var(--line-accent);
-  background: var(--panel-accent);
+  background: #e3ebf6;
 }
 /* OwlSetup Alpha : surfaces restées sombres */
 :root[data-theme="light"] .alpha-plan-toggle > span {
-  background: var(--panel-3);
+  background: #eef1f6;
   color: var(--muted);
 }
 :root[data-theme="light"] .alpha-safety-pills span {
-  background: var(--panel-3);
+  background: #eef1f6;
   color: #41597a;
 }
 :root[data-theme="light"] .alpha-mode-actions button {
   border-color: var(--line-3);
-  background: var(--panel-accent);
+  background: #e3ebf6;
   color: #2b4f8f;
 }
 :root[data-theme="light"] .alpha-one-click-status,
