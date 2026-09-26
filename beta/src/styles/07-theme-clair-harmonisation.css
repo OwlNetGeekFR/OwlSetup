@@ -417,6 +417,7 @@
   color: var(--muted);
 }
 :root[data-theme="light"] .security-gauge em {
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .security-gauge:focus-visible em {
@@ -454,6 +455,7 @@
   color: #2f5aa8;
 }
 :root[data-theme="light"] .top-nav-menu .nav-menu-icon {
+  background: var(--panel-accent);
   color: #2f5aa8;
 }
 :root[data-theme="light"] .top-nav-menu .nav-item.active .nav-menu-icon {
@@ -490,6 +492,9 @@
 }
 :root[data-theme="light"] .top-nav-menu .nav-menu-copy small {
   color: var(--muted);
+}
+:root[data-theme="light"] .top-nav-menu .nav-item:hover {
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .top-nav-menu-title {
   color: var(--muted);
@@ -646,6 +651,9 @@
 :root[data-theme="light"] .repair-logo {
   background: var(--tint-info);
 }
+:root[data-theme="light"] .catalog-scope > span {
+  background: var(--panel-accent);
+}
 :root[data-theme="light"] .catalog-scope.active > span {
   background: var(--panel-accent);
 }
@@ -738,6 +746,9 @@
 :root[data-theme="light"] .batch-item-state {
   background: var(--panel-3);
 }
+:root[data-theme="light"] .update-progress-steps > div > span {
+  background: var(--panel-3);
+}
 :root[data-theme="light"] .update-progress-steps > div.active > span {
   background: var(--tint-info);
   color: var(--text-cyan);
@@ -763,6 +774,9 @@
 :root[data-theme="light"] .preflight-grid > span {
   background: var(--panel-3);
   border-color: var(--line);
+}
+:root[data-theme="light"] .preflight-grid i {
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .preflight-grid > span.success i {
   background: var(--tint-success);
@@ -815,6 +829,9 @@
 :root[data-theme="light"] .report-dialog-logo {
   background: var(--panel-accent);
 }
+:root[data-theme="light"] .report-hero > span {
+  background: var(--tint-success);
+}
 :root[data-theme="light"] .report-hero.warning > span {
   background: var(--tint-warning);
 }
@@ -843,6 +860,9 @@
 :root[data-theme="light"] .installed-page-card.selected {
   background: var(--panel-3);
   border-color: var(--line);
+}
+:root[data-theme="light"] .language-choice > span {
+  background: var(--panel-accent);
 }
 :root[data-theme="light"] .language-choice.coming-soon > span {
   background: var(--panel-3);
@@ -882,6 +902,12 @@
 }
 :root[data-theme="light"] .operation-row.interrupted .operation-status {
   background: var(--panel-accent);
+}
+:root[data-theme="light"] .operation-status {
+  background: var(--panel-accent);
+}
+:root[data-theme="light"] .operation-row.failed .operation-status {
+  background: var(--tint-danger);
 }
 :root[data-theme="light"] .operation-row.success .operation-status {
   background: var(--tint-info);

@@ -154,6 +154,7 @@
 :root[data-theme="light"] .top-nav-item:hover,
 :root[data-theme="light"] .top-nav-toggle:hover {
   color: #16243a;
+  background: var(--panel-3);
 }
 :root[data-theme="light"] .top-nav-item.active,
 :root[data-theme="light"] .top-nav-toggle.active,
@@ -307,6 +308,7 @@
 }
 :root[data-theme="light"] .first-run-choice-buttons input:checked + span {
   border-color: var(--line-accent);
+  background: var(--panel-accent);
   color: #22344f;
 }
 :root[data-theme="light"] .dialog-warning,
@@ -2741,6 +2743,7 @@ label.windows-update-row {
 }
 :root[data-theme="light"] .windows-update-row .wu-kind {
   border-color: #b9d0ee;
+  background: var(--panel-accent);
   color: #1d4e8f;
 }
 :root[data-theme="light"] .windows-update-row.wu-driver .wu-kind {
@@ -2783,6 +2786,9 @@ label.windows-update-row {
 
 /* Thème clair : harmonisation « bleu ardoise atténué » des composants restés sombres — 4.0.0-beta.30 */
 /* Rapports d'erreurs facultatifs (télémétrie) */
+:root[data-theme="light"] .telemetry-choice-list label > span {
+  background: var(--panel-3);
+}
 :root[data-theme="light"] .telemetry-choice-list small {
   color: var(--muted);
 }
